@@ -3,11 +3,8 @@
   --foreground: #171717;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+.gradient-background {
+  background: radial-gradient(circle, #F7F7F7 100%, #FFFFFF 100%);
 }
 
 html,
@@ -28,11 +25,20 @@ body {
   box-sizing: border-box;
   padding: 0;
   margin: 0;
+  /* Default font */
+  font-family: 'Nunito', sans-serif;
+  font-weight: 400;
+  letter-spacing: -0.05em;
 }
 
 a {
   color: inherit;
   text-decoration: none;
+}
+
+.lucide {
+  color: #513185;
+  stroke-width: 1px;
 }
 
 @media (prefers-color-scheme: dark) {
