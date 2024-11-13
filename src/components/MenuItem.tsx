@@ -11,7 +11,7 @@ const MenuItem: React.FC<MenuItemProps> = ({ children, href, sx }) => (
     <Button
         href={href}
         sx={{
-            color: '#781C6A',
+            color: 'secondary.main',
             fontFamily: "'Gugi', sans-serif",
             fontSize: '20px',
             fontWeight: 400,

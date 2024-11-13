@@ -1,4 +1,4 @@
-import { AppBar, Toolbar, Typography, Box, Button, useTheme } from '@mui/material';
+import { AppBar, Toolbar, Typography, Box, useTheme } from '@mui/material';
 import { FC } from 'react';
 import MenuItem from '../MenuItem';
 
@@ -35,7 +35,7 @@ const Header: FC = () => {
                 <Box sx={{ display: 'flex', gap: 2 }}>
                     <MenuItem href="/">Home</MenuItem>
                     <MenuItem href="/locations">Locations</MenuItem>
-                    <MenuItem href="/services">Services</MenuItem>
+                    <MenuItem href="/configurator">Services</MenuItem>
                     <MenuItem href="/about">Über Uns</MenuItem>
                     <MenuItem href="/contact">Kontakt</MenuItem>
                 </Box>

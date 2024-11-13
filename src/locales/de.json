@@ -1,0 +1,20 @@
+{
+    "common": {
+        "buttons": {
+            "submit": "Submit",
+            "cancel": "Abbrechen",
+            "save": "Speichern"
+        },
+        "errors": {
+            "required": "This field is required",
+            "invalidEmail": "Please enter a valid email address"
+        }
+    },
+    "event": {
+        "category": {
+            "lunch": "Lunch",
+            "business": "Business Meeting",
+            "wedding": "Hochzeit"
+        }
+    }
+}

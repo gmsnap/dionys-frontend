@@ -1,20 +1,14 @@
 import { ReactElement } from 'react';
-import Layout from '../layouts/ClientLayout';
-import type { NextPageWithLayout } from '../types/page';
-import Head from 'next/head';
+import Layout from '@/layouts/ClientLayout';
+import type { NextPageWithLayout } from '@/types/page';
 import LocationGrid from '@/features/clients/LocationGrid';
+import { Box } from '@mui/material';
 
 const Locations: NextPageWithLayout = () => {
     return (
-        <>
-            <Head>
-                <title>Client Dashboard</title>
-                <meta name="description" content="Manage your event locations and bookings." />
-            </Head>
-            <>
-                <LocationGrid />
-            </>
-        </>
+        <Box pt={3} className="gradient-background" sx={{ height: '100vh' }}>
+            <LocationGrid sx={{ height: '100%' }} />
+        </Box>
     );
 };
 

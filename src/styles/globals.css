@@ -4,7 +4,7 @@
 }
 
 .gradient-background {
-  background: radial-gradient(circle, #F7F7F7 100%, #FFFFFF 100%);
+  background: linear-gradient(to right, #FFFFFF, #F7F7F7, #FFFFFF);
 }
 
 html,
@@ -38,7 +38,8 @@ a {
 
 .lucide {
   color: #513185;
-  stroke-width: 1px;
+  stroke-width: 2px;
+  max-width: 20px;
 }
 
 @media (prefers-color-scheme: dark) {
