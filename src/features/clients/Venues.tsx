@@ -1,23 +1,32 @@
 import React, { useEffect, useState } from 'react';
 import { Box, SxProps, Theme, useTheme, CircularProgress, Typography, Button } from '@mui/material';
 import { title } from 'process';
+import useStore from '@/stores/eventStore';
 
 interface VenueProps {
-    locationId: number;
     sx?: SxProps<Theme>;
 }
 
-const Venues = ({ locationId, sx }: VenueProps) => {
+const Venues = ({ sx }: VenueProps) => {
     const theme = useTheme();
     const [venues, setVenues] = useState<VenueModel[]>([]);
     const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
+    const { eventConfiguration, setEventConfiguration } = useStore();
+
+    // Function to handle updating the venueId
+    const handleVenueChange = (newVenueId: number) => {
+        if (eventConfiguration) {
+            setEventConfiguration({ ...eventConfiguration, venueId: newVenueId });
+        }
+    };
 
     useEffect(() => {
         const fetchData = async () => {
             try {
                 setIsLoading(true);
-                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/venues/location/${locationId}`);
+                const response =
+                    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/venues/location/${eventConfiguration?.locationId}`);
                 if (!response.ok) {
                     throw new Error(`Error: ${response.status} ${response.statusText}`);
                 }
@@ -64,7 +73,11 @@ const Venues = ({ locationId, sx }: VenueProps) => {
                             sx={{ mb: 4 }}>
                             {venue.description}
                         </Typography>
-                        <Button variant="contained" color="primary" sx={{ flex: 1 }}>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            sx={{ flex: 1 }}
+                            onClick={() => handleVenueChange(venue.id)}>
                             Venue auswählen
                         </Button>
                     </Box>

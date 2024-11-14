@@ -1,4 +1,4 @@
-interface LocationModel {
+export interface LocationModel {
     id: number;
     title: string;
     image: string;

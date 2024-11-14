@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Box, SxProps, Theme, useTheme, CircularProgress, Typography, Button } from '@mui/material';
+import useStore from '@/stores/eventStore';
+import { formatEventCategories } from '@/utils/formatEventCategories';
 import { EventConfigurationModel } from '@/models/EventConfigurationModel';
 import Venues from './Venues';
-import { formatEventCategories } from '@/utils/formatEventCategories';
 
 interface EventConfiguratorProps {
     locationId: number;
@@ -53,12 +54,20 @@ const ConfiguratorNavItem = ({
 const EventConfigurator = ({ locationId, sx }: EventConfiguratorProps) => {
     const navItems = ['Anlass: ', 'Personen: ', 'Venue', 'Configurator', 'Summary'];
     const [selectedItem, setSelectedItem] = useState(0);
-    const [configurationModel, setConfigurationModel] =
-        useState<EventConfigurationModel | null>(createDefaultEventConfigurationModel());
+    const { location, eventConfiguration, setEventConfiguration } = useStore();
 
     const handleSelect = (index: number) => {
         setSelectedItem(index);
     }
+
+    // Initialize the configuration model if it doesn't exist
+    useEffect(() => {
+        if (!eventConfiguration || eventConfiguration.locationId !== locationId) {
+            // Set the default event configuration if it's not already set
+            setEventConfiguration(createDefaultEventConfigurationModel(locationId));
+            console.log("UP");
+        }
+    }, [eventConfiguration, locationId]);
 
     return (
         <Box sx={{ ...sx, display: 'flex', flexDirection: 'row', gap: 5 }}>
@@ -66,15 +75,15 @@ const EventConfigurator = ({ locationId, sx }: EventConfiguratorProps) => {
                 {selectedItem === 0 &&
                     <Box sx={{ mt: 4 }}>
                         <Typography variant="h3">ANLASS</Typography>
-                        <Typography variant="h6">{configurationModel &&
-                            formatEventCategories(configurationModel.occasion)}</Typography>
+                        <Typography variant="h6">{eventConfiguration &&
+                            formatEventCategories(eventConfiguration.occasion)}</Typography>
                     </Box>}
                 {selectedItem === 1 &&
                     <Box sx={{ mt: 4 }}>
                         <Typography variant="h3">PERSONEN</Typography>
                     </Box>}
                 {selectedItem === 2 &&
-                    <Venues sx={{ height: '100%', mt: 4 }} locationId={locationId} />}
+                    <Venues sx={{ height: '100%', mt: 4 }} />}
             </Box>
             {/* Configurator Navigation */}
             <Box sx={{
@@ -86,15 +95,16 @@ const EventConfigurator = ({ locationId, sx }: EventConfiguratorProps) => {
                 padding: 4,
                 mt: 4
             }}>
+                <Typography variant="h3">{eventConfiguration ? eventConfiguration.venueId.toString() : ''}</Typography>
                 {navItems.map((item, index) => {
                     let value: string;
 
                     switch (index) {
                         case 0:
-                            value = configurationModel ? formatEventCategories(configurationModel.occasion) : '';
+                            value = eventConfiguration ? formatEventCategories(eventConfiguration.occasion) : '';
                             break;
                         case 1:
-                            value = configurationModel ? configurationModel.persons.toString() : '';
+                            value = eventConfiguration ? eventConfiguration.persons.toString() : '';
                             break;
                         default:
                             value = "";
@@ -115,10 +125,11 @@ const EventConfigurator = ({ locationId, sx }: EventConfiguratorProps) => {
     )
 };
 
-function createDefaultEventConfigurationModel(): EventConfigurationModel {
+function createDefaultEventConfigurationModel(locationId: number): EventConfigurationModel {
     return {
-        locationId: 0,
+        locationId: locationId,
         venueId: 0,
+        venue: null,
         occasion: ["business"],
         persons: 50,
     };

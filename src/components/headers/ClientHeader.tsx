@@ -1,9 +1,12 @@
-import { AppBar, Toolbar, Typography, Box, useTheme } from '@mui/material';
+import { AppBar, Toolbar, Typography, Box, useTheme, Button } from '@mui/material';
 import { FC } from 'react';
 import MenuItem from '../MenuItem';
+import useStore from '@/stores/eventStore';
+import Link from 'next/link';
 
 const Header: FC = () => {
     const theme = useTheme();
+    const { eventConfiguration } = useStore();
 
     return (
         <AppBar
@@ -33,6 +36,17 @@ const Header: FC = () => {
                 </Typography>
 
                 <Box sx={{ display: 'flex', gap: 2 }}>
+                    {eventConfiguration?.locationId ?
+                        <Button
+                            variant="outlined"
+                            color="secondary"
+                            component={Link}
+                            href={`/configurator/${eventConfiguration.locationId}`}
+                            sx={{ fontSize: '20px' }}
+                        >
+                            Konfigurator
+                        </Button> :
+                        null}
                     <MenuItem href="/">Home</MenuItem>
                     <MenuItem href="/locations">Locations</MenuItem>
                     <MenuItem href="/configurator">Services</MenuItem>
