@@ -2,11 +2,12 @@ import { ReactElement } from 'react';
 import Layout from '@/layouts/ClientLayout';
 import type { NextPageWithLayout } from '@/types/page';
 import LocationGrid from '@/features/clients/LocationGrid';
-import { Box } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 
 const Locations: NextPageWithLayout = () => {
     return (
         <Box pt={3} className="gradient-background" sx={{ height: '100vh' }}>
+             <Typography variant="h2" textAlign="center" sx={{ mb: 4 }}>Eventlocations</Typography>
             <LocationGrid sx={{ height: '100%' }} />
         </Box>
     );

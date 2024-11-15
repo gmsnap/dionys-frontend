@@ -1,8 +1,8 @@
 import { EventCategories } from '@/constants/EventCategories';
-import { getTranslations, TranslatorType } from '@/i18n';
+import { getTranslations } from '@/i18n';
 
-export const formatEventCategories = (categories: EventCategories[]): string => {
-    const t: TranslatorType = getTranslations('de');
+export const formatEventCategories = async (categories: EventCategories[]): Promise<string> => {
+    const t = await getTranslations('de'); // Await the async translator function
 
     const translated = categories.map((category) => {
         return t(`event.category.${category}`);

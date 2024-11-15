@@ -8,7 +8,7 @@ const Home: NextPageWithLayout = () => {
 
   return (
     <Box pt={3} className="gradient-background" sx={{ height: '100vh' }}>
-      <Typography variant="h2" textAlign="center" sx={{ mb: 4 }}>Eventlocations</Typography>
+      <Typography variant="h2" textAlign="center" sx={{ mb: 4 }}>Home</Typography>
       <LocationGrid sx={{ height: '100%' }} />
     </Box>
   );

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Box, SxProps, Theme, useTheme, CircularProgress, Typography, Button } from '@mui/material';
+import { Box, SxProps, Theme, useTheme, Typography, Button } from '@mui/material';
 import { title } from 'process';
 import useStore from '@/stores/eventStore';
 
@@ -49,8 +49,11 @@ const Venues = ({ sx }: VenueProps) => {
     return (
         <Box sx={{ ...sx }}>
             <Typography variant="h3" sx={{ mb: 4 }}>VENUE</Typography>
+            {isLoading && <Typography>Loading...</Typography>}
+            {error && <Typography>Error fetching data...</Typography>}
             {venues?.map((venue) => (
                 <Box
+                    key={venue.id}
                     sx={{
                         display: 'flex',
                         flexDirection: 'row',

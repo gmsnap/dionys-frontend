@@ -1,10 +1,6 @@
-import React, { ReactNode } from 'react';
+import React from 'react';
 import { Box, useTheme } from '@mui/material';
 import Header from '../components/headers/ClientHeader';
-
-interface ClientLayoutProps {
-    children: ReactNode;
-}
 
 const ClientLayout = ({ children }: { children: React.ReactNode }) => {
     const theme = useTheme();
@@ -21,7 +17,7 @@ const ClientLayout = ({ children }: { children: React.ReactNode }) => {
                     backgroundColor: 'primary.main', // You can customize this
                     zIndex: 1201, // Ensure it stays on top
                 }}
-            >                
+            >
                 <Header />
             </Box>
 

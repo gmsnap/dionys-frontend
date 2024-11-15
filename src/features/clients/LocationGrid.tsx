@@ -3,6 +3,7 @@ import { Box, SxProps, Theme, Grid2, CircularProgress } from '@mui/material';
 import GridItem from '../../components/GridItem';
 import { formatPrice } from '@/utils/formatPrice';
 import { User, MapPin, Layers2 } from 'lucide-react';
+import { LocationModel } from '@/models/LocationModel';
 
 interface ListItem {
     icon: React.ReactNode;

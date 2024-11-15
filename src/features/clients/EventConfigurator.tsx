@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Box, SxProps, Theme, useTheme, CircularProgress, Typography, Button } from '@mui/material';
+import { Box, SxProps, Theme, Typography, Button } from '@mui/material';
 import useStore from '@/stores/eventStore';
 import { formatEventCategories } from '@/utils/formatEventCategories';
 import { EventConfigurationModel } from '@/models/EventConfigurationModel';
@@ -48,26 +48,44 @@ const ConfiguratorNavItem = ({
                 <Typography variant='body2' sx={{ fontSize: '14px' }}>{label} {value}</Typography>
             </Box>
         </Box>
-    )
+    );
 };
 
 const EventConfigurator = ({ locationId, sx }: EventConfiguratorProps) => {
     const navItems = ['Anlass: ', 'Personen: ', 'Venue', 'Configurator', 'Summary'];
     const [selectedItem, setSelectedItem] = useState(0);
-    const { location, eventConfiguration, setEventConfiguration } = useStore();
+    const { eventConfiguration, setEventConfiguration } = useStore();
+    const [translatedCategories, setTranslatedCategories] = useState<string>('');
 
     const handleSelect = (index: number) => {
         setSelectedItem(index);
-    }
+    };
 
     // Initialize the configuration model if it doesn't exist
     useEffect(() => {
         if (!eventConfiguration || eventConfiguration.locationId !== locationId) {
-            // Set the default event configuration if it's not already set
             setEventConfiguration(createDefaultEventConfigurationModel(locationId));
-            console.log("UP");
+
+            const fetchFormattedCategories = async () => {
+                if (eventConfiguration?.occasion) {
+                    const result = await formatEventCategories(eventConfiguration.occasion);
+                    setTranslatedCategories(result);
+                }
+            };
+            fetchFormattedCategories();
         }
-    }, [eventConfiguration, locationId]);
+    }, [eventConfiguration, setEventConfiguration, locationId]);
+
+    // Fetch and translate categories
+    useEffect(() => {
+        const fetchFormattedCategories = async () => {
+            if (eventConfiguration?.occasion) {
+                const result = await formatEventCategories(eventConfiguration.occasion);
+                setTranslatedCategories(result);
+            }
+        };
+        fetchFormattedCategories();
+    }, [eventConfiguration]);
 
     return (
         <Box sx={{ ...sx, display: 'flex', flexDirection: 'row', gap: 5 }}>
@@ -75,8 +93,7 @@ const EventConfigurator = ({ locationId, sx }: EventConfiguratorProps) => {
                 {selectedItem === 0 &&
                     <Box sx={{ mt: 4 }}>
                         <Typography variant="h3">ANLASS</Typography>
-                        <Typography variant="h6">{eventConfiguration &&
-                            formatEventCategories(eventConfiguration.occasion)}</Typography>
+                        <Typography variant="h6">{translatedCategories}</Typography>
                     </Box>}
                 {selectedItem === 1 &&
                     <Box sx={{ mt: 4 }}>
@@ -101,7 +118,7 @@ const EventConfigurator = ({ locationId, sx }: EventConfiguratorProps) => {
 
                     switch (index) {
                         case 0:
-                            value = eventConfiguration ? formatEventCategories(eventConfiguration.occasion) : '';
+                            value = translatedCategories;
                             break;
                         case 1:
                             value = eventConfiguration ? eventConfiguration.persons.toString() : '';
@@ -118,11 +135,11 @@ const EventConfigurator = ({ locationId, sx }: EventConfiguratorProps) => {
                         value={value}
                         selected={selectedItem === index}
                         onSelect={() => handleSelect(index)}
-                    />
+                    />;
                 })}
             </Box>
         </Box>
-    )
+    );
 };
 
 function createDefaultEventConfigurationModel(locationId: number): EventConfigurationModel {

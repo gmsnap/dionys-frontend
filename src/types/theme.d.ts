@@ -1,4 +1,3 @@
-// types/theme.d.ts
 import { Theme } from '@mui/material/styles';
 
 declare module '@mui/material/styles' {
@@ -8,7 +7,7 @@ declare module '@mui/material/styles' {
         };
     }
 
-    // allow configuration using `createTheme`
+    // Allow configuration using `createTheme`
     interface ThemeOptions {
         layout?: {
             headerHeight?: number;

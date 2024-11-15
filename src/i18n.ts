@@ -4,10 +4,10 @@ import type { AbstractIntlMessages } from 'next-intl';
 // Define a type for our messages
 type Messages = AbstractIntlMessages;
 
-export function getTranslations(locale: string) {
-    const messages: Messages = require(`@/locales/${locale}.json`);
+export async function getTranslations(locale: string) {
+    const messages: Messages = (await import(`@/locales/${locale}.json`)).default;
     return createTranslator({ locale, messages });
 }
 
-// Export the Translator type
-export type TranslatorType = ReturnType<typeof getTranslations>;
+// Export the async Translator type
+export type TranslatorType = ReturnType<typeof createTranslator>;
