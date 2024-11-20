@@ -53,16 +53,23 @@ const GridItem: React.FC<GridItemProps> = ({
                 {/* Title below the image */}
                 <Typography
                     variant="h6"
-                    sx={{ fontFamily: "'Gugi', sans-serif" }}>
-                    {title} (can be very long)
+                    sx={{
+                        fontFamily: "'Gugi', sans-serif",
+                        whiteSpace: 'nowrap', // Prevents wrapping
+                        overflow: 'hidden', // Hides the overflowing text
+                        textOverflow: 'ellipsis', // Adds '...' when text is truncated
+                        flexGrow: 1, // Take up available space
+                    }}
+                >
+                    {title}
                 </Typography>
                 <Typography sx={{
                     fontFamily: "'Nunito', sans-serif",
                     fontSize: '14px',
                     fontWeight: 600,
                     textAlign: 'right',
-                    whiteSpace: 'nowrap', // Prevents breaking into multiple lines 
-                    flexShrink: 0, // Prevents shrinking when the container gets smaller
+                    whiteSpace: 'nowrap', // No multiple lines 
+                    flexShrink: 0, // Prevent shrinking when the container gets smaller
                 }}>
                     {priceTag}
                 </Typography>

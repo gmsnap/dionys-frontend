@@ -2,7 +2,12 @@ import React from 'react';
 import { Box, useTheme } from '@mui/material';
 import Header from '../components/headers/ClientHeader';
 
-const ClientLayout = ({ children }: { children: React.ReactNode }) => {
+interface ClientLayoutProps {
+    transparentHeader?: boolean;
+    children: React.ReactNode;
+}
+
+const ClientLayout: React.FC<ClientLayoutProps> = ({ transparentHeader = false, children }) => {
     const theme = useTheme();
 
     return (
@@ -14,17 +19,18 @@ const ClientLayout = ({ children }: { children: React.ReactNode }) => {
                     top: 0,
                     left: 0,
                     width: '100%',
-                    backgroundColor: 'primary.main', // You can customize this
+                    backgroundColor: transparentHeader ? 'transparent' : 'primary.main',
                     zIndex: 1201, // Ensure it stays on top
                 }}
             >
-                <Header />
+                <Header transparentHeader={transparentHeader} />
             </Box>
 
             {/* Main Content */}
             <Box
                 sx={{
-                    marginTop: `${theme.layout.headerHeight}px`, // Ensure content starts below the header
+                    // Ensure content starts below the non-transparent header
+                    marginTop: transparentHeader ? 0 : `${theme.layout.headerHeight}px`,
                 }}
             >
                 {children}

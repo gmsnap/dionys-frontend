@@ -17,7 +17,12 @@ const Venues = ({ sx }: VenueProps) => {
     // Function to handle updating the venueId
     const handleVenueChange = (newVenueId: number) => {
         if (eventConfiguration) {
-            setEventConfiguration({ ...eventConfiguration, venueId: newVenueId });
+            const venue = venues?.find((venue) => venue.id === newVenueId);
+            setEventConfiguration({
+                ...eventConfiguration,
+                venueId: newVenueId,
+                venue: venue || null
+            });
         }
     };
 
@@ -81,7 +86,7 @@ const Venues = ({ sx }: VenueProps) => {
                             color="primary"
                             sx={{ flex: 1 }}
                             onClick={() => handleVenueChange(venue.id)}>
-                            Venue auswählen
+                            {eventConfiguration?.venueId === venue.id ? 'Ausgewählt' : 'Venue Auswählen'}
                         </Button>
                     </Box>
                     {/* Right Column */}

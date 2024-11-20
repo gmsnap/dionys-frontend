@@ -1,5 +1,42 @@
 import { createTheme } from '@mui/material/styles';
 
+// Define custom colors
+const customColors = {
+    pink: {
+        light: '#DE33C4',
+        main: '#9C248A',
+        dark: '#781C6A',
+    },
+    purple: '#513185',
+    text: {
+        primary: '#000000',
+        secondary: '#535353',
+        tertiary: '#606060',
+    },
+    gradient: {
+        pink: 'linear-gradient(90deg, #DE33C4 0%, #781C6A 100%)',
+    },
+} as const;
+
+// Declare custom theme properties
+declare module '@mui/material/styles' {
+    interface CustomTheme {
+        layout: {
+            headerHeight: number;
+        };
+    }
+
+    interface Theme extends CustomTheme { }
+    interface ThemeOptions extends CustomTheme { }
+
+    interface Palette {
+        customColors: typeof customColors;
+    }
+    interface PaletteOptions {
+        customColors: typeof customColors;
+    }
+}
+
 const theme = createTheme({
     palette: {
         primary: {
@@ -7,8 +44,9 @@ const theme = createTheme({
             contrastText: '#FFFFFF',
         },
         secondary: {
-            main: '#781C6A',
+            main: customColors.pink.dark,
         },
+        customColors,
     },
     layout: {
         headerHeight: 90,
@@ -16,7 +54,7 @@ const theme = createTheme({
     typography: {
         h2: {
             fontFamily: "'Gugi', sans-serif",
-            color: '#513185',
+            color: customColors.purple,
             fontSize: '1.6rem',
             '@media (min-width:600px)': {
                 fontSize: '1.8rem',
@@ -33,14 +71,14 @@ const theme = createTheme({
         },
         h3: {
             fontFamily: "'Nunito', sans-serif",
-            color: '#781C6A',
+            color: customColors.pink.dark,
             fontSize: '24px',
             fontWeight: 700,
             letterSpacing: '-0.05em',
         },
         body2: {
             fontFamily: "'Nunito', sans-serif",
-            color: '#535353',
+            color: customColors.text.secondary,
             fontSize: '14px',
             fontWeight: 400,
             letterSpacing: '-0.05em',
@@ -53,7 +91,7 @@ const theme = createTheme({
                     fontFamily: "'Nunito', sans-serif",
                     fontSize: '14px',
                     fontWeight: 600,
-                    color: '#606060',
+                    color: customColors.text.tertiary,
                 },
             },
         },
@@ -70,22 +108,23 @@ const theme = createTheme({
                     fontSize: 12,
                     fontWeight: 400,
                     letterSpacing: '-0.07em',
-                    textTransform: 'none',  // Disable uppercase text
+                    textTransform: 'none',
                     boxShadow: 'none',
                     backgroundColor: '#FFFFFF',
                 },
                 outlinedPrimary: {
-                    border: '1px solid #00000099',
-                    color: '#000000',
+                    border: `1px solid ${customColors.text.primary}99`,
+                    color: customColors.text.primary,
                 },
                 outlinedSecondary: {
-                    border: '1px solid #DE33C4',
-                    color: '#DE33C4',
-                    backgroundImage: 'linear-gradient(90deg, #DE33C4 0%, #781C6A 100%)',
+                    border: `1px solid ${customColors.pink.light}`,
+                    color: customColors.pink.light,
+                    backgroundImage: customColors.gradient.pink,
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent',
                     '&:hover': {
-                        color: '#9C248A', // Darker pink on hover
+                        color: customColors.pink.main,
+                        backgroundColor: customColors.pink.dark,
                     },
                 },
                 containedPrimary: {
@@ -95,7 +134,7 @@ const theme = createTheme({
                     textTransform: 'uppercase',
                     letterSpacing: '-0.05em',
                     color: '#FFFFFF',
-                    backgroundColor: '#781C6A',
+                    backgroundColor: customColors.pink.dark,
                     borderRadius: 6,
                 },
             },

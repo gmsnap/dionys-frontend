@@ -19,12 +19,6 @@ const LocationGrid = ({ sx }: LocationGridProps) => {
     const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
 
-    const items: ListItem[] = [
-        { icon: <MapPin />, label: 'Marienplatz' },
-        { icon: <User />, label: '10-50' },
-        { icon: <Layers2 />, label: 'Meeting, Lunch, Dinner, Feier, Tagung, Seminare & Workshops' },
-    ];
-
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -74,7 +68,11 @@ const LocationGrid = ({ sx }: LocationGridProps) => {
                         image={location.image}
                         title={location.title}
                         priceTag={`Ab ${formatPrice(location.price)} / Tag`}
-                        listItems={items}
+                        listItems={[
+                            { icon: <MapPin />, label: location.street },
+                            { icon: <User />, label: '10-50' },
+                            { icon: <Layers2 />, label: 'Meeting, Lunch, Dinner, Feier, Tagung, Seminare & Workshops' },
+                        ]}
                     />
                 </Grid2>
             ))

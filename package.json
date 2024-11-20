@@ -11,6 +11,8 @@
   "dependencies": {
     "@emotion/styled": "^11.13.0",
     "@mui/material": "^6.1.6",
+    "@mui/x-date-pickers": "^7.22.2",
+    "dayjs": "^1.11.13",
     "lucide-react": "^0.456.0",
     "next": "15.0.3",
     "next-intl": "^3.25.0",
