@@ -138,7 +138,7 @@ const EventConfigurator = ({ locationId, sx }: EventConfiguratorProps) => {
     }, [selectedItem]);
 
     return (
-        <Box sx={{ ...sx, display: 'flex', flexDirection: 'row', gap: 5 }}>
+        <Box sx={{ ...sx, display: 'flex', flexDirection: 'row' }}>
             <Box sx={{ width: '100%', height: '100%' }}>
                 {selectedItem === 0 &&
                     <Box sx={{ mt: 4 }}>

@@ -69,9 +69,9 @@ const LocationGrid = ({ sx }: LocationGridProps) => {
                         title={location.title}
                         priceTag={`Ab ${formatPrice(location.price)} / Tag`}
                         listItems={[
-                            { icon: <MapPin />, label: location.street },
+                            { icon: <MapPin />, label: location.area },
                             { icon: <User />, label: '10-50' },
-                            { icon: <Layers2 />, label: 'Meeting, Lunch, Dinner, Feier, Tagung, Seminare & Workshops' },
+                            { icon: <Layers2 />, label: 'Meeting, Lunch, Dinner, Tagung, Seminare & Workshops' },
                         ]}
                     />
                 </Grid2>

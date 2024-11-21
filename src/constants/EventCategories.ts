@@ -1,5 +1,5 @@
 export type EventCategories =
     "lunch" |
     "business" |
-    "wedding" |
+    "meeting" |
     "conference";

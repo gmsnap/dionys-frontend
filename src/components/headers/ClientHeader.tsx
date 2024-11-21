@@ -44,14 +44,14 @@ const Header: FC<HeaderProps> = ({ transparentHeader = false }) => {
         }
         // For other pages, check if pathname starts with the link
         // This handles potential subpages (e.g., /locations/specific-location)
-        return link !== '/' && pathname.startsWith(link);
+        return link !== '/' && pathname?.startsWith(link);
     };
 
     return (
         <AppBar
             position="fixed"
             sx={{
-                transition: 'background-color 1.0s ease, box-shadow 0.3s ease',
+                transition: 'background-color 0.3s ease, box-shadow 0.3s ease',
                 backgroundColor: transparentHeader
                     ? isScrolled
                         ? '#ffffff'

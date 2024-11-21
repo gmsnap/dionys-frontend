@@ -5,5 +5,7 @@ export interface EventConfigurationModel {
     venueId: number;
     venue: VenueModel | null;
     occasion: EventCategories[];
-    persons: number
+    persons: number;
+    roomConfigurationId: number;
+    rooms: RoomModel[] | null;
 }

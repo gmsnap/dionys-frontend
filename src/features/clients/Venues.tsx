@@ -14,14 +14,49 @@ const Venues = ({ sx }: VenueProps) => {
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const { eventConfiguration, setEventConfiguration } = useStore();
 
+    const fetchRooms = async (newVenueId: number): Promise<RoomModel[]> => {
+        try {
+            if (eventConfiguration) {
+                setIsLoading(true);
+
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/venues/${newVenueId}/rooms`);
+
+                if (response.status === 404) {
+                    setIsLoading(false);
+                    return [];
+                }
+
+                if (!response.ok) {
+                    throw new Error(`Error: ${response.status} ${response.statusText}`);
+                }
+
+                const rooms: RoomModel[] = await response.json();
+
+                setIsLoading(false);
+
+                return rooms;
+            }
+        } catch (err) {
+            if (err instanceof Error) {
+                setError(err.message);
+            } else {
+                setError('An unknown error occurred');
+            }
+            setIsLoading(false);
+        }
+        return [];
+    };
+
     // Function to handle updating the venueId
-    const handleVenueChange = (newVenueId: number) => {
+    const handleVenueChange = async (newVenueId: number) => {
         if (eventConfiguration) {
             const venue = venues?.find((venue) => venue.id === newVenueId);
+            const rooms = newVenueId && await fetchRooms(newVenueId);
             setEventConfiguration({
                 ...eventConfiguration,
                 venueId: newVenueId,
-                venue: venue || null
+                venue: venue || null,
+                rooms: rooms || null,
             });
         }
     };
