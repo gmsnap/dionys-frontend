@@ -26,9 +26,6 @@ declare module '@mui/material/styles' {
         };
     }
 
-    interface Theme extends CustomTheme { }
-    interface ThemeOptions extends CustomTheme { }
-
     interface Palette {
         customColors: typeof customColors;
     }
@@ -76,6 +73,13 @@ const theme = createTheme({
             fontWeight: 700,
             letterSpacing: '-0.05em',
         },
+        h5: {
+            fontFamily: "'Nunito', sans-serif",
+            color: customColors.pink.dark,
+            fontSize: '16px',
+            fontWeight: 700,
+            letterSpacing: '-0.05em',
+        },
         body2: {
             fontFamily: "'Nunito', sans-serif",
             color: customColors.text.secondary,
@@ -98,6 +102,12 @@ const theme = createTheme({
         MuiContainer: {
             defaultProps: {
                 maxWidth: false,
+            },
+            styleOverrides: {
+                root: {
+                    padding: 0, // Remove default padding
+                    margin: 0,
+                },
             },
         },
         MuiButton: {

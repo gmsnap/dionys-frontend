@@ -4,10 +4,15 @@ import Header from '../components/headers/ClientHeader';
 
 interface ClientLayoutProps {
     transparentHeader?: boolean;
+    margins?: boolean | true;
     children: React.ReactNode;
 }
 
-const ClientLayout: React.FC<ClientLayoutProps> = ({ transparentHeader = false, children }) => {
+const ClientLayout: React.FC<ClientLayoutProps> = ({
+    transparentHeader = false,
+    margins = true,
+    children
+}) => {
     const theme = useTheme();
 
     return (
@@ -31,6 +36,8 @@ const ClientLayout: React.FC<ClientLayoutProps> = ({ transparentHeader = false, 
                 sx={{
                     // Ensure content starts below the non-transparent header
                     marginTop: transparentHeader ? 0 : `${theme.layout.headerHeight}px`,
+                    ml: margins ? 2 : 0,
+                    mr: margins ? 2 : 0,
                 }}
             >
                 {children}

@@ -4,6 +4,7 @@ import MenuItem from '../MenuItem';
 import useStore from '@/stores/eventStore';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import router from 'next/router';
 
 interface HeaderProps {
     transparentHeader: boolean;
@@ -23,6 +24,16 @@ const Header: FC<HeaderProps> = ({ transparentHeader = false }) => {
         { "label": "Über Uns", "link": "/about" },
         { "label": "Kontakt", "link": "/contact" },
     ];
+
+    const handleConfiguratorClick = (locationId: number | null) => {
+        if (locationId) {
+            if (eventConfiguration?.occasion) {
+                router.push(`/configurator/${locationId}`);
+                return;
+            }
+        }
+        router.push(`/configurator/occasion`);
+    };
 
     useEffect(() => {
         if (!transparentHeader) return;
@@ -88,17 +99,14 @@ const Header: FC<HeaderProps> = ({ transparentHeader = false }) => {
                 </Typography>
 
                 <Box sx={{ display: 'flex', gap: 2 }}>
-                    {eventConfiguration?.locationId ? (
-                        <Button
-                            variant="outlined"
-                            color="secondary"
-                            component={Link}
-                            href={`/configurator/${eventConfiguration.locationId}`}
-                            sx={{ fontSize: '20px' }}
-                        >
-                            Konfigurator
-                        </Button>
-                    ) : null}
+                    <Button
+                        variant="outlined"
+                        color="secondary"
+                        onClick={() => handleConfiguratorClick(eventConfiguration?.locationId ?? null)}
+                        sx={{ fontSize: '20px' }}
+                    >
+                        Konfigurator
+                    </Button>
                     {menuItems.map((item, index) => (
                         <MenuItem
                             key={index}

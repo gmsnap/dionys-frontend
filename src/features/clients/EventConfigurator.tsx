@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Box, SxProps, Theme, Typography, Button } from '@mui/material';
-import useStore from '@/stores/eventStore';
-import { formatEventCategories } from '@/utils/formatEventCategories';
+import useStore, { createDefaultEventConfigurationModel } from '@/stores/eventStore';
+import { formatEventCategory } from '@/utils/formatEventCategories';
 import { EventConfigurationModel } from '@/models/EventConfigurationModel';
 import Venues from './Venues';
 import RoomConfigurator from './RoomConfigurator';
@@ -112,11 +112,14 @@ const EventConfigurator = ({ locationId, sx }: EventConfiguratorProps) => {
 
             const fetchFormattedCategories = async () => {
                 if (eventConfiguration?.occasion) {
-                    const result = await formatEventCategories(eventConfiguration.occasion);
+                    const result = await formatEventCategory(eventConfiguration.occasion);
                     setTranslatedCategories(result);
                 }
             };
             fetchFormattedCategories();
+        } else {
+            // Jump to step 2
+            setSelectedItem(2);
         }
     }, [eventConfiguration, setEventConfiguration, locationId]);
 
@@ -124,7 +127,7 @@ const EventConfigurator = ({ locationId, sx }: EventConfiguratorProps) => {
     useEffect(() => {
         const fetchFormattedCategories = async () => {
             if (eventConfiguration?.occasion) {
-                const result = await formatEventCategories(eventConfiguration.occasion);
+                const result = await formatEventCategory(eventConfiguration.occasion);
                 setTranslatedCategories(result);
             }
         };
@@ -171,7 +174,7 @@ const EventConfigurator = ({ locationId, sx }: EventConfiguratorProps) => {
                 {/* <Typography variant="h3">{eventConfiguration ? eventConfiguration.venueId.toString() : ''}</Typography> */}
                 {navItems.map((item, index) => {
                     let value: string;
-                    let subItems: ConfiguratorNavItemProps[] = [];
+                    const subItems: ConfiguratorNavItemProps[] = [];
 
                     switch (index) {
                         case 0:
@@ -218,15 +221,5 @@ const EventConfigurator = ({ locationId, sx }: EventConfiguratorProps) => {
         </Box>
     );
 };
-
-function createDefaultEventConfigurationModel(locationId: number): EventConfigurationModel {
-    return {
-        locationId: locationId,
-        venueId: 0,
-        venue: null,
-        occasion: ["business"],
-        persons: 50,
-    };
-}
 
 export default EventConfigurator;

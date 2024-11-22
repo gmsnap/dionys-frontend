@@ -2,7 +2,7 @@ import "@/styles/globals.css";
 import type { AppProps } from "next/app";
 import { ThemeProvider } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
-import { Container } from "@mui/material";
+import { Box, Container } from "@mui/material";
 import theme from "@/theme";
 import { NextPageWithLayout } from "@/types/page";
 import ClientLayout from "@/layouts/ClientLayout";
@@ -17,9 +17,9 @@ export default function App({ Component, pageProps }: AppPropsWithLayout) {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Container>
+      <Box>
         {getLayout(<Component {...pageProps} />)}
-      </Container>
+      </Box>
     </ThemeProvider>
   );
 }

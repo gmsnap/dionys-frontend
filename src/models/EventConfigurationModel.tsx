@@ -4,7 +4,7 @@ export interface EventConfigurationModel {
     locationId: number;
     venueId: number;
     venue: VenueModel | null;
-    occasion: EventCategories[];
+    occasion: EventCategories | null;
     persons: number;
     roomConfigurationId: number;
     rooms: RoomModel[] | null;

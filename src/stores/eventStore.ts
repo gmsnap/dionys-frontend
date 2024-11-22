@@ -26,3 +26,15 @@ const useStore = create<StoreState>()(
 );
 
 export default useStore;
+
+export const createDefaultEventConfigurationModel = (locationId: number): EventConfigurationModel => {
+    return {
+        locationId: locationId,
+        venueId: 0,
+        venue: null,
+        occasion: null,
+        persons: 50,
+        roomConfigurationId: 0,
+        rooms: null
+    };
+}

@@ -35,19 +35,22 @@ export default function LocationFilters({ sx }: LocationFiltersProps) {
     const [selectedCity, setSelectedCity] = useState<City | null>(null);
 
     const inputStyle = {
-        backgroundColor: '#F5F5F5',
+        backgroundColor: '#E8E8E8',
         borderRadius: '8px',
         '& .MuiOutlinedInput-root': {
+            height: '42px', // Set the total height
             borderRadius: '8px',
             '& fieldset': {
                 border: 'none',
             },
         },
+        '& .MuiInputBase-input': {
+            fontSize: '20px', // Adjust font size
+        },
     };
 
     const smallInputStyle = {
         ...inputStyle,
-        width: '200px',
     };
 
     return (
@@ -56,8 +59,9 @@ export default function LocationFilters({ sx }: LocationFiltersProps) {
                 ...sx,
                 display: 'flex',
                 flexDirection: 'row',
-                gap: 2,
-                flexWrap: 'wrap',
+                gap: 3,
+                justifyContent: 'space-between',
+                mb: 4,
             }}
         >
             {/* City Select */}
@@ -73,7 +77,7 @@ export default function LocationFilters({ sx }: LocationFiltersProps) {
                     />
                 )}
                 sx={{
-                    width: 200,
+                    width: 260,
                     ...inputStyle,
                 }}
                 popupIcon={<ChevronDown />}

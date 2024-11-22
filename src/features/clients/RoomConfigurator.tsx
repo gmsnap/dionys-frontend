@@ -9,6 +9,8 @@ interface RoomConfiguratorProps {
 const RoomConfigurator = ({ sx }: RoomConfiguratorProps) => {
     const theme = useTheme();
     const [rooms, setRooms] = useState<RoomModel[]>([]);
+    const [roomConfiguration, setRoomConfiguration] = useState<RoomConfigurationModel>();
+    const [fadeIn, setFadeIn] = useState(false);
     const { eventConfiguration, setEventConfiguration } = useStore();
 
     // Function to handle updating the venueId
@@ -18,52 +20,76 @@ const RoomConfigurator = ({ sx }: RoomConfiguratorProps) => {
         }
     };
 
+    const handleConfigurationChange = async (confg: RoomConfigurationModel) => {
+        setRoomConfiguration(confg);
+    };
+
     useEffect(() => {
         if (eventConfiguration) {
             setRooms(eventConfiguration.rooms || []);
         }
     }, [eventConfiguration]);
 
+    useEffect(() => {
+        // Immediately hide the image and trigger fade-in
+        setFadeIn(false); // Hide the image
+        const timer = setTimeout(() => setFadeIn(true), 50); // Delay to allow fade-in
+        return () => clearTimeout(timer); // Cleanup timeout on unmount or change
+    }, [roomConfiguration]);
+
     if (!eventConfiguration?.venue) {
-        return <Typography variant="h6" sx={{ mb: 4 }}>Please select Venue</Typography>;
+        return <Box sx={{ ...sx }}>
+            <Typography variant="h3" sx={{ mb: 8 }}>CONFIGURATOR - ROOM</Typography>
+            <Typography variant="h5" sx={{ mt: 4 }}>Bitte Venue auswählen</Typography>
+        </Box>;
     };
 
     if (!rooms || rooms.length === 0) {
-        return <Typography variant="h6" sx={{ mb: 4 }}>No Rooms</Typography>;
+        return <Box sx={{ ...sx }}>
+            <Typography variant="h3" sx={{ mb: 8 }}>CONFIGURATOR - ROOM</Typography>
+            <Typography variant="h5" sx={{ mt: 4 }}>Keine Raum-Konfigurationen für diesen Venue gefunden!</Typography>
+        </Box>;
     };
 
     return (
-        <Box sx={{ ...sx, backgroundColor: 'yellow' }}>
-            <Typography variant="h3" sx={{ mb: 4 }}>CONFIGURATOR - ROOM</Typography>
+        <Box sx={{ ...sx, mr: 5 }}>
+            <Typography variant="h3" sx={{ mb: 8 }}>CONFIGURATOR - ROOM</Typography>
             <Box sx={{
                 width: '100%',
                 display: 'flex',
                 flexDirection: 'row',
-                gap: 1,
+                gap: 5,
+                background: 'linear-gradient(to right, #F5F5F5, #FFFFFF)'
             }}>
                 {/* Configurations List */}
                 <Box sx={{
                     display: 'flex',
                     flexDirection: 'column',
                     minWidth: {
-                        xs: '40%', // For extra-small screens
-                        sm: '30%',  // For small screens
-                        md: '30%',  // For medium screens
-                        lg: '20%',  // For large screens
-                        xl: '20%',  // For extra-large screens
+                        xs: '350px', // For extra-small screens
+                        sm: '350px',  // For small screens
+                        md: '350px',  // For medium screens
+                        lg: '350px',  // For large screens
+                        xl: '350px',  // For extra-large screens
                     },
                 }}>
                     {rooms.map((room) => (
-                        room.roomConfigurations.map((roomConfiguration, index) => (
-                            <Box key={`${roomConfiguration.id}-${index}`}
+                        room.roomConfigurations.map((roomConf, index) => (
+                            <Box
+                                key={`${roomConf.id}-${index}`}
                                 sx={{
                                     display: 'flex',
                                     flexDirection: 'row',
-                                    borderTopRightRadius: '8px',
-                                    borderBottomRightRadius: '8px',
+                                    borderRadius: '8px',
                                     backgroundColor: '#FFFFFF',
+                                    border: roomConfiguration && roomConfiguration.id === roomConf.id ?
+                                        '1px solid #A8A8A8' :
+                                        '1px solid transparent',
+                                    cursor: 'pointer',
                                     mb: 4,
-                                }}>
+                                }}
+                                onClick={() => handleConfigurationChange(roomConf)}
+                            >
                                 {/* Configuration Image */}
                                 <Box
                                     component="img"
@@ -74,7 +100,7 @@ const RoomConfigurator = ({ sx }: RoomConfiguratorProps) => {
                                         objectFit: 'cover', // Maintain aspect ratio and crop overflow
                                         flexShrink: 0, // Prevent the image from shrinking
                                     }}
-                                    src={roomConfiguration.images[0]}
+                                    src={roomConf.images[0]}
                                     alt={"No Image"}
                                 />
                                 <Box sx={{
@@ -90,10 +116,10 @@ const RoomConfigurator = ({ sx }: RoomConfiguratorProps) => {
                                             textOverflow: 'ellipsis',  // Add ellipsis (...) to overflowing text
                                         }}
                                     >
-                                        {roomConfiguration.name}
+                                        {roomConf.name}
                                     </Typography>
                                     <Box component="ul" sx={{ paddingLeft: 2, margin: 0 }}>
-                                        {roomConfiguration.roomItems.map((roomItem: RoomItemModel, index) => (
+                                        {roomConf.roomItems.map((roomItem: RoomItemModel, index) => (
                                             <Box component="li" key={index} sx={{ fontSize: '12px', listStyleType: 'disc' }}>
                                                 {roomItem.quantity} {roomItem.name}{roomItem.quantity > 1 ? 's' : ''}
                                             </Box>
@@ -105,13 +131,26 @@ const RoomConfigurator = ({ sx }: RoomConfiguratorProps) => {
                     ))}
                 </Box>
                 {/* Configuration Content (large image) */}
-                <Box sx={{ flexGrow: 1, backgroundColor: 'red', borderRadius: '16px' }}>
-                    <Typography variant="h6" sx={{ mb: 2 }}>
-                        CONTENT
-                    </Typography>
+                <Box sx={{
+                    flexGrow: 1,
+                }}> {roomConfiguration && roomConfiguration.images.length > 0 ?
+                    <Box
+                        component="img"
+                        sx={{
+                            width: '100%', // Match parent width
+                            objectFit: 'cover', // Maintain aspect ratio and crop overflow
+                            opacity: fadeIn ? 1 : 0, // Fade-in effect
+                            transition: fadeIn ? 'opacity 0.6s ease-out' : 'none', // Smooth fade-in only
+                        }}
+                        src={roomConfiguration.images[1]}
+                        alt={'Content Image'}
+                    />
+                    :
+                    <Typography variant="h5" sx={{ mt: 4 }}>Bitte Konfigurationen auswählen.</Typography>
+                    }
                 </Box>
             </Box>
-        </Box>
+        </Box >
     );
 }
 

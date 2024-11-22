@@ -14,7 +14,8 @@
         "category": {
             "lunch": "Lunch",
             "business": "Business Meeting",
-            "wedding": "Hochzeit"
+            "meeting": "Business Meeting",
+            "conference": "Konferenz"
         }
     }
 }

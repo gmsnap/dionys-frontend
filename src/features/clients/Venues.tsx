@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Box, SxProps, Theme, useTheme, Typography, Button } from '@mui/material';
+import { Box, SxProps, Theme, Typography, Button } from '@mui/material';
 import { title } from 'process';
 import useStore from '@/stores/eventStore';
 
@@ -8,7 +8,6 @@ interface VenueProps {
 }
 
 const Venues = ({ sx }: VenueProps) => {
-    const theme = useTheme();
     const [venues, setVenues] = useState<VenueModel[]>([]);
     const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -17,12 +16,10 @@ const Venues = ({ sx }: VenueProps) => {
     const fetchRooms = async (newVenueId: number): Promise<RoomModel[]> => {
         try {
             if (eventConfiguration) {
-                setIsLoading(true);
 
                 const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/venues/${newVenueId}/rooms`);
 
                 if (response.status === 404) {
-                    setIsLoading(false);
                     return [];
                 }
 
@@ -32,8 +29,6 @@ const Venues = ({ sx }: VenueProps) => {
 
                 const rooms: RoomModel[] = await response.json();
 
-                setIsLoading(false);
-
                 return rooms;
             }
         } catch (err) {
@@ -42,7 +37,6 @@ const Venues = ({ sx }: VenueProps) => {
             } else {
                 setError('An unknown error occurred');
             }
-            setIsLoading(false);
         }
         return [];
     };
@@ -65,13 +59,24 @@ const Venues = ({ sx }: VenueProps) => {
         const fetchData = async () => {
             try {
                 setIsLoading(true);
+
                 const response =
                     await fetch(`${process.env.NEXT_PUBLIC_API_URL}/venues/location/${eventConfiguration?.locationId}`);
+
+                if (response.status === 404) {
+                    setIsLoading(false);
+                    setVenues([]);
+                    return;
+                }
+
                 if (!response.ok) {
                     throw new Error(`Error: ${response.status} ${response.statusText}`);
                 }
+
                 const result = await response.json();
+
                 setVenues(result);
+
                 setIsLoading(false);
             } catch (err) {
                 if (err instanceof Error) {
@@ -86,9 +91,16 @@ const Venues = ({ sx }: VenueProps) => {
         fetchData();
     }, []);
 
+    if (!venues || venues.length === 0) {
+        return <Box sx={{ ...sx }}>
+            <Typography variant="h3" sx={{ mb: 8 }}>VENUE</Typography>
+            <Typography variant="h5" sx={{ mt: 4 }}>Keine Venues für diese Location gefunden!</Typography>
+        </Box>;
+    }
+
     return (
         <Box sx={{ ...sx }}>
-            <Typography variant="h3" sx={{ mb: 4 }}>VENUE</Typography>
+            <Typography variant="h3" sx={{ mb: 8 }}>VENUE</Typography>
             {isLoading && <Typography>Loading...</Typography>}
             {error && <Typography>Error fetching data...</Typography>}
             {venues?.map((venue) => (
@@ -97,18 +109,21 @@ const Venues = ({ sx }: VenueProps) => {
                     sx={{
                         display: 'flex',
                         flexDirection: 'row',
-                        gap: 5,
                         mb: 10,
                     }}
                 >
                     {/* Left Column */}
                     <Box flexBasis="50%" sx={{
                         flexGrow: 1,
-                        [theme.breakpoints.up('md')]: { flexGrow: 2 }
+                        maxWidth: '450px',
+                        mr: 5,
                     }}>
                         <Typography
                             variant="h5"
-                            sx={{ mb: 4 }}>
+                            sx={{
+                                textTransform: 'uppercase',
+                                mb: 4
+                            }}>
                             {venue.title}
                         </Typography>
                         <Typography
@@ -125,21 +140,59 @@ const Venues = ({ sx }: VenueProps) => {
                         </Button>
                     </Box>
                     {/* Right Column */}
-                    <Box flexBasis="50%" sx={{ [theme.breakpoints.up('md')]: { flexBasis: '450px' } }}>
+                    <Box sx={{
+                        flexBasis: '500px',
+                        mr: 5,
+                    }}>
+                        {/* Large Image (upper row) */}
                         <Box
                             component="img"
                             sx={{
-                                width: '100%',
-                                maxHeight: '250px',
-                                objectFit: 'cover',
+                                width: '100%', // Match parent width
+                                maxHeight: '250px', // Limit height
+                                objectFit: 'fill',
                                 borderRadius: '16px',
-                                margin: 0,
-                                padding: 0,
                             }}
                             src={venue.images[0]}
                             alt={title}
                         />
+                        {/* Small Images (lower row) */}
+                        <Box
+                            display="flex"
+                            flexDirection="row"
+                            sx={{
+                                marginTop: '8px', // Add some spacing between rows
+                                justifyContent: 'space-between', // Evenly distribute small images
+                                gap: '8px', // Add spacing between small images
+                            }}
+                        >
+                            <Box
+                                component="img"
+                                sx={{
+                                    flexGrow: 1, // Allow image to grow evenly
+                                    flexBasis: 0, // Equal width for all children
+                                    objectFit: 'fill',
+                                    borderRadius: '8px',
+                                    height: '100px', // Fixed height for small images
+                                }}
+                                src={venue.images[0]}
+                                alt={title}
+                            />
+                            <Box
+                                component="img"
+                                sx={{
+                                    flexGrow: 1,
+                                    flexBasis: 0,
+                                    objectFit: 'fill',
+                                    borderRadius: '8px',
+                                    height: '100px',
+                                }}
+                                src={venue.images[0]}
+                                alt={title}
+                            />
+                        </Box>
                     </Box>
+
                 </Box>
             ))}
         </Box>
