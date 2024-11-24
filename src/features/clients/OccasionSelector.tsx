@@ -12,12 +12,13 @@ interface OccasionSelectorProps {
 const eventCategories: { name: EventCategories; image: string }[] = [
     { name: "lunch", image: "/category-lunch.jpg" },
     { name: "business", image: "/category-business.jpg" },
-    { name: "meeting", image: "/category-meeting.webp" },
+    { name: "meeting", image: "/category-meeting.jpg" },
     { name: "conference", image: "/category-conference.jpg" },
 ];
 
 const OccasionSelector = ({ sx }: OccasionSelectorProps) => {
     const { eventConfiguration, setEventConfiguration } = useStore();
+    const [visible, setVisible] = useState(false);
 
     const handleSelectOccasion = (category: EventCategories): void => {
         if (eventConfiguration) {
@@ -25,11 +26,19 @@ const OccasionSelector = ({ sx }: OccasionSelectorProps) => {
                 ...eventConfiguration,
                 occasion: category,
             });
+
             router.push(eventConfiguration.locationId ?
                 `/configurator/${eventConfiguration.locationId}` :
                 `/locations`);
+
+            return;
         }
+        router.push(`/locations`);
     }
+
+    useEffect(() => {
+        setVisible(true); // Trigger fade-in by setting opacity to 1
+    }, []);
 
     return (
         <Box
@@ -71,6 +80,9 @@ const OccasionSelector = ({ sx }: OccasionSelectorProps) => {
                             width: '100%', // Match the image width
                             height: '100%', // Match the image height
                             backgroundColor: 'rgba(0, 0, 0, 0.6)', // Optional: Add a semi-transparent background
+                            opacity: visible ? 1 : 0, // Opacity transitions from 0 to 1
+                            transition: 'opacity 0.75s ease-out', // Smooth fade-in transition
+                            transitionDelay: `${0.25 * index}s`, // Delay the transition by 1 second
                         }}
                     />
                     {/* Text Overlay */}

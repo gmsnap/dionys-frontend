@@ -2,12 +2,15 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { LocationModel } from '@/models/LocationModel';
 import { EventConfigurationModel } from '@/models/EventConfigurationModel';
+import { EventConfigurationFilters } from '@/models/EventConfigurationFilters';
 
 interface StoreState {
     location: LocationModel | null;
     eventConfiguration: EventConfigurationModel | null;
+    eventConfigurationFilters: EventConfigurationFilters | null;
     setLocation: (location: LocationModel) => void;
-    setEventConfiguration: (configuration: EventConfigurationModel) => void;
+    setEventConfiguration: (configuration: EventConfigurationModel | null) => void;
+    setEventConfigurationFilters: (filters: EventConfigurationFilters | null) => void;
 }
 
 const useStore = create<StoreState>()(
@@ -15,8 +18,10 @@ const useStore = create<StoreState>()(
         (set) => ({
             location: null,
             eventConfiguration: null,
+            eventConfigurationFilters: null,
             setLocation: (location) => set({ location }),
             setEventConfiguration: (configuration) => set({ eventConfiguration: configuration }),
+            setEventConfigurationFilters: (filters) => set({ eventConfigurationFilters: filters }),
         }),
         {
             // unique name for local storage
@@ -36,5 +41,15 @@ export const createDefaultEventConfigurationModel = (locationId: number): EventC
         persons: 50,
         roomConfigurationId: 0,
         rooms: null
+    };
+}
+
+export const createDefaultFilters = (): EventConfigurationFilters => {
+    return {
+        city: null,
+        minPersons: null,
+        maxPersons: null,
+        budget: null,
+        dateRange: { from: null, to: null },
     };
 }

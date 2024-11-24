@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Box, SxProps, Theme, Grid2, CircularProgress } from '@mui/material';
+import { User, MapPin, Layers2 } from 'lucide-react';
+import useStore from '@/stores/eventStore';
 import GridItem from '../../components/GridItem';
 import { formatPrice } from '@/utils/formatPrice';
-import { User, MapPin, Layers2 } from 'lucide-react';
 import { LocationModel } from '@/models/LocationModel';
 
 interface ListItem {
@@ -15,6 +16,7 @@ interface LocationGridProps {
 }
 
 const LocationGrid = ({ sx }: LocationGridProps) => {
+    const { eventConfigurationFilters, setEventConfigurationFilters } = useStore();
     const [locations, setLocations] = useState<LocationModel[]>([]);
     const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -59,23 +61,27 @@ const LocationGrid = ({ sx }: LocationGridProps) => {
         );
     }
 
+    const { city } = eventConfigurationFilters || {};
+
     return (
         <Grid2 container spacing={5} sx={{ ...sx }}>
-            {locations?.map((location) => (
-                <Grid2 key={location.id} size={{ xs: 12, sm: 6, md: 4, lg: 4, xl: 3 }}>
-                    <GridItem
-                        id={location.id}
-                        image={location.image}
-                        title={location.title}
-                        priceTag={`Ab ${formatPrice(location.price)} / Tag`}
-                        listItems={[
-                            { icon: <MapPin />, label: location.area },
-                            { icon: <User />, label: '10-50' },
-                            { icon: <Layers2 />, label: 'Meeting, Lunch, Dinner, Tagung, Seminare & Workshops' },
-                        ]}
-                    />
-                </Grid2>
-            ))
+            {locations
+                ?.filter((location) => !city?.value || city.value === location.city)
+                .map((location) => (
+                    <Grid2 key={location.id} size={{ xs: 12, sm: 6, md: 4, lg: 4, xl: 3 }}>
+                        <GridItem
+                            id={location.id}
+                            image={location.image}
+                            title={location.title}
+                            priceTag={`Ab ${formatPrice(location.price)} / Tag`}
+                            listItems={[
+                                { icon: <MapPin />, label: location.area },
+                                { icon: <User />, label: '10-50' },
+                                { icon: <Layers2 />, label: 'Meeting, Lunch, Dinner, Tagung, Seminare & Workshops' },
+                            ]}
+                        />
+                    </Grid2>
+                ))
             }
         </Grid2 >
     );

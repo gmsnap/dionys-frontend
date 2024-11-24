@@ -1,10 +1,10 @@
 import { AppBar, Toolbar, Typography, Box, useTheme, Button } from '@mui/material';
 import { FC, useEffect, useState } from 'react';
 import MenuItem from '../MenuItem';
-import useStore from '@/stores/eventStore';
-import Link from 'next/link';
+import useStore, { createDefaultEventConfigurationModel } from '@/stores/eventStore';
 import { usePathname } from 'next/navigation';
 import router from 'next/router';
+import GradientButton from '../GradientButton';
 
 interface HeaderProps {
     transparentHeader: boolean;
@@ -12,7 +12,7 @@ interface HeaderProps {
 
 const Header: FC<HeaderProps> = ({ transparentHeader = false }) => {
     const theme = useTheme();
-    const { eventConfiguration } = useStore();
+    const { eventConfiguration, setEventConfiguration } = useStore();
     const pathname = usePathname();
 
     const [isScrolled, setIsScrolled] = useState(false);
@@ -26,12 +26,13 @@ const Header: FC<HeaderProps> = ({ transparentHeader = false }) => {
     ];
 
     const handleConfiguratorClick = (locationId: number | null) => {
-        if (locationId) {
+        /*if (locationId) {
             if (eventConfiguration?.occasion) {
                 router.push(`/configurator/${locationId}`);
                 return;
             }
-        }
+        }*/
+        setEventConfiguration(null);
         router.push(`/configurator/occasion`);
     };
 
@@ -86,7 +87,9 @@ const Header: FC<HeaderProps> = ({ transparentHeader = false }) => {
                     sx={{
                         fontFamily: "'Gugi', sans-serif",
                         fontSize: '40px',
-                        background: 'linear-gradient(90deg, #DE33C4 0%, #781C6A 100%)',
+                        background: transparentHeader && !isScrolled ?
+                            '#FFFFFF' :
+                            'linear-gradient(90deg, #DE33C4 0%, #781C6A 100%)',
                         WebkitBackgroundClip: 'text',
                         WebkitTextFillColor: 'transparent',
                         paddingX: '40px',
@@ -99,14 +102,11 @@ const Header: FC<HeaderProps> = ({ transparentHeader = false }) => {
                 </Typography>
 
                 <Box sx={{ display: 'flex', gap: 2 }}>
-                    <Button
-                        variant="outlined"
-                        color="secondary"
+                    <GradientButton
                         onClick={() => handleConfiguratorClick(eventConfiguration?.locationId ?? null)}
-                        sx={{ fontSize: '20px' }}
                     >
                         Konfigurator
-                    </Button>
+                    </GradientButton>
                     {menuItems.map((item, index) => (
                         <MenuItem
                             key={index}
@@ -119,7 +119,7 @@ const Header: FC<HeaderProps> = ({ transparentHeader = false }) => {
                     ))}
                 </Box>
             </Toolbar>
-        </AppBar>
+        </AppBar >
     );
 };
 

@@ -32,7 +32,7 @@ const Locations: NextPageWithLayout = () => {
                     width: 'calc(100% + 64px)',
                     height: { xs: '200px', sm: '300px', md: '400px' },
                     overflow: 'hidden',
-                    ml: -5,
+                    ml: -0.1,
                 }}>
                 <Image
                     src="/locations-header.png"
@@ -59,7 +59,14 @@ const Locations: NextPageWithLayout = () => {
                     </Typography>
                 </Box>
             </Box>
-            <Box pt={3} className="gradient-background">
+            <Box
+                pt={3}
+                className="gradient-background"
+                sx={{
+                    ml: 4,
+                    mr: 4
+                }}
+            >
                 <Typography variant="h2" textAlign="center" sx={{ mb: 4 }}>
                     Eventlocations
                 </Typography>
@@ -72,7 +79,12 @@ const Locations: NextPageWithLayout = () => {
 
 // Use ClientLayout as the layout for this page
 Locations.getLayout = function getLayout(page: ReactElement) {
-    return <ClientLayout transparentHeader={true}>{page}</ClientLayout>;
+    return <ClientLayout
+        transparentHeader={true}
+        margins={false}
+    >
+        {page}
+    </ClientLayout>;
 };
 
 export default Locations;
