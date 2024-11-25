@@ -12,7 +12,7 @@ import {
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { ChevronDown, Search, EuroIcon, } from 'lucide-react';
+import { ChevronDown, EuroIcon, } from 'lucide-react';
 import useStore, { createDefaultFilters } from '@/stores/eventStore';
 import City from '@/models/City';
 
@@ -51,7 +51,7 @@ export default function LocationFilters({ sx }: LocationFiltersProps) {
     };
 
     const handleCityChange = async (newCity: City | null) => {
-        let filters = eventConfigurationFilters || createDefaultFilters();
+        const filters = eventConfigurationFilters || createDefaultFilters();
         setEventConfigurationFilters({
             ...filters,
             city: newCity,
@@ -59,34 +59,20 @@ export default function LocationFilters({ sx }: LocationFiltersProps) {
     }
 
     const handleMinPersonsChange = async (newValue: number | null) => {
-        let filters = eventConfigurationFilters || createDefaultFilters();
-        if (
-            newValue !== null &&
-            (filters.maxPersons == null || newValue > filters.maxPersons)
-        ) {
-            setEventConfigurationFilters({
-                ...filters,
-                minPersons: newValue,
-                maxPersons: newValue,
-            });
-            return;
+        const filters = eventConfigurationFilters || createDefaultFilters();
+
+        if (newValue && newValue < 0) {
+            newValue = Math.abs(newValue);
         }
+
         setEventConfigurationFilters({
             ...filters,
             minPersons: newValue,
         });
-    }
-
-    const handleMaxPersonsChange = async (newValue: number | null) => {
-        let filters = eventConfigurationFilters || createDefaultFilters();
-        setEventConfigurationFilters({
-            ...filters,
-            maxPersons: newValue,
-        });
-    }
+    };
 
     const handlBudgetChange = async (newValue: number | null) => {
-        let filters = eventConfigurationFilters || createDefaultFilters();
+        const filters = eventConfigurationFilters || createDefaultFilters();
         setEventConfigurationFilters({
             ...filters,
             budget: newValue,
@@ -99,7 +85,7 @@ export default function LocationFilters({ sx }: LocationFiltersProps) {
                 ...sx,
                 display: 'flex',
                 flexDirection: 'row',
-                gap: 3,
+                gap: 5,
                 justifyContent: 'space-between',
                 mb: 4,
             }}
@@ -117,7 +103,13 @@ export default function LocationFilters({ sx }: LocationFiltersProps) {
                     />
                 )}
                 sx={{
-                    width: 260,
+                    width: {
+                        xs: '100%', // Full width on extra-small screens
+                        sm: '65%',  // 75% width on small screens
+                        md: '35%',  // 50% width on medium screens
+                        lg: '25%',  // 40% width on large screens and up
+                    },
+                    maxWidth: '500px',
                     ...inputStyle,
                 }}
                 popupIcon={<ChevronDown />}
@@ -125,7 +117,7 @@ export default function LocationFilters({ sx }: LocationFiltersProps) {
 
             {/* Min Persons Number Input */}
             <TextField
-                placeholder="Min Personen"
+                placeholder="Personen"
                 type="number"
                 value={eventConfigurationFilters?.minPersons || ""}
                 onChange={(event) => {
@@ -135,59 +127,34 @@ export default function LocationFilters({ sx }: LocationFiltersProps) {
                     handleMinPersonsChange(newValue);
                 }}
                 sx={smallInputStyle}
-                slotProps={{
-                    input: {
-                        endAdornment: <InputAdornment position="end">
-                            <Search />
-                        </InputAdornment>,
-                    },
-                }}
-            />
-
-            {/* Max Persons Number Input */}
-            <TextField
-                placeholder="Max Personen"
-                type="number"
-                value={eventConfigurationFilters?.maxPersons || ""}
-                onChange={(event) => {
-                    const newValue = event.target.value
-                        ? parseInt(event.target.value, 10)
-                        : null;
-                    if (
-                        newValue !== null &&
-                        (eventConfigurationFilters?.minPersons == null ||
-                            newValue >= eventConfigurationFilters?.minPersons)
-                    ) {
-                        handleMaxPersonsChange(newValue);
-                    }
-                }}
-                sx={smallInputStyle}
-                slotProps={{
-                    input: {
-                        endAdornment: <InputAdornment position="end">
-                            <Search />
-                        </InputAdornment>,
-                    },
-                }}
             />
 
             {/* Currency Input */}
             <TextField
                 placeholder="Budget"
-                type="number"
-                value={eventConfigurationFilters?.budget || ""}
+                value={
+                    eventConfigurationFilters?.budget != null
+                        ? new Intl.NumberFormat('de-DE', {
+                            style: 'currency',
+                            currency: 'EUR',
+                            minimumFractionDigits: 0,
+                        }).format(eventConfigurationFilters.budget)
+                        : ""
+                }
                 onChange={(event) => {
-                    const newValue = event.target.value ?
-                        parseInt(event.target.value, 10) :
-                        null;
+                    // Parse the user input by removing formatting and extracting the number
+                    const userInput = event.target.value.replace(/[^0-9]/g, ""); // Remove all non-digit characters
+                    const newValue = userInput ? parseInt(userInput, 10) : null;
                     handlBudgetChange(newValue);
                 }}
                 sx={smallInputStyle}
                 slotProps={{
                     input: {
-                        endAdornment: <InputAdornment position="end">
-                            <EuroIcon />
-                        </InputAdornment>,
+                        endAdornment: (
+                            <InputAdornment position="end">
+                                <EuroIcon color='black' />
+                            </InputAdornment>
+                        ),
                     },
                 }}
             />
