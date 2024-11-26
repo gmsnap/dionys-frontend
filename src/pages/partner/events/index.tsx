@@ -1,20 +1,19 @@
 import { ReactElement } from 'react';
 import PartnerLayout from '@/layouts/PartnerLayout';
 import type { NextPageWithLayout } from '@/types/page';
-import { Box } from '@mui/material';
-import CreateLocationForm from '@/features/partners/CreateLocationForm';
+import { Box, Typography } from '@mui/material';
 
-const ClientHome: NextPageWithLayout = () => {
+const PartnerPage: NextPageWithLayout = () => {
     return (
         <Box>
-            <CreateLocationForm />
+            <Typography>Events go here ...</Typography>
         </Box>
     );
 };
 
 // Use ClientLayout as the layout for this page
-ClientHome.getLayout = function getLayout(page: ReactElement) {
+PartnerPage.getLayout = function getLayout(page: ReactElement) {
     return <PartnerLayout>{page}</PartnerLayout>;
 };
 
-export default ClientHome;
+export default PartnerPage;

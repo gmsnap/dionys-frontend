@@ -15,3 +15,18 @@ export const formatEventCategory = async (category: EventCategories): Promise<st
     const t = await getTranslations('de'); // Await the async translator function
     return t(`event.category.${category}`);
 };
+
+export const formatEventCategoriesSync = (categories: EventCategories[]): string => {
+    const staticTranslations = {
+        "lunch": "Business Lunch",
+        "business": "Corporate Event",
+        "meeting": "Meeting",
+        "conference": "Konferenz"
+    };
+
+    const translated = categories.map((category) => {
+        return staticTranslations[category];
+    });
+
+    return translated.join(", ");
+};

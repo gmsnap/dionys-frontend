@@ -5,6 +5,7 @@ import useStore from '@/stores/eventStore';
 import GridItem from '../../components/GridItem';
 import { formatPrice } from '@/utils/formatPrice';
 import { LocationModel } from '@/models/LocationModel';
+import { formatEventCategoriesSync } from '@/utils/formatEventCategories';
 
 interface ListItem {
     icon: React.ReactNode;
@@ -77,7 +78,7 @@ const LocationGrid = ({ sx }: LocationGridProps) => {
                             listItems={[
                                 { icon: <MapPin />, label: location.area },
                                 { icon: <User />, label: '10-50' },
-                                { icon: <Layers2 />, label: 'Meeting, Lunch, Dinner, Tagung, Seminare & Workshops' },
+                                { icon: <Layers2 />, label: formatEventCategoriesSync(location.eventCategories) },
                             ]}
                         />
                     </Grid2>

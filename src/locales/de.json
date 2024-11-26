@@ -12,9 +12,9 @@
     },
     "event": {
         "category": {
-            "lunch": "Lunch",
-            "business": "Business Meeting",
-            "meeting": "Business Meeting",
+            "lunch": "Business Lunch",
+            "business": "Corporate Event",
+            "meeting": "Meeting",
             "conference": "Konferenz"
         }
     }

@@ -1,6 +1,4 @@
-'use client';
-
-import React from 'react';
+import React, { useRef } from 'react';
 import {
     Box,
     SxProps,
@@ -9,10 +7,7 @@ import {
     InputAdornment,
     Autocomplete,
 } from '@mui/material';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { ChevronDown, EuroIcon, } from 'lucide-react';
+import { ChevronDown, EuroIcon } from 'lucide-react';
 import useStore, { createDefaultFilters } from '@/stores/eventStore';
 import City from '@/models/City';
 
@@ -31,18 +26,21 @@ const cities = [
 export default function LocationFilters({ sx }: LocationFiltersProps) {
     const { eventConfigurationFilters, setEventConfigurationFilters } = useStore();
 
+    const autocompleteRef = useRef<HTMLDivElement>(null); // Ref for Autocomplete
+    const lastInputRef = useRef<HTMLInputElement>(null); // Ref for the last input field
+
     const inputStyle = {
         backgroundColor: '#E8E8E8',
         borderRadius: '8px',
         '& .MuiOutlinedInput-root': {
-            height: '42px', // Set the total height
+            height: '42px',
             borderRadius: '8px',
             '& fieldset': {
                 border: 'none',
             },
         },
         '& .MuiInputBase-input': {
-            fontSize: '20px', // Adjust font size
+            fontSize: '20px',
         },
     };
 
@@ -56,31 +54,41 @@ export default function LocationFilters({ sx }: LocationFiltersProps) {
             ...filters,
             city: newCity,
         });
-    }
+    };
 
     const handleMinPersonsChange = async (newValue: number | null) => {
         const filters = eventConfigurationFilters || createDefaultFilters();
-
-        if (newValue && newValue < 0) {
-            newValue = Math.abs(newValue);
-        }
-
         setEventConfigurationFilters({
             ...filters,
             minPersons: newValue,
         });
     };
 
-    const handlBudgetChange = async (newValue: number | null) => {
+    const handleBudgetChange = async (newValue: number | null) => {
         const filters = eventConfigurationFilters || createDefaultFilters();
         setEventConfigurationFilters({
             ...filters,
             budget: newValue,
         });
-    }
+    };
+
+    const handleKeyDown = (event: React.KeyboardEvent) => {
+        if (event.key === 'Tab') {
+            if (event.shiftKey && document.activeElement === autocompleteRef.current) {
+                // Shift + Tab from the first element: Loop back to the last input
+                event.preventDefault();
+                lastInputRef.current?.focus();
+            } else if (!event.shiftKey && document.activeElement === lastInputRef.current) {
+                // Tab from the last element: Loop back to the first input
+                event.preventDefault();
+                autocompleteRef.current?.focus();
+            }
+        }
+    };
 
     return (
         <Box
+            onKeyDown={handleKeyDown}
             sx={{
                 ...sx,
                 display: 'flex',
@@ -104,15 +112,16 @@ export default function LocationFilters({ sx }: LocationFiltersProps) {
                 )}
                 sx={{
                     width: {
-                        xs: '100%', // Full width on extra-small screens
-                        sm: '65%',  // 75% width on small screens
-                        md: '35%',  // 50% width on medium screens
-                        lg: '25%',  // 40% width on large screens and up
+                        xs: '100%',
+                        sm: '65%',
+                        md: '35%',
+                        lg: '25%',
                     },
                     maxWidth: '500px',
                     ...inputStyle,
                 }}
                 popupIcon={<ChevronDown />}
+                ref={autocompleteRef} // Reference to the first input
             />
 
             {/* Min Persons Number Input */}
@@ -129,7 +138,7 @@ export default function LocationFilters({ sx }: LocationFiltersProps) {
                 sx={smallInputStyle}
             />
 
-            {/* Currency Input */}
+            {/* Budget Input */}
             <TextField
                 placeholder="Budget"
                 value={
@@ -142,43 +151,22 @@ export default function LocationFilters({ sx }: LocationFiltersProps) {
                         : ""
                 }
                 onChange={(event) => {
-                    // Parse the user input by removing formatting and extracting the number
-                    const userInput = event.target.value.replace(/[^0-9]/g, ""); // Remove all non-digit characters
+                    const userInput = event.target.value.replace(/[^0-9]/g, "");
                     const newValue = userInput ? parseInt(userInput, 10) : null;
-                    handlBudgetChange(newValue);
+                    handleBudgetChange(newValue);
                 }}
                 sx={smallInputStyle}
                 slotProps={{
                     input: {
                         endAdornment: (
                             <InputAdornment position="end">
-                                <EuroIcon color='black' />
+                                <EuroIcon color="black" />
                             </InputAdornment>
                         ),
                     },
                 }}
+                inputRef={lastInputRef} // Reference to the last input
             />
-
-            {/* Date Pickers */}
-            {/*<LocalizationProvider dateAdapter={AdapterDayjs}>
-                <DatePicker
-                    label="From"
-                    slotProps={{
-                        textField: {
-                            sx: smallInputStyle,
-                        },
-                    }}
-                />
-
-                <DatePicker
-                    label="To"
-                    slotProps={{
-                        textField: {
-                            sx: smallInputStyle,
-                        },
-                    }}
-                />
-            </LocalizationProvider>*/}
         </Box>
     );
 }
