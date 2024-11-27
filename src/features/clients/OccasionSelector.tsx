@@ -1,20 +1,25 @@
 import React, { useEffect, useState } from 'react';
 import { Box, SxProps, Theme } from '@mui/material';
 import useStore from '@/stores/eventStore';
-import { EventCategories } from '@/constants/EventCategories';
-import { formatEventCategory } from '@/utils/formatEventCategories';
+import { AvailableEventCategories, EventCategories } from '@/constants/EventCategories';
 import router from 'next/router';
 
 interface OccasionSelectorProps {
     sx?: SxProps<Theme>;
 }
 
-const eventCategories: { name: EventCategories; image: string }[] = [
+const eventCategories: { name: EventCategories; image: string }[] =
+    AvailableEventCategories.map((category) => ({
+        name: category as EventCategories,
+        image: `/category-${category}.jpg`
+    }));
+
+/*const eventCategories: { name: EventCategories; image: string }[] = [
     { name: "lunch", image: "/category-lunch.jpg" },
     { name: "business", image: "/category-business.jpg" },
     { name: "meeting", image: "/category-meeting.jpg" },
     { name: "conference", image: "/category-conference.jpg" },
-];
+];*/
 
 const OccasionSelector = ({ sx }: OccasionSelectorProps) => {
     const { eventConfiguration, setEventConfiguration } = useStore();

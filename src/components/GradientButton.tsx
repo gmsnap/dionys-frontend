@@ -7,6 +7,7 @@ interface GradientButtonProps extends ButtonProps {
 export default function GradientButton({
     gradientColors = ['#DE33C4', '#781C6A'],
     children,
+    sx,
     ...props
 }: GradientButtonProps) {
     return (
@@ -44,7 +45,7 @@ export default function GradientButton({
                         backgroundColor: '#F8F8F8', // Slightly darker white on hover
                         borderColor: gradientColors[gradientColors.length - 1],
                     },
-                    ...props.sx, // Merge with any additional styles passed as props
+                    ...sx, // Merge with any additional styles passed as props
                 }}
             >
                 {children}

@@ -1,13 +1,13 @@
 import { ReactElement } from 'react';
 import PartnerLayout from '@/layouts/PartnerLayout';
 import type { NextPageWithLayout } from '@/types/page';
-import { Box } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 import CreateLocationForm from '@/features/partners/CreateLocationForm';
 
 const ClientHome: NextPageWithLayout = () => {
     return (
         <Box>
-            <CreateLocationForm />
+            <Typography>Partner Home here ...</Typography>
         </Box>
     );
 };

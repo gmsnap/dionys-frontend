@@ -22,6 +22,7 @@ const MenuItem: React.FC<MenuItemProps> = ({
         <Button
             href={href}
             sx={{
+                cursor: 'pointer',
                 color: isSelected
                     ? theme.palette.customColors.pink.light
                     : (transparent ? 'primary.contrastText' : 'secondary.main'),
@@ -30,6 +31,7 @@ const MenuItem: React.FC<MenuItemProps> = ({
                 fontWeight: 400,
                 letterSpacing: '-0.07em',
                 backgroundColor: transparent ? 'transparent' : 'inherit',
+                whiteSpace: 'nowrap',
                 ...sx,
             }}
         >

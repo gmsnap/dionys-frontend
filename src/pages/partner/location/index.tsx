@@ -8,7 +8,7 @@ import PartnerContentLayout from '@/layouts/PartnerContentLayout';
 const PartnerPage: NextPageWithLayout = () => {
     return (
         <Box>
-            <CreateLocationForm />
+            <CreateLocationForm locationId='10' />
         </Box>
     );
 };

@@ -1,11 +1,26 @@
-import { AppBar, Toolbar, Typography, Box, Button, useTheme } from '@mui/material';
-import { FC } from 'react';
+import {
+    AppBar,
+    Toolbar,
+    Typography,
+    Box,
+    useTheme,
+    IconButton,
+    Menu,
+    MenuItem as MuiMenuItem,
+    useMediaQuery
+} from '@mui/material';
+import { FC, useState } from 'react';
 import { usePathname } from 'next/navigation';
+import router from 'next/router';
+import { MenuIcon } from 'lucide-react';
 import MenuItem from '../MenuItem';
 
 const Header: FC = () => {
     const theme = useTheme();
     const pathname = usePathname();
+
+    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+    const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
     const menuItems = [
         { "label": "Events", "link": "/partner/events" },
@@ -26,6 +41,14 @@ const Header: FC = () => {
         return link !== '/' && pathname?.startsWith(link);
     };
 
+    const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+        setAnchorEl(event.currentTarget);
+    };
+
+    const handleMenuClose = () => {
+        setAnchorEl(null);
+    };
+
     return (
         <AppBar
             position="fixed"
@@ -42,29 +65,76 @@ const Header: FC = () => {
                     component="div"
                     sx={{
                         fontFamily: "'Gugi', sans-serif",
-                        fontSize: '40px',
+                        fontSize: {
+                            xs: '24px',
+                            sm: '28px',
+                            md: '32px',
+                            lg: '40px',
+                            xl: '40px',
+                        },
                         background: 'linear-gradient(90deg, #DE33C4 0%, #781C6A 100%)',
                         WebkitBackgroundClip: 'text',
                         WebkitTextFillColor: 'transparent',
-                        paddingX: '40px',
-                        paddingY: '20px',
-                        pointerEvents: 'none',
+                        paddingX: {
+                            xs: '20px',
+                            sm: '30px',
+                            md: '40px',
+                        },
+                        paddingY: {
+                            xs: '10px',
+                            sm: '15px',
+                            md: '20px',
+                        },
                         userSelect: 'none',
+                        cursor: 'pointer',
                     }}
+                    onClick={() => router.push('/')}
                 >
                     DIONYS
                 </Typography>
 
-                <Box sx={{ display: 'flex', gap: 2 }}>
-                    {menuItems.map((item, index) => (
-                        <MenuItem
-                            key={index}
-                            href={item.link}
-                            isSelected={isItemSelected(item.link)}
-                        >
-                            {item.label}
-                        </MenuItem>
-                    ))}
+                <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                    {isMobile ? (
+                        <>
+                            <IconButton
+                                size="large"
+                                edge="start"
+                                color="inherit"
+                                aria-label="menu"
+                                onClick={handleMenuOpen}
+                            >
+                                <MenuIcon color={theme.palette.customColors.pink.dark} />
+                            </IconButton>
+                            <Menu
+                                anchorEl={anchorEl}
+                                open={Boolean(anchorEl)}
+                                onClose={handleMenuClose}
+                            >
+                                {menuItems.map((item, index) => (
+                                    <MuiMenuItem
+                                        key={index}
+                                        onClick={() => {
+                                            router.push(item.link);
+                                            handleMenuClose();
+                                        }}
+                                        selected={isItemSelected(item.link)}
+                                    >
+                                        {item.label}
+                                    </MuiMenuItem>
+                                ))}
+                            </Menu>
+                        </>
+                    ) : (
+                        menuItems.map((item, index) => (
+                            <MenuItem
+                                key={index}
+                                href={item.link}
+                                isSelected={isItemSelected(item.link)}
+                            >
+                                {item.label}
+                            </MenuItem>
+                        ))
+                    )}
                 </Box>
             </Toolbar>
         </AppBar>

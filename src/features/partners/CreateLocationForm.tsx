@@ -1,17 +1,24 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
     Box,
     Button,
     TextField,
-    Grid2,
     Typography,
     CircularProgress,
+    MenuItem,
+    Chip,
+    Grid2,
 } from "@mui/material";
+import { CircleMinus } from "lucide-react";
 import { CreateLocationResponse, GeoLocation } from "@/types/geolocation";
+import { AvailableEventCategories, EventCategories } from "@/constants/EventCategories";
+import { formatEventCategoriesSync } from "@/utils/formatEventCategories";
 
-const CreateLocationForm: React.FC = () => {
+const LocationForm: React.FC<{ locationId?: string }> = ({
+    locationId,
+}) => {
     const [formData, setFormData] = useState({
         title: "",
         city: "",
@@ -21,10 +28,44 @@ const CreateLocationForm: React.FC = () => {
         geoLocation: { type: "Point", coordinates: [0, 0] } as GeoLocation,
         image: null as File | null,
         price: "",
+        eventCategories: [] as string[],
     });
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [responseMessage, setResponseMessage] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
+
+    const isEdit: boolean = locationId !== undefined;
+
+    // Fetch location data if locationId is provided
+    useEffect(() => {
+        if (locationId) {
+            setIsLoading(true);
+            fetch(`${process.env.NEXT_PUBLIC_API_URL}/locations/${locationId}`)
+                .then((response) => response.json())
+                .then((data) => {
+                    setFormData({
+                        title: data.title || "",
+                        city: data.city || "",
+                        area: data.area || "",
+                        streetAddress: data.streetAddress || "",
+                        postalCode: data.postalCode || "",
+                        geoLocation: data.geoLocation || {
+                            type: "Point",
+                            coordinates: [0, 0],
+                        },
+                        image: null, // Images are not fetched directly
+                        price: data.price || "",
+                        eventCategories: data.eventCategories || [],
+                    });
+                })
+                .catch((error) => {
+                    console.error("Failed to fetch location data:", error);
+                    setResponseMessage("Failed to load location data.");
+                })
+                .finally(() => setIsLoading(false));
+        }
+    }, [locationId]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -42,19 +83,38 @@ const CreateLocationForm: React.FC = () => {
         }));
     };
 
+    const handleAddCategory = (category: string) => {
+        setFormData((prev) => ({
+            ...prev,
+            eventCategories: [...prev.eventCategories, category],
+        }));
+    };
+
+    const handleRemoveCategory = (category: string) => {
+        setFormData((prev) => ({
+            ...prev,
+            eventCategories: prev.eventCategories.filter((c) => c !== category),
+        }));
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true);
 
         try {
-            // Prepare data for the server
             const payload = {
                 ...formData,
-                image: formData.image ? formData.image.name : undefined, // Send only the filename if there's a file
+                image: formData.image ? formData.image.name : undefined,
             };
 
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/locations`, {
-                method: "POST",
+            const url = isEdit
+                ? `${process.env.NEXT_PUBLIC_API_URL}/locations/${locationId}`
+                : `${process.env.NEXT_PUBLIC_API_URL}/locations`;
+
+            const method = isEdit ? "PUT" : "POST";
+
+            const response = await fetch(url, {
+                method,
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload),
             });
@@ -62,18 +122,21 @@ const CreateLocationForm: React.FC = () => {
             const data: CreateLocationResponse = await response.json();
 
             if (!response.ok) {
-                throw new Error(data.message || "Failed to create location");
+                throw new Error(data.message || "Failed to submit location");
             }
 
-            // If a presigned URL is returned, upload the file
             if (data.uploadUrl && formData.image) {
                 await uploadFile(data.uploadUrl, formData.image);
             }
 
-            setResponseMessage("Location created successfully!");
+            setResponseMessage(
+                isEdit
+                    ? "Location updated successfully!"
+                    : "Location created successfully!"
+            );
         } catch (error) {
             console.error(error);
-            setResponseMessage("An error occurred while creating the location.");
+            setResponseMessage("An error occurred while submitting the location.");
         } finally {
             setIsSubmitting(false);
         }
@@ -100,14 +163,25 @@ const CreateLocationForm: React.FC = () => {
         }
     };
 
+    if (isLoading) {
+        return (
+            <Box sx={{ maxWidth: 600, mx: "auto", mt: 4, p: 2, textAlign: "center" }}>
+                <CircularProgress />
+                <Typography variant="h6" sx={{ mt: 2 }}>
+                    Loading location data...
+                </Typography>
+            </Box>
+        );
+    }
+
     return (
         <Box sx={{ maxWidth: 600, mx: "auto", mt: 4, p: 2, boxShadow: 3 }}>
             <Typography variant="h5" gutterBottom>
-                Create Location
+                {isEdit ? "Update Location" : "Create Location"}
             </Typography>
             <form onSubmit={handleSubmit}>
                 <Grid2 container spacing={2}>
-                    <Grid2 size={{ xs: 12, sm: 6, md: 4, lg: 4, xl: 3 }}>
+                    <Grid2 size={{ xs: 12 }}>
                         <TextField
                             fullWidth
                             label="Title"
@@ -117,7 +191,7 @@ const CreateLocationForm: React.FC = () => {
                             required
                         />
                     </Grid2>
-                    <Grid2 size={{ xs: 12, sm: 6, md: 4, lg: 4, xl: 3 }}>
+                    <Grid2 size={{ xs: 12 }}>
                         <TextField
                             fullWidth
                             label="City"
@@ -127,7 +201,7 @@ const CreateLocationForm: React.FC = () => {
                             required
                         />
                     </Grid2>
-                    <Grid2 size={{ xs: 12, sm: 6, md: 4, lg: 4, xl: 3 }}>
+                    <Grid2 size={{ xs: 12 }}>
                         <TextField
                             fullWidth
                             label="Area"
@@ -136,7 +210,7 @@ const CreateLocationForm: React.FC = () => {
                             onChange={handleInputChange}
                         />
                     </Grid2>
-                    <Grid2 size={{ xs: 12, sm: 6, md: 4, lg: 4, xl: 3 }}>
+                    <Grid2 size={{ xs: 12 }}>
                         <TextField
                             fullWidth
                             label="Street Address"
@@ -146,7 +220,7 @@ const CreateLocationForm: React.FC = () => {
                             required
                         />
                     </Grid2>
-                    <Grid2 size={{ xs: 12, sm: 6, md: 4, lg: 4, xl: 3 }}>
+                    <Grid2 size={{ xs: 12 }}>
                         <TextField
                             fullWidth
                             label="Postal Code"
@@ -156,49 +230,38 @@ const CreateLocationForm: React.FC = () => {
                             required
                         />
                     </Grid2>
-                    <Grid2 size={{ xs: 12, sm: 6, md: 4, lg: 4, xl: 3 }}>
+                    <Grid2 size={{ xs: 12 }}>
+                        <Typography variant="subtitle1">Event Categories</Typography>
+                        <Box display="flex" flexWrap="wrap" gap={1} mb={2}>
+                            {formData.eventCategories.map((category) => (
+                                <Chip
+                                    key={category}
+                                    label={formatEventCategoriesSync([category as EventCategories])}
+                                    onDelete={() => handleRemoveCategory(category)}
+                                    deleteIcon={<CircleMinus />}
+                                />
+                            ))}
+                        </Box>
                         <TextField
+                            select
                             fullWidth
-                            label="Latitude"
-                            type="number"
-                            name="latitude"
-                            value={formData.geoLocation.coordinates[0]}
-                            onChange={(e) =>
-                                setFormData((prev) => ({
-                                    ...prev,
-                                    geoLocation: {
-                                        ...prev.geoLocation,
-                                        coordinates: [
-                                            parseFloat(e.target.value) || 0,
-                                            prev.geoLocation.coordinates[1],
-                                        ],
-                                    },
-                                }))
-                            }
-                        />
+                            label="Add Category"
+                            value=""
+                            onChange={(e) => handleAddCategory(e.target.value)}
+                        >
+                            {AvailableEventCategories
+                                .filter(
+                                    (category) =>
+                                        !formData.eventCategories.includes(category)
+                                )
+                                .map((category) => (
+                                    <MenuItem key={category} value={category}>
+                                        {formatEventCategoriesSync([category as EventCategories])}
+                                    </MenuItem>
+                                ))}
+                        </TextField>
                     </Grid2>
-                    <Grid2 size={{ xs: 12, sm: 6, md: 4, lg: 4, xl: 3 }}>
-                        <TextField
-                            fullWidth
-                            label="Longitude"
-                            type="number"
-                            name="longitude"
-                            value={formData.geoLocation.coordinates[1]}
-                            onChange={(e) =>
-                                setFormData((prev) => ({
-                                    ...prev,
-                                    geoLocation: {
-                                        ...prev.geoLocation,
-                                        coordinates: [
-                                            prev.geoLocation.coordinates[0],
-                                            parseFloat(e.target.value) || 0,
-                                        ],
-                                    },
-                                }))
-                            }
-                        />
-                    </Grid2>
-                    <Grid2 size={{ xs: 12, sm: 6, md: 4, lg: 4, xl: 3 }}>
+                    <Grid2 size={{ xs: 12 }}>
                         <TextField
                             fullWidth
                             label="Price"
@@ -209,7 +272,7 @@ const CreateLocationForm: React.FC = () => {
                             required
                         />
                     </Grid2>
-                    <Grid2 size={{ xs: 12, sm: 6, md: 4, lg: 4, xl: 3 }}>
+                    <Grid2 size={{ xs: 12 }}>
                         <Button variant="contained" component="label">
                             Upload Image
                             <input
@@ -221,7 +284,7 @@ const CreateLocationForm: React.FC = () => {
                         </Button>
                         {formData.image && <Typography>{formData.image.name}</Typography>}
                     </Grid2>
-                    <Grid2 size={{ xs: 12, sm: 6, md: 4, lg: 4, xl: 3 }}>
+                    <Grid2 size={{ xs: 12 }}>
                         <Button
                             type="submit"
                             variant="contained"
@@ -230,7 +293,11 @@ const CreateLocationForm: React.FC = () => {
                             disabled={isSubmitting}
                             startIcon={isSubmitting && <CircularProgress size={20} />}
                         >
-                            {isSubmitting ? "Submitting..." : "Create Location"}
+                            {isSubmitting
+                                ? "Submitting..."
+                                : isEdit
+                                    ? "Update Location"
+                                    : "Create Location"}
                         </Button>
                     </Grid2>
                 </Grid2>
@@ -244,4 +311,4 @@ const CreateLocationForm: React.FC = () => {
     );
 };
 
-export default CreateLocationForm;
+export default LocationForm;

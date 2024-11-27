@@ -1,8 +1,8 @@
 import { ReactElement } from 'react';
 import Layout from '../layouts/ClientLayout';
 import type { NextPageWithLayout } from '../types/page';
-import LocationGrid from '@/features/clients/LocationGrid';
 import { Box, Button, Typography } from '@mui/material';
+import { ArrowRight } from 'lucide-react';
 
 const Home: NextPageWithLayout = () => {
 
@@ -21,7 +21,7 @@ const Home: NextPageWithLayout = () => {
             m: 2,
           }}
         >
-          Locations
+          Locations <ArrowRight />
         </Button>
         <Button
           href='/partner'
@@ -34,7 +34,7 @@ const Home: NextPageWithLayout = () => {
             m: 2,
           }}
         >
-          Partner
+          Partner <ArrowRight />
         </Button>
       </Box>
     </Box>
