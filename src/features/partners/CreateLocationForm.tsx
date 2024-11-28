@@ -15,17 +15,16 @@ import { CircleMinus } from "lucide-react";
 import { CreateLocationResponse, GeoLocation } from "@/types/geolocation";
 import { AvailableEventCategories, EventCategories } from "@/constants/EventCategories";
 import { formatEventCategoriesSync } from "@/utils/formatEventCategories";
+import useStore from '@/stores/partnerStore';
 
-const LocationForm: React.FC<{ locationId?: string }> = ({
-    locationId,
-}) => {
+const LocationForm: React.FC<{ locationId?: string }> = ({ }) => {
     const [formData, setFormData] = useState({
         title: "",
         city: "",
         area: "",
         streetAddress: "",
         postalCode: "",
-        geoLocation: { type: "Point", coordinates: [0, 0] } as GeoLocation,
+        geoLocation: { lat: 0, lng: 0 },
         image: null as File | null,
         price: "",
         eventCategories: [] as string[],
@@ -34,14 +33,16 @@ const LocationForm: React.FC<{ locationId?: string }> = ({
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [responseMessage, setResponseMessage] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const [isEdit, setIsEdit] = useState(false);
+    const { partnerUser } = useStore();
+    const { partnerLocation, setPartnerLocation } = useStore();
 
-    const isEdit: boolean = locationId !== undefined;
-
-    // Fetch location data if locationId is provided
+    // Fetch location data if partnerUser is provided
     useEffect(() => {
-        if (locationId) {
+        console.log("partnerUser");
+        if (partnerUser) {
             setIsLoading(true);
-            fetch(`${process.env.NEXT_PUBLIC_API_URL}/locations/${locationId}`)
+            fetch(`${process.env.NEXT_PUBLIC_API_URL}/locations/partner/${partnerUser.id}?single=1`)
                 .then((response) => response.json())
                 .then((data) => {
                     setFormData({
@@ -51,13 +52,15 @@ const LocationForm: React.FC<{ locationId?: string }> = ({
                         streetAddress: data.streetAddress || "",
                         postalCode: data.postalCode || "",
                         geoLocation: data.geoLocation || {
-                            type: "Point",
-                            coordinates: [0, 0],
+                            lat: 0,
+                            lng: 0,
                         },
                         image: null, // Images are not fetched directly
                         price: data.price || "",
                         eventCategories: data.eventCategories || [],
                     });
+                    setPartnerLocation(data);
+                    setIsEdit(true);
                 })
                 .catch((error) => {
                     console.error("Failed to fetch location data:", error);
@@ -65,7 +68,7 @@ const LocationForm: React.FC<{ locationId?: string }> = ({
                 })
                 .finally(() => setIsLoading(false));
         }
-    }, [locationId]);
+    }, [partnerUser]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -108,7 +111,7 @@ const LocationForm: React.FC<{ locationId?: string }> = ({
             };
 
             const url = isEdit
-                ? `${process.env.NEXT_PUBLIC_API_URL}/locations/${locationId}`
+                ? `${process.env.NEXT_PUBLIC_API_URL}/locations/${partnerLocation?.id}`
                 : `${process.env.NEXT_PUBLIC_API_URL}/locations`;
 
             const method = isEdit ? "PUT" : "POST";

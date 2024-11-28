@@ -1,7 +1,7 @@
 // GeoLocation type
 export type GeoLocation = {
-    type: 'Point'; // Enforce GeoJSON "Point" type
-    coordinates: [number, number]; // Latitude and Longitude as a tuple
+    lat: number;
+    lng: number;
 };
 
 // CreateLocationResponse type

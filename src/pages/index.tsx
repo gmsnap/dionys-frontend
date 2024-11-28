@@ -8,7 +8,7 @@ const Home: NextPageWithLayout = () => {
 
   return (
     <Box pt={3} className="gradient-background" sx={{ height: '100vh' }}>
-      <Typography variant="h2" textAlign="center" sx={{ mb: 4 }}>Home</Typography>
+      <Typography variant="h2" textAlign="center" sx={{ mt: 4 }}>Home (tbd)</Typography>
       <Box textAlign={'center'} mt={10}>
         <Button
           href='/locations'

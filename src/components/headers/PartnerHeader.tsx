@@ -7,17 +7,20 @@ import {
     IconButton,
     Menu,
     MenuItem as MuiMenuItem,
-    useMediaQuery
+    useMediaQuery,
+    Button
 } from '@mui/material';
 import { FC, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import router from 'next/router';
 import { MenuIcon } from 'lucide-react';
 import MenuItem from '../MenuItem';
+import useStore from '@/stores/partnerStore';
 
 const Header: FC = () => {
     const theme = useTheme();
     const pathname = usePathname();
+    const { setPartnerUser } = useStore(); // Access logout function from the store
 
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -32,12 +35,7 @@ const Header: FC = () => {
     ];
 
     const isItemSelected = (link: string): boolean => {
-        // Exact match for home page
-        if (link === '/' && pathname === '/') {
-            return true;
-        }
-        // For other pages, check if pathname starts with the link
-        // This handles potential subpages (e.g., /locations/specific-location)
+        if (link === '/' && pathname === '/') return true;
         return link !== '/' && pathname?.startsWith(link);
     };
 
@@ -49,10 +47,16 @@ const Header: FC = () => {
         setAnchorEl(null);
     };
 
+    const handleLogout = () => {
+        setPartnerUser(null); // Clear user data from store
+        router.push('/partner'); // Redirect to login page
+    };
+
     return (
         <AppBar
             position="fixed"
-            sx={{ backgroundColor: '#ffffff', boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)' }}>
+            sx={{ backgroundColor: '#ffffff', boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)' }}
+        >
             <Toolbar
                 sx={{
                     display: 'flex',
@@ -122,18 +126,32 @@ const Header: FC = () => {
                                         {item.label}
                                     </MuiMenuItem>
                                 ))}
+                                <MuiMenuItem onClick={handleLogout}>Logout</MuiMenuItem>
                             </Menu>
                         </>
                     ) : (
-                        menuItems.map((item, index) => (
-                            <MenuItem
-                                key={index}
-                                href={item.link}
-                                isSelected={isItemSelected(item.link)}
+                        <>
+                            {menuItems.map((item, index) => (
+                                <MenuItem
+                                    key={index}
+                                    href={item.link}
+                                    isSelected={isItemSelected(item.link)}
+                                >
+                                    {item.label}
+                                </MenuItem>
+                            ))}
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                onClick={handleLogout}
+                                sx={{
+                                    backgroundColor: theme.palette.customColors.pink.dark,
+                                    color: '#fff',
+                                }}
                             >
-                                {item.label}
-                            </MenuItem>
-                        ))
+                                Logout
+                            </Button>
+                        </>
                     )}
                 </Box>
             </Toolbar>

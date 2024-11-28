@@ -7,6 +7,7 @@ export interface GeoLocation {
 
 export interface LocationModel {
     id: number;
+    partnerId: number;
     title: string;
     city: string;
     area: string;
