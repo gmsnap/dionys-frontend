@@ -1,13 +1,14 @@
 import { ReactElement } from 'react';
 import PartnerLayout from '@/layouts/PartnerLayout';
 import type { NextPageWithLayout } from '@/types/page';
-import { Box, Typography } from '@mui/material';
+import { Box } from '@mui/material';
 import PartnerContentLayout from '@/layouts/PartnerContentLayout';
+import RoomGrid from '@/features/partners/RoomGrid';
 
 const PartnerPage: NextPageWithLayout = () => {
     return (
         <Box>
-            <Typography>Rooms here ...</Typography>
+            <RoomGrid sx={{ height: '100%' }} />
         </Box>
     );
 };

@@ -5,9 +5,7 @@ import { Alert, Box, Button, TextField, Typography } from "@mui/material";
 import { PartnerUserModel } from "@/models/PartnerUserModel";
 import useStore from '@/stores/partnerStore';
 
-const PartnerLoginForm: React.FC<{}> = ({
-
-}) => {
+const PartnerLoginForm: React.FC = ({ }) => {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [isLoading, setIsLoading] = useState(false);

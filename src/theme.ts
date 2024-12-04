@@ -14,6 +14,9 @@ const customColors = {
         secondary: '#535353',
         tertiary: '#606060',
     },
+    textBackround: {
+        halfdark: '#F5F5F5',
+    },
     gradient: {
         pink: 'linear-gradient(90deg, #DE33C4 0%, #781C6A 100%)',
     },
@@ -78,6 +81,12 @@ const theme = createTheme({
             fontFamily: "'Nunito', sans-serif",
             color: customColors.pink.dark,
             fontSize: '16px',
+            fontWeight: 700,
+            letterSpacing: '-0.05em',
+        },
+        h6: {
+            fontFamily: "'Nunito', sans-serif",
+            fontSize: '24px',
             fontWeight: 700,
             letterSpacing: '-0.05em',
         },
@@ -147,6 +156,45 @@ const theme = createTheme({
                     color: '#FFFFFF',
                     backgroundColor: customColors.pink.dark,
                     borderRadius: 6,
+                },
+            },
+        },
+        MuiListItem: {
+            styleOverrides: {
+                root: {
+                    fontFamily: "'Nunito', sans-serif",
+                    fontWeight: 700,
+                    fontSize: '16px',
+                    letterSpacing: '-0.05em',
+                },
+            },
+        },
+        MuiListItemButton: {
+            styleOverrides: {
+                root: {
+                    fontFamily: "'Nunito', sans-serif",
+                    fontWeight: 700,
+                    fontSize: '16px',
+                    letterSpacing: '-0.05em',
+                    '&:hover': {
+                        backgroundColor: 'transparent',
+                    },
+                    '&.Mui-selected': {
+                        backgroundColor: 'transparent',
+                        '&:hover': {
+                            backgroundColor: 'transparent',
+                        },
+                    },
+                },
+            },
+        },
+        MuiListItemText: {
+            styleOverrides: {
+                primary: {
+                    fontFamily: "'Nunito', sans-serif",
+                    fontWeight: 700,
+                    fontSize: '16px',
+                    letterSpacing: '-0.05em',
                 },
             },
         },

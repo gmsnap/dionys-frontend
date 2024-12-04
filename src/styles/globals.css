@@ -38,8 +38,6 @@ a {
 
 .lucide {
   color: #513185;
-  stroke-width: 2px;
-  max-width: 20px;
 }
 
 @media (prefers-color-scheme: dark) {

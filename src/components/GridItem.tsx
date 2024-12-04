@@ -1,8 +1,5 @@
 import React from 'react';
 import { Box, Button, Typography } from '@mui/material';
-import Link from 'next/link';
-import useStore, { createDefaultEventConfigurationModel } from '@/stores/eventStore';
-import router from 'next/router';
 
 interface ListItem {
     icon: React.ReactNode;
@@ -15,6 +12,7 @@ interface GridItemProps {
     title: string;
     priceTag: string;
     listItems: ListItem[];
+    buttons: React.ReactNode[] | null;
 }
 
 const GridItem: React.FC<GridItemProps> = (
@@ -23,24 +21,9 @@ const GridItem: React.FC<GridItemProps> = (
         image,
         title,
         priceTag,
-        listItems
+        listItems,
+        buttons,
     }) => {
-    const { eventConfiguration, setEventConfiguration } = useStore();
-
-    const handleConfigurationClick = (locationId: number): void => {
-        if (eventConfiguration) {
-            /*if (eventConfiguration.locationId === locationId) {
-                if (eventConfiguration.occasion) {
-                    router.push(`/configurator/${id}`);
-                    return;
-                }
-                router.push(`/configurator/occasion`);
-                return;
-            }*/
-        }
-        setEventConfiguration(createDefaultEventConfigurationModel(locationId));
-        router.push(`/configurator/occasion`);
-    }
 
     return (
         <Box
@@ -111,27 +94,11 @@ const GridItem: React.FC<GridItemProps> = (
 
                 {/* Buttons at the bottom */}
                 <Box sx={{ mt: 3, display: 'flex', gap: 2 }}>
-                    <Button
-                        variant="outlined"
-                        color="primary"
-                        component={Link}
-                        href={`/configurator/${id}`}
-                        sx={{ flex: 1 }}
-                    >
-                        Mehr Details
-                    </Button>
-                    <Button
-                        variant="outlined"
-                        color="secondary"
-                        sx={{ flex: 1 }}
-                        onClick={() => handleConfigurationClick(id)}
-                    >
-                        Jetzt Konfigurieren
-                    </Button>
+                    {buttons && buttons.map((button, index) => (
+                        button
+                    ))}
                 </Box>
-
             </Box>
-
         </Box>
     );
 };

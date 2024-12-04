@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Box, SxProps, Theme, Grid2, CircularProgress } from '@mui/material';
+import { Box, SxProps, Theme, Grid2, CircularProgress, Button } from '@mui/material';
+import Link from 'next/link';
+import router from 'next/router';
 import { User, MapPin, Layers2 } from 'lucide-react';
-import useStore from '@/stores/eventStore';
+import useStore, { createDefaultEventConfigurationModel } from '@/stores/eventStore';
 import GridItem from '../../components/GridItem';
 import { formatPrice } from '@/utils/formatPrice';
 import { LocationModel } from '@/models/LocationModel';
@@ -17,10 +19,26 @@ interface LocationGridProps {
 }
 
 const LocationGrid = ({ sx }: LocationGridProps) => {
+    const { eventConfiguration, setEventConfiguration } = useStore();
     const { eventConfigurationFilters, setEventConfigurationFilters } = useStore();
     const [locations, setLocations] = useState<LocationModel[]>([]);
     const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
+
+    const handleConfigurationClick = (locationId: number): void => {
+        if (eventConfiguration) {
+            /*if (eventConfiguration.locationId === locationId) {
+                if (eventConfiguration.occasion) {
+                    router.push(`/configurator/${id}`);
+                    return;
+                }
+                router.push(`/configurator/occasion`);
+                return;
+            }*/
+        }
+        setEventConfiguration(createDefaultEventConfigurationModel(locationId));
+        router.push(`/configurator/occasion`);
+    }
 
     useEffect(() => {
         const fetchData = async () => {
@@ -79,6 +97,25 @@ const LocationGrid = ({ sx }: LocationGridProps) => {
                                 { icon: <MapPin />, label: location.area },
                                 { icon: <User />, label: '10-50' },
                                 { icon: <Layers2 />, label: formatEventCategoriesSync(location.eventCategories) },
+                            ]}
+                            buttons={[
+                                <Button
+                                    variant="outlined"
+                                    color="primary"
+                                    component={Link}
+                                    href={`/configurator/${location.id}`}
+                                    sx={{ flex: 1 }}
+                                >
+                                    Mehr Details
+                                </Button>,
+                                <Button
+                                    variant="outlined"
+                                    color="secondary"
+                                    sx={{ flex: 1 }}
+                                    onClick={() => handleConfigurationClick(location.id)}
+                                >
+                                    Jetzt Konfigurieren
+                                </Button>,
                             ]}
                         />
                     </Grid2>

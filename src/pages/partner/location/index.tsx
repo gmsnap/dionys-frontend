@@ -1,25 +1,41 @@
-import { ReactElement } from 'react';
+import { ReactElement, useEffect, useState } from 'react';
 import PartnerLayout from '@/layouts/PartnerLayout';
 import type { NextPageWithLayout } from '@/types/page';
-import { Box } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 import CreateLocationForm from '@/features/partners/CreateLocationForm';
 import PartnerContentLayout from '@/layouts/PartnerContentLayout';
+import useStore from '@/stores/partnerStore';
 
 const PartnerPage: NextPageWithLayout = () => {
+    const { partnerUser } = useStore();
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+    useEffect(() => {
+        setIsLoggedIn(!!partnerUser);
+    }, [partnerUser]);
+
     return (
         <Box>
-            <CreateLocationForm />
+            {isLoggedIn ? (
+                <CreateLocationForm />
+            ) : (
+                <Typography variant="h6" textAlign="center">
+                    Please log in to create a location.
+                </Typography>
+            )}
         </Box>
     );
 };
 
-// Use ClientLayout as the layout for this page
+// Use PartnerLayout as the layout for this page
 PartnerPage.getLayout = function getLayout(page: ReactElement) {
-    return <PartnerLayout>
-        <PartnerContentLayout title='Location'>
-            {page}
-        </PartnerContentLayout>
-    </PartnerLayout>;
+    return (
+        <PartnerLayout>
+            <PartnerContentLayout title='Location'>
+                {page}
+            </PartnerContentLayout>
+        </PartnerLayout>
+    );
 };
 
 export default PartnerPage;

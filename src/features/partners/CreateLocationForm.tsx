@@ -39,7 +39,6 @@ const LocationForm: React.FC<{ locationId?: string }> = ({ }) => {
 
     // Fetch location data if partnerUser is provided
     useEffect(() => {
-        console.log("partnerUser");
         if (partnerUser) {
             setIsLoading(true);
             fetch(`${process.env.NEXT_PUBLIC_API_URL}/locations/partner/${partnerUser.id}?single=1`)
@@ -134,8 +133,8 @@ const LocationForm: React.FC<{ locationId?: string }> = ({ }) => {
 
             setResponseMessage(
                 isEdit
-                    ? "Location updated successfully!"
-                    : "Location created successfully!"
+                    ? "Location geupdated!"
+                    : "Location gespeichert!"
             );
         } catch (error) {
             console.error(error);
@@ -159,7 +158,7 @@ const LocationForm: React.FC<{ locationId?: string }> = ({ }) => {
                 throw new Error("Failed to upload the file.");
             }
 
-            setResponseMessage("File uploaded successfully!");
+            setResponseMessage("Datei hochgeladen!");
         } catch (error) {
             console.error(error);
             setResponseMessage("An error occurred during file upload.");
@@ -178,16 +177,16 @@ const LocationForm: React.FC<{ locationId?: string }> = ({ }) => {
     }
 
     return (
-        <Box sx={{ maxWidth: 600, mx: "auto", mt: 4, p: 2, boxShadow: 3 }}>
-            <Typography variant="h5" gutterBottom>
-                {isEdit ? "Update Location" : "Create Location"}
+        <Box sx={{ maxWidth: 500, mx: "auto", mt: 4, }}>
+            <Typography variant="h3" sx={{ mb: 4 }}>
+                {isEdit ? "Location bearbeiten" : "Location erstellen"}
             </Typography>
             <form onSubmit={handleSubmit}>
                 <Grid2 container spacing={2}>
                     <Grid2 size={{ xs: 12 }}>
                         <TextField
                             fullWidth
-                            label="Title"
+                            label="Name der Location"
                             name="title"
                             value={formData.title}
                             onChange={handleInputChange}
@@ -197,7 +196,7 @@ const LocationForm: React.FC<{ locationId?: string }> = ({ }) => {
                     <Grid2 size={{ xs: 12 }}>
                         <TextField
                             fullWidth
-                            label="City"
+                            label="Stadt"
                             name="city"
                             value={formData.city}
                             onChange={handleInputChange}
@@ -207,7 +206,7 @@ const LocationForm: React.FC<{ locationId?: string }> = ({ }) => {
                     <Grid2 size={{ xs: 12 }}>
                         <TextField
                             fullWidth
-                            label="Area"
+                            label="Lage (z.B. Stadteil oder bekannter Platz)"
                             name="area"
                             value={formData.area}
                             onChange={handleInputChange}
@@ -216,7 +215,7 @@ const LocationForm: React.FC<{ locationId?: string }> = ({ }) => {
                     <Grid2 size={{ xs: 12 }}>
                         <TextField
                             fullWidth
-                            label="Street Address"
+                            label="Anschrift"
                             name="streetAddress"
                             value={formData.streetAddress}
                             onChange={handleInputChange}
@@ -226,7 +225,7 @@ const LocationForm: React.FC<{ locationId?: string }> = ({ }) => {
                     <Grid2 size={{ xs: 12 }}>
                         <TextField
                             fullWidth
-                            label="Postal Code"
+                            label="Postleitzahl"
                             name="postalCode"
                             value={formData.postalCode}
                             onChange={handleInputChange}
@@ -234,7 +233,7 @@ const LocationForm: React.FC<{ locationId?: string }> = ({ }) => {
                         />
                     </Grid2>
                     <Grid2 size={{ xs: 12 }}>
-                        <Typography variant="subtitle1">Event Categories</Typography>
+                        <Typography variant="subtitle1">Event-Anlässe</Typography>
                         <Box display="flex" flexWrap="wrap" gap={1} mb={2}>
                             {formData.eventCategories.map((category) => (
                                 <Chip
@@ -248,7 +247,7 @@ const LocationForm: React.FC<{ locationId?: string }> = ({ }) => {
                         <TextField
                             select
                             fullWidth
-                            label="Add Category"
+                            label="Anlass hinzufügen"
                             value=""
                             onChange={(e) => handleAddCategory(e.target.value)}
                         >
@@ -267,17 +266,16 @@ const LocationForm: React.FC<{ locationId?: string }> = ({ }) => {
                     <Grid2 size={{ xs: 12 }}>
                         <TextField
                             fullWidth
-                            label="Price"
+                            label="Preis pro Tag (optional)"
                             type="number"
                             name="price"
                             value={formData.price}
                             onChange={handleInputChange}
-                            required
                         />
                     </Grid2>
                     <Grid2 size={{ xs: 12 }}>
                         <Button variant="contained" component="label">
-                            Upload Image
+                            Bild hinzufügen
                             <input
                                 type="file"
                                 accept="image/*"
@@ -299,8 +297,8 @@ const LocationForm: React.FC<{ locationId?: string }> = ({ }) => {
                             {isSubmitting
                                 ? "Submitting..."
                                 : isEdit
-                                    ? "Update Location"
-                                    : "Create Location"}
+                                    ? "Location speichern"
+                                    : "Location speichern"}
                         </Button>
                     </Grid2>
                 </Grid2>
