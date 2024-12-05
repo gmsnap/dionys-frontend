@@ -1,19 +1,26 @@
 import { ReactElement, useEffect, useState } from 'react';
 import PartnerLayout from '@/layouts/PartnerLayout';
 import type { NextPageWithLayout } from '@/types/page';
-import { Box, Button, Grid2, InputAdornment, TextField, Typography } from '@mui/material';
+import { Box, Button, Grid2, InputAdornment, TextField, Typography, MenuItem, Select, FormControl, InputLabel, SelectChangeEvent } from '@mui/material';
 import PartnerContentLayout from '@/layouts/PartnerContentLayout';
-import RoomGrid from '@/features/partners/RoomGrid';
 import { useRouter } from 'next/router';
+import { createEmptyRoomModel } from '@/models/RoomModel';
+import { fetchVenuesByLocationId } from '@/services/venueService';
+import useStore from '@/stores/partnerStore';
 
 const PartnerPage: NextPageWithLayout = () => {
     const router = useRouter();
-    const { id } = router.query; // Access the `id` from the URL
+    const { id } = router.query;
+    const { partnerLocation } = useStore();
 
+    const [venues, setVenues] = useState<VenueModel[]>([]);
     const [room, setRoom] = useState<any | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState(false);
+    const [responseMessage, setResponseMessage] = useState("");
+    const [venueId, setVenueId] = useState<number | ''>('');
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setRoom({
@@ -22,36 +29,113 @@ const PartnerPage: NextPageWithLayout = () => {
         });
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
-
+    const handleVenueChange = (e: SelectChangeEvent<number | ''>) => {
+        const newValue = e.target.value;
+        setVenueId(typeof newValue === 'number' ? newValue : '');
+        setRoom({
+            ...room,
+            venueId: e.target.value, // Update room with selected venueId
+        });
     };
 
-    // Fetch room data
-    useEffect(() => {
-        if (id) {
-            const fetchRoomData = async () => {
-                try {
-                    setLoading(true);
-                    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/rooms/${id}`);
-                    if (!response.ok) {
-                        throw new Error(`Failed to fetch room with id ${id}`);
-                    }
-                    const roomData = await response.json();
-                    setRoom(roomData);
-                } catch (err) {
-                    if (err instanceof Error) {
-                        setError(err.message);
-                    } else {
-                        setError('An unknown error occurred');
-                    }
-                } finally {
-                    setLoading(false);
-                }
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        if (!room.name || !room.price || !room.maxPersons) {
+            setError("Name, price, and max persons are required.");
+            setSuccess(false);
+            return;
+        }
+
+        try {
+            const payload = {
+                ...room,
             };
 
-            fetchRoomData();
+            const isEdit = room.id && room.id > 0;
+
+            const url = isEdit
+                ? `${process.env.NEXT_PUBLIC_API_URL}/rooms/${room.id}`
+                : `${process.env.NEXT_PUBLIC_API_URL}/rooms`;
+
+            const method = isEdit ? "PUT" : "POST";
+
+            const response = await fetch(url, {
+                method,
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || "Failed to submit room");
+            }
+
+            setResponseMessage(
+                isEdit
+                    ? "Raum geupdated!"
+                    : "Raum gespeichert!"
+            );
+        } catch (error) {
+            console.error(error);
+            setResponseMessage("An error occurred while submitting the location.");
+        } finally {
+            setIsSubmitting(false);
         }
-    }, [id]);
+    };
+
+    // Fetch room data and venues
+    useEffect(() => {
+        if (id === undefined || !partnerLocation?.id) {
+            return;
+        }
+
+        const roomId = Number(id);
+        if (isNaN(roomId)) {
+            setError('Invalid room ID');
+            return;
+        }
+
+        const fetchVenues = async () => {
+            try {
+                const venuesData = await fetchVenuesByLocationId(partnerLocation.id, setLoading, setError);
+                setVenues(venuesData);
+            } catch (err) {
+                setError('Error fetching venues');
+            }
+        };
+
+        fetchVenues();
+
+        const fetchRoomData = async () => {
+            try {
+                setLoading(true);
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/rooms/${roomId}`);
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch room with id ${roomId}`);
+                }
+                const roomData = await response.json();
+                setRoom(roomData);
+                setVenueId(roomData.venueId); // Set the venueId of the room
+            } catch (err) {
+                if (err instanceof Error) {
+                    setError(err.message);
+                } else {
+                    setError('An unknown error occurred');
+                }
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (roomId > 0) {
+            fetchRoomData();
+        } else {
+            setRoom(createEmptyRoomModel(1));
+            setLoading(false);
+        }
+    }, [id, partnerLocation]);
 
     // Loading state or error handling
     if (loading) {
@@ -75,6 +159,31 @@ const PartnerPage: NextPageWithLayout = () => {
             }}>
                 <form onSubmit={handleSubmit}>
                     <Grid2 container spacing={2}>
+                        {/* Venue */}
+                        <Grid2 size={{ xs: 12 }}>
+                            <Grid2 container alignItems="center">
+                                <Grid2 size={{ xs: 4 }}>
+                                    <Typography>Venue</Typography>
+                                </Grid2>
+                                <Grid2 size={{ xs: 8 }}>
+                                    <FormControl fullWidth variant="outlined">
+                                        <InputLabel>Venue</InputLabel>
+                                        <Select<number | ''>
+                                            value={venueId}
+                                            onChange={handleVenueChange}
+                                            label="Venue"
+                                        >
+                                            {venues.map((venue) => (
+                                                <MenuItem key={venue.id} value={venue.id}>
+                                                    {venue.title}
+                                                </MenuItem>
+                                            ))}
+                                        </Select>
+                                    </FormControl>
+                                </Grid2>
+                            </Grid2>
+                        </Grid2>
+
                         {/* Title */}
                         <Grid2 size={{ xs: 12 }}>
                             <Grid2 container alignItems="center">

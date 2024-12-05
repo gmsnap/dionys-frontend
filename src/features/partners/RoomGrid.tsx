@@ -2,48 +2,51 @@ import React, { useEffect, useState } from 'react';
 import { Box, SxProps, Theme, Grid2, CircularProgress, Button } from '@mui/material';
 import GridItem from '@/components/GridItem';
 import { formatPrice } from '@/utils/formatPrice';
-import { Layers2, Pencil, User, X } from 'lucide-react';
-import { formatEventCategoriesSync } from '@/utils/formatEventCategories';
+import { Pencil, User, X } from 'lucide-react';
 import GridAddItem from '@/components/GridAddItem';
 import Link from 'next/link';
-import theme from '@/theme';
+import { RoomModel } from '@/models/RoomModel';
+import { fetchRoomsByVenueId, handleDeleteRoom } from '@/services/roomService';
+import { fetchVenuesByLocationId } from '@/services/venueService';
+import useStore from '@/stores/partnerStore';
+import router from 'next/router';
 
 interface RoomGridProps {
     sx?: SxProps<Theme>;
 }
 
 const RoomGrid = ({ sx }: RoomGridProps) => {
+    const { partnerLocation } = useStore();
+
     const [rooms, setRooms] = useState<RoomModel[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
-    const handleDeleteRoom = (lroomId: number): void => {
+    const fetchRooms = async () => {
+        if (partnerLocation?.id) {
+            const venues = await fetchVenuesByLocationId(
+                partnerLocation.id,
+                setIsLoading,
+                setError
+            );
 
-    }
+            if (venues) {
+                // Extract rooms from each venue and flatten them into a single array
+                const allRooms = venues.reduce((acc: RoomModel[], venue: any) => {
+                    if (venue.rooms && Array.isArray(venue.rooms)) {
+                        acc.push(...venue.rooms); // Add rooms from each venue
+                    }
+                    return acc;
+                }, []);
+
+                setRooms(allRooms); // Set all rooms to state
+            }
+        }
+    };
 
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                setIsLoading(true);
-                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/venues/1/rooms`);
-                if (!response.ok) {
-                    throw new Error(`Error: ${response.status} ${response.statusText}`);
-                }
-                const result = await response.json();
-                setRooms(result);
-                setIsLoading(false);
-            } catch (err) {
-                if (err instanceof Error) {
-                    setError(err.message);
-                } else {
-                    setError('An unknown error occurred');
-                }
-                setIsLoading(false);
-            }
-        };
-
-        fetchData();
-    }, []);
+        fetchRooms();
+    }, [partnerLocation]);
 
     if (isLoading) {
         return (
@@ -56,7 +59,7 @@ const RoomGrid = ({ sx }: RoomGridProps) => {
     if (error) {
         return (
             <Box display="flex" justifyContent="center" sx={sx}>
-                <div>Error: {error}</div>
+                <div>{error}</div>
             </Box>
         );
     }
@@ -64,7 +67,7 @@ const RoomGrid = ({ sx }: RoomGridProps) => {
     return (
         <Grid2 container spacing={5} alignItems="stretch" sx={{ ...sx }}>
             {rooms.map((room) => (
-                <Grid2 key={room.id} size={{ xs: 12, sm: 6, md: 4, lg: 4, xl: 3 }} display="flex">
+                <Grid2 key={room.id} size={{ xs: 12, sm: 6, md: 4, lg: 4, xl: 3 }}>
                     <GridItem
                         id={room.id}
                         image={room.images[0]}
@@ -80,7 +83,15 @@ const RoomGrid = ({ sx }: RoomGridProps) => {
                                 sx={{
                                     flex: 1,
                                     '&:hover': {
-                                        backgroundColor: theme.palette.customColors.textBackround.halfdark,
+                                        borderColor: '#000000',
+                                        backgroundColor: '#000000',
+                                        color: '#ffffff',
+                                    },
+                                    '.icon': {
+                                        color: '#000000',
+                                    },
+                                    '&:hover .icon': {
+                                        color: '#ffffff',
                                     },
                                     lineHeight: 0,
                                 }}
@@ -89,7 +100,7 @@ const RoomGrid = ({ sx }: RoomGridProps) => {
                                 <Box
                                     component="span" sx={{ ml: 1, }}
                                 >
-                                    <Pencil color="#000000" width={12} height={12} />
+                                    <Pencil className="icon" width={12} height={12} />
                                 </Box>
                             </Button>,
                             <Button
@@ -111,7 +122,9 @@ const RoomGrid = ({ sx }: RoomGridProps) => {
                                     },
                                     lineHeight: 0,
                                 }}
-                                onClick={() => handleDeleteRoom(room.id)}
+                                onClick={
+                                    () => handleDeleteRoom(room.id, () => fetchRooms())
+                                }
                             >
                                 Delete
                                 <Box component="span" sx={{ ml: 1 }}>
@@ -126,7 +139,7 @@ const RoomGrid = ({ sx }: RoomGridProps) => {
                 <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%' }}>
                     <GridAddItem
                         id={-1}
-                        handler={() => { console.log('add room') }}
+                        handler={() => { router.push('/partner/rooms/edit/0'); }}
                         sx={{ flex: 1, height: '100%' }}
                     />
                 </Box>

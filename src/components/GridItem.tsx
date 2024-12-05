@@ -60,7 +60,7 @@ const GridItem: React.FC<GridItemProps> = (
                         variant="h6"
                         sx={{
                             fontFamily: "'Gugi', sans-serif",
-                            whiteSpace: 'nowrap', // Prevents wrapping
+                            whiteSpace: 'nowrap', // No multiple lines 
                             overflow: 'hidden', // Hides the overflowing text
                             textOverflow: 'ellipsis', // Adds '...' when text is truncated
                             flexGrow: 1, // Take up available space

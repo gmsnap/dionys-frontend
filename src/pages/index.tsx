@@ -34,7 +34,7 @@ const Home: NextPageWithLayout = () => {
             m: 2,
           }}
         >
-          Partner <ArrowRight />
+          Partner-Login <ArrowRight />
         </Button>
       </Box>
     </Box>
