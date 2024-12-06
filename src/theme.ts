@@ -1,4 +1,6 @@
+import { colors } from '@mui/material';
 import { createTheme } from '@mui/material/styles';
+import { light } from '@mui/material/styles/createPalette';
 
 // Define custom colors
 const customColors = {
@@ -41,7 +43,7 @@ declare module '@mui/material/styles' {
 const theme = createTheme({
     palette: {
         primary: {
-            main: '#1976d2',
+            main: '#000000',
             contrastText: '#FFFFFF',
         },
         secondary: {
@@ -95,6 +97,12 @@ const theme = createTheme({
             color: customColors.text.secondary,
             fontSize: '14px',
             fontWeight: 400,
+            letterSpacing: '-0.05em',
+        },
+        label: {
+            fontFamily: "'Nunito', sans-serif",
+            fontWeight: 400,
+            fontSize: '16px',
             letterSpacing: '-0.05em',
         },
     },
@@ -195,6 +203,60 @@ const theme = createTheme({
                     fontWeight: 700,
                     fontSize: '16px',
                     letterSpacing: '-0.05em',
+                },
+            },
+        },
+        MuiTextField: {
+            styleOverrides: {
+                root: {
+                    '& .MuiOutlinedInput-root': {
+                        fontFamily: "'Nunito', sans-serif",
+                        fontWeight: 400,
+                        fontSize: '16px',
+                        letterSpacing: '-0.07em',
+                        color: '#6F6F6F',
+                        backgroundColor: '#f5f5f5',
+                        borderRadius: '8px',
+                        '& fieldset': {
+                            border: 'none',
+                        },
+                        '&:hover fieldset': {
+                            border: 'none',
+                        },
+                        '&.Mui-focused fieldset': {
+                            border: 'none',
+                        },
+                        '& .MuiInputBase-input': {
+                            paddingTop: 8,
+                            paddingBottom: 8,
+                        },
+                    },
+                },
+            },
+        },
+        MuiSelect: {
+            styleOverrides: {
+                root: {
+                    fontFamily: "'Nunito', sans-serif",
+                    fontWeight: 400,
+                    fontSize: '16px',
+                    letterSpacing: '-0.07em',
+                    color: '#6F6F6F',
+                    backgroundColor: '#f5f5f5',
+                    borderRadius: '8px',
+                    '& .MuiOutlinedInput-notchedOutline': {
+                        border: 'none',
+                    },
+                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                        border: 'none',
+                    },
+                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                        border: 'none',
+                    },
+                    '& .MuiSelect-select': {
+                        paddingTop: 8,
+                        paddingBottom: 8,
+                    },
                 },
             },
         },

@@ -100,6 +100,7 @@ const LocationGrid = ({ sx }: LocationGridProps) => {
                             ]}
                             buttons={[
                                 <Button
+                                    key={`${location.id}-1`}
                                     variant="outlined"
                                     color="primary"
                                     component={Link}
@@ -109,6 +110,7 @@ const LocationGrid = ({ sx }: LocationGridProps) => {
                                     Mehr Details
                                 </Button>,
                                 <Button
+                                    key={`${location.id}-2`}
                                     variant="outlined"
                                     color="secondary"
                                     sx={{ flex: 1 }}

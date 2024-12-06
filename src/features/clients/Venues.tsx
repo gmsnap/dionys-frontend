@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Box, SxProps, Theme, Typography, Button } from '@mui/material';
 import { title } from 'process';
 import useStore from '@/stores/eventStore';
+import { VenueModel } from '@/models/VenueModel';
+import { RoomModel } from '@/models/RoomModel';
 
 interface VenueProps {
     sx?: SxProps<Theme>;

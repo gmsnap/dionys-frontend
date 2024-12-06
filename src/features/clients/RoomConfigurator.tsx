@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Box, SxProps, Theme, useTheme, Typography } from '@mui/material';
 import useStore from '@/stores/eventStore';
+import { RoomModel } from '@/models/RoomModel';
 
 interface RoomConfiguratorProps {
     sx?: SxProps<Theme>;

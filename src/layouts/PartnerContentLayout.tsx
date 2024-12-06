@@ -14,7 +14,6 @@ const PartnerContentLayout: React.FC<PartnerContentLayoutProps> = ({
     const theme = useTheme();
     return (
         <Box
-            className="gradient-background"
             sx={{
                 pt: 6,
             }}

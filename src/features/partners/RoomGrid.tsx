@@ -6,7 +6,8 @@ import { Pencil, User, X } from 'lucide-react';
 import GridAddItem from '@/components/GridAddItem';
 import Link from 'next/link';
 import { RoomModel } from '@/models/RoomModel';
-import { fetchRoomsByVenueId, handleDeleteRoom } from '@/services/roomService';
+import { VenueModel } from '@/models/VenueModel';
+import { handleDeleteRoom } from '@/services/roomService';
 import { fetchVenuesByLocationId } from '@/services/venueService';
 import useStore from '@/stores/partnerStore';
 import router from 'next/router';
@@ -32,7 +33,7 @@ const RoomGrid = ({ sx }: RoomGridProps) => {
 
             if (venues) {
                 // Extract rooms from each venue and flatten them into a single array
-                const allRooms = venues.reduce((acc: RoomModel[], venue: any) => {
+                const allRooms = venues.reduce((acc: RoomModel[], venue: VenueModel) => {
                     if (venue.rooms && Array.isArray(venue.rooms)) {
                         acc.push(...venue.rooms); // Add rooms from each venue
                     }
@@ -72,10 +73,14 @@ const RoomGrid = ({ sx }: RoomGridProps) => {
                         id={room.id}
                         image={room.images[0]}
                         title={room.name}
-                        priceTag={`Ab ${formatPrice(1500)} / Tag`}
-                        listItems={[{ icon: <User />, label: '10-50' }]}
+                        priceTag={`Ab ${formatPrice(room.price)} / Tag`}
+                        listItems={[{
+                            icon: <User />,
+                            label: `${room.minPersons}-${room.maxPersons}`
+                        }]}
                         buttons={[
                             <Button
+                                key={`${room.id}-1`}
                                 variant="outlined"
                                 color="primary"
                                 component={Link}
@@ -104,6 +109,7 @@ const RoomGrid = ({ sx }: RoomGridProps) => {
                                 </Box>
                             </Button>,
                             <Button
+                                key={`${room.id}-2`}
                                 variant="outlined"
                                 sx={{
                                     flex: 1,
