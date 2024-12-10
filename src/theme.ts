@@ -49,6 +49,9 @@ const theme = createTheme({
         secondary: {
             main: customColors.pink.dark,
         },
+        success: {
+            main: customColors.pink.light,
+        },
         customColors,
     },
     layout: {
@@ -104,6 +107,7 @@ const theme = createTheme({
             fontWeight: 400,
             fontSize: '16px',
             letterSpacing: '-0.05em',
+            lineHeight: '2.4em',
         },
     },
     components: {

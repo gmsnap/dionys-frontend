@@ -23,8 +23,10 @@ import PartnerLayout from '@/layouts/PartnerLayout';
 import { VenueModel } from '@/models/VenueModel';
 import { Save, X } from 'lucide-react';
 import { handleDeleteRoom } from '@/services/roomService';
+import ImageUploadForm from '@/features/partners/ImageUploadForm';
+import DeleteButton from '@/components/DeleteButton';
 
-// Define the validation schema
+// Validation schema
 const roomValidationSchema = yup.object().shape({
     venueId: yup
         .number()
@@ -56,6 +58,7 @@ const roomValidationSchema = yup.object().shape({
         .positive('Maximalpersonenanzahl muss positiv sein')
         .min(yup.ref('minPersons'), 'Maximalpersonenanzahl muss größer als Mindestpersonenanzahl sein')
         .required('Maximalpersonenanzahl ist erforderlich'),
+    images: yup.array().of(yup.string()),
 });
 
 const PartnerPage: NextPageWithLayout = () => {
@@ -82,6 +85,66 @@ const PartnerPage: NextPageWithLayout = () => {
         defaultValues: createEmptyRoomModel(1),
         resolver: yupResolver(roomValidationSchema),
     });
+
+    const watchedModel = watch() as RoomModel;
+    const [images, setImages] = useState<string[]>(watchedModel.images || []);
+
+    const handleImageUpload = async (image: string) => {
+        if (!roomId) {
+            console.error("Room ID is not defined");
+            return;
+        }
+        // Add the new image to the room model
+        try {
+            // Call API to get presigned URL and upload the file
+            const response = await fetch(
+                `${process.env.NEXT_PUBLIC_API_URL}/rooms/${roomId}/images`,
+                {
+                    method: "POST",
+                    body: JSON.stringify({ image }),
+                    headers: { "Content-Type": "application/json" },
+                });
+            if (response.ok) {
+                // Update local state with the new image
+                setImages((prevImages) => [...prevImages, image]);
+                setValue('images', [...images, image]); // Update form model
+            }
+            const { room } = await response.json();
+        } catch (error) {
+            console.error("Image upload failed", error);
+        }
+    };
+
+    const handleImageDelete = async (image: string) => {
+        if (!roomId) {
+            console.error("Room ID is not defined");
+            return;
+        }
+
+        try {
+            // Call API to get presigned URL and upload the file
+            const response = await fetch(
+                `${process.env.NEXT_PUBLIC_API_URL}/rooms/${roomId}/images`,
+                {
+                    method: "DELETE",
+                    body: JSON.stringify({ image }),
+                    headers: { "Content-Type": "application/json" },
+                });
+            if (response.ok) {
+                // Update local state to remove the deleted image
+                setImages((prevImages) => prevImages.filter((img) => img !== image));
+                setValue('images', images.filter((img) => img !== image)); // Update form model
+            }
+        } catch (error) {
+            console.error("Image delete failed", error);
+        }
+    };
+
+    useEffect(() => {
+        if (watchedModel.images) {
+            setImages(watchedModel.images);
+        }
+    }, [watchedModel]);
 
     useEffect(() => {
         if (id === undefined || !partnerLocation?.id) {
@@ -159,6 +222,11 @@ const PartnerPage: NextPageWithLayout = () => {
                 throw new Error(responseData.message || "Failed to submit room");
             }
 
+            if (!isEdit && responseData.id) {
+                setRoomId(responseData.id);
+                router.push(`/partner/rooms/${responseData.id}`, undefined, { shallow: true });
+            }
+
             setSuccess(true);
             setResponseMessage(isEdit ? "Raum geupdated!" : "Raum gespeichert!");
         } catch (error) {
@@ -175,20 +243,22 @@ const PartnerPage: NextPageWithLayout = () => {
     const labelWidth = 10;
 
     return (
-        <Box>
-            <Typography variant="h5" sx={{ mb: 2, color: 'primary.main' }}>
+        <Box sx={{ height: "100vh", }}>
+            <Typography variant="h5"
+                sx={{ mb: 2, color: 'primary.main' }}>
                 Allgemein
             </Typography>
             <Box sx={{
                 textAlign: "left",
-                maxWidth: "600px",
+                maxWidth: "800px",
+                height: "100%",
             }}>
                 <form onSubmit={handleSubmit(onSubmit)}>
                     <Grid2 container spacing={2}>
 
                         {/* Venue */}
                         <Grid2 size={{ xs: labelWidth }}>
-                            <Grid2 container alignItems="center">
+                            <Grid2 container alignItems="top">
                                 <Grid2 size={{ xs: 4 }}>
                                     <Typography variant="label">Venue</Typography>
                                 </Grid2>
@@ -220,7 +290,7 @@ const PartnerPage: NextPageWithLayout = () => {
 
                         {/* Title */}
                         <Grid2 size={{ xs: labelWidth }}>
-                            <Grid2 container alignItems="center">
+                            <Grid2 container alignItems="top">
                                 <Grid2 size={{ xs: 4 }}>
                                     <Typography variant="label">Bezeichnung</Typography>
                                 </Grid2>
@@ -244,7 +314,7 @@ const PartnerPage: NextPageWithLayout = () => {
 
                         {/* Size */}
                         <Grid2 size={{ xs: labelWidth }}>
-                            <Grid2 container alignItems="center">
+                            <Grid2 container alignItems="top">
                                 <Grid2 size={{ xs: 4 }}>
                                     <Typography variant="label">Quadratmeter</Typography>
                                 </Grid2>
@@ -268,7 +338,7 @@ const PartnerPage: NextPageWithLayout = () => {
 
                         {/* Price */}
                         <Grid2 size={{ xs: labelWidth }}>
-                            <Grid2 container alignItems="center">
+                            <Grid2 container alignItems="top">
                                 <Grid2 size={{ xs: 4 }}>
                                     <Typography variant="label">Preis / Tag</Typography>
                                 </Grid2>
@@ -291,9 +361,10 @@ const PartnerPage: NextPageWithLayout = () => {
                         </Grid2>
 
                         <Grid2
-                            container size={{ xs: labelWidth }}
+                            container
+                            size={{ xs: labelWidth }}
                             spacing={0}
-                            alignItems="center">
+                            alignItems="top">
                             {/* Label */}
                             <Grid2 size={{ xs: 4 }}>
                                 <Typography variant="label">Personenanzahl</Typography>
@@ -350,11 +421,16 @@ const PartnerPage: NextPageWithLayout = () => {
 
                         {/* Submit */}
                         <Grid2
+                            size={{ xs: labelWidth }}
                             display={'flex'}
                             gap={2}
                             sx={{ mt: 2 }}
                         >
-                            <Button variant="contained" color="primary" type="submit" disabled={isSubmitting}
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                type="submit"
+                                disabled={isSubmitting}
                                 sx={{
                                     lineHeight: 0,
                                     outline: '3px solid transparent',
@@ -377,32 +453,11 @@ const PartnerPage: NextPageWithLayout = () => {
                             </Button>
 
                             {roomId > 0 &&
-                                <Button variant="contained" disabled={isSubmitting}
-                                    sx={{
-                                        flex: 1,
-                                        lineHeight: 0,
-                                        outline: '3px solid transparent',
-                                        backgroundColor: '#ff0000',
-                                        mb: 1,
-                                        '&:hover': {
-                                            outline: '3px solid #FF000033',
-                                        },
-                                        '.icon': {
-                                            color: '#ffffff',
-                                        },
-                                        '&:hover .icon': {
-                                            color: '#ffffff',
-                                        },
-                                    }}
-                                    onClick={() => handleDeleteRoom(roomId,
-                                        () => router.push('/partner/rooms'))
-                                    }
-                                >
-                                    Delete
-                                    <Box component="span" sx={{ ml: 1 }}>
-                                        <X className="icon" width={16} height={16} />
-                                    </Box>
-                                </Button>
+                                <DeleteButton
+                                    isDisabled={isSubmitting}
+                                    onDelete={() => handleDeleteRoom(roomId,
+                                        () => router.push('/partner/rooms'))}
+                                />
                             }
                         </Grid2>
 
@@ -414,11 +469,24 @@ const PartnerPage: NextPageWithLayout = () => {
                         )}
                         {success && (
                             <Grid2 size={{ xs: labelWidth }}>
-                                <Typography color="success">{responseMessage}</Typography>
+                                <Typography variant="body2" color="success">
+                                    {responseMessage}
+                                </Typography>
                             </Grid2>
                         )}
                     </Grid2>
                 </form>
+                {roomId > 0 &&
+                    <>
+                        <Typography variant="h5"
+                            sx={{ mt: 5, mb: 2, color: 'primary.main' }}>
+                            Bilder
+                        </Typography>
+                        <ImageUploadForm
+                            onImageUpload={handleImageUpload}
+                            onImageDelete={handleImageDelete}
+                            model={watchedModel} />
+                    </>}
             </Box>
         </Box >
     );

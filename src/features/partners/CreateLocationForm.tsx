@@ -1,6 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useForm, Controller, FormProvider } from 'react-hook-form';
+import * as yup from 'yup';
+import { yupResolver } from '@hookform/resolvers/yup';
 import {
     Box,
     Button,
@@ -10,107 +13,128 @@ import {
     MenuItem,
     Chip,
     Grid2,
+    FormControl,
+    Select,
+    FormHelperText,
 } from "@mui/material";
-import { CircleMinus } from "lucide-react";
-import { CreateLocationResponse, GeoLocation } from "@/types/geolocation";
+import { CircleMinus, Save } from "lucide-react";
+import { CreateLocationResponse } from "@/types/geolocation";
 import { AvailableEventCategories, EventCategories } from "@/constants/EventCategories";
 import { formatEventCategoriesSync } from "@/utils/formatEventCategories";
 import useStore from '@/stores/partnerStore';
+import { createEmptyLocationModel } from "@/models/LocationModel";
+import City, { AvailableCities } from "@/models/City";
+import ImageUploadField from "./ImageUploadField";
+
+// Validation schema
+const locationValidationSchema = yup.object().shape({
+    title: yup
+        .string()
+        .required('Bezeichnung ist erforderlich')
+        .min(1, 'Bezeichnung muss mindestens 1 Zeichen lang sein'),
+    city: yup
+        .string()
+        .required('Stadt ist erforderlich')
+        .min(1, 'Stadt muss mindestens 1 Zeichen lang sein'),
+    area: yup
+        .string()
+        .optional(),
+    streetAddress: yup
+        .string()
+        .required('Anschrift ist erforderlich')
+        .min(1, 'Anschrift muss mindestens 1 Zeichen lang sein'),
+    postalCode: yup
+        .string()
+        .required('Postleitzahl ist erforderlich')
+        .min(1, 'Postleitzahl muss mindestens 1 Zeichen lang sein'),
+    geoLocation: yup.object().shape({
+        lat: yup.number().required('Latitude is required'),
+        lng: yup.number().required('Longitude is required'),
+    }),
+    image: yup
+        .mixed()
+        .nullable()
+        .test(
+            'is-valid-image',
+            'Ein Bild ist erforderlich',
+            value => {
+                // If the value is a File, it's valid (it should not be null or undefined)
+                if (value instanceof File) {
+                    return true;
+                }
+
+                // If the value is a string, it must not be null or an empty string
+                if (typeof value === 'string') {
+                    return value.trim() !== '';
+                }
+
+                // If the value is null, it's invalid
+                return false;
+            }
+        ),
+    price: yup
+        .number()
+        .typeError('Preis / Tag muss eine Zahl sein')
+        .positive('Preis / Tag muss positiv sein')
+        .required('Preis / Tag ist erforderlich'),
+    eventCategories: yup
+        .array()
+        .of(yup.mixed<EventCategories>().required())
+        .min(1, 'Mindestens eine Kategorie ist erforderlich'),
+});
 
 const LocationForm: React.FC<{ locationId?: string }> = ({ }) => {
-    const [formData, setFormData] = useState({
-        title: "",
-        city: "",
-        area: "",
-        streetAddress: "",
-        postalCode: "",
-        geoLocation: { lat: 0, lng: 0 },
-        image: null as File | null,
-        price: "",
-        eventCategories: [] as string[],
-    });
-
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [responseMessage, setResponseMessage] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [isEdit, setIsEdit] = useState(false);
     const { partnerUser } = useStore();
-    const { partnerLocation, setPartnerLocation } = useStore();
 
-    // Fetch location data if partnerUser is provided
+    const methods = useForm({
+        defaultValues: createEmptyLocationModel(),
+        resolver: yupResolver(locationValidationSchema),
+    });
+
+    const { control, handleSubmit, reset, formState: { errors } } = methods;
+
+    // Fetch location data
     useEffect(() => {
+        const fetchLocationData = async (partnerId: number) => {
+            try {
+                setIsLoading(true);
+                const response =
+                    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/locations/partner/${partnerId}?single=1`);
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch location`);
+                }
+                const locationData = await response.json();
+                reset(locationData);
+                setIsEdit(true);
+            } catch (err) {
+                console.error(err);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
         if (partnerUser) {
-            setIsLoading(true);
-            fetch(`${process.env.NEXT_PUBLIC_API_URL}/locations/partner/${partnerUser.id}?single=1`)
-                .then((response) => response.json())
-                .then((data) => {
-                    setFormData({
-                        title: data.title || "",
-                        city: data.city || "",
-                        area: data.area || "",
-                        streetAddress: data.streetAddress || "",
-                        postalCode: data.postalCode || "",
-                        geoLocation: data.geoLocation || {
-                            lat: 0,
-                            lng: 0,
-                        },
-                        image: null, // Images are not fetched directly
-                        price: data.price || "",
-                        eventCategories: data.eventCategories || [],
-                    });
-                    setPartnerLocation(data);
-                    setIsEdit(true);
-                })
-                .catch((error) => {
-                    console.error("Failed to fetch location data:", error);
-                    setResponseMessage("Failed to load location data.");
-                })
-                .finally(() => setIsLoading(false));
+            fetchLocationData(partnerUser.id);
+        } else {
+            setIsLoading(false);
         }
     }, [partnerUser]);
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-        setFormData((prev) => ({
-            ...prev,
-            [name]: value,
-        }));
-    };
-
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0] || null;
-        setFormData((prev) => ({
-            ...prev,
-            image: file,
-        }));
-    };
-
-    const handleAddCategory = (category: string) => {
-        setFormData((prev) => ({
-            ...prev,
-            eventCategories: [...prev.eventCategories, category],
-        }));
-    };
-
-    const handleRemoveCategory = (category: string) => {
-        setFormData((prev) => ({
-            ...prev,
-            eventCategories: prev.eventCategories.filter((c) => c !== category),
-        }));
-    };
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const onSubmit = async (data: any) => {
         setIsSubmitting(true);
 
         try {
             const payload = {
-                ...formData,
-                image: formData.image ? formData.image.name : undefined,
+                ...data,
+                image: data.image ? data.image.name : undefined,
             };
 
             const url = isEdit
-                ? `${process.env.NEXT_PUBLIC_API_URL}/locations/${partnerLocation?.id}`
+                ? `${process.env.NEXT_PUBLIC_API_URL}/locations/${partnerUser?.id}`
                 : `${process.env.NEXT_PUBLIC_API_URL}/locations`;
 
             const method = isEdit ? "PUT" : "POST";
@@ -121,19 +145,19 @@ const LocationForm: React.FC<{ locationId?: string }> = ({ }) => {
                 body: JSON.stringify(payload),
             });
 
-            const data: CreateLocationResponse = await response.json();
+            const responseData: CreateLocationResponse = await response.json();
 
             if (!response.ok) {
-                throw new Error(data.message || "Failed to submit location");
+                throw new Error(responseData.message || "Failed to submit location");
             }
 
-            if (data.uploadUrl && formData.image) {
-                await uploadFile(data.uploadUrl, formData.image);
+            if (responseData.uploadUrl && data.image) {
+                await uploadFile(responseData.uploadUrl, data.image);
             }
 
             setResponseMessage(
                 isEdit
-                    ? "Location geupdated!"
+                    ? "Location gespeichert!"
                     : "Location gespeichert!"
             );
         } catch (error) {
@@ -157,11 +181,8 @@ const LocationForm: React.FC<{ locationId?: string }> = ({ }) => {
             if (!uploadResponse.ok) {
                 throw new Error("Failed to upload the file.");
             }
-
-            setResponseMessage("Datei hochgeladen!");
         } catch (error) {
-            console.error(error);
-            setResponseMessage("An error occurred during file upload.");
+            console.error("File upload error:", error);
         }
     };
 
@@ -176,139 +197,245 @@ const LocationForm: React.FC<{ locationId?: string }> = ({ }) => {
         );
     }
 
+    const labelWidth = 10;
+
     return (
-        <Box sx={{ maxWidth: 500, mx: "auto", mt: 4, }}>
+        <Box sx={{ maxWidth: 500, mx: "auto", mt: 4 }}>
             <Typography variant="h3" sx={{ mb: 4 }}>
                 {isEdit ? "Location bearbeiten" : "Location erstellen"}
             </Typography>
-            <form onSubmit={handleSubmit}>
-                <Grid2 container spacing={2}>
-                    <Grid2 size={{ xs: 12 }}>
-                        <TextField
-                            fullWidth
-                            label="Name der Location"
-                            name="title"
-                            value={formData.title}
-                            onChange={handleInputChange}
-                            required
-                        />
+            <FormProvider {...methods}>
+                <form onSubmit={handleSubmit(onSubmit)}>
+                    <Grid2 container spacing={2}>
+
+                        {/* Title */}
+                        <Grid2 size={{ xs: labelWidth }}>
+                            <Grid2 container alignItems="top">
+                                <Grid2 size={{ xs: 4 }}>
+                                    <Typography variant="label">Name der Location</Typography>
+                                </Grid2>
+                                <Grid2 size={{ xs: 8 }}>
+                                    <Controller
+                                        name="title"
+                                        control={control}
+                                        render={({ field }) => (
+                                            <TextField
+                                                {...field}
+                                                fullWidth
+                                                variant="outlined"
+                                                error={!!errors.title}
+                                                helperText={errors.title?.message}
+                                            />
+                                        )}
+                                    />
+                                </Grid2>
+                            </Grid2>
+                        </Grid2>
+
+                        {/* City */}
+                        <Grid2 size={{ xs: labelWidth }}>
+                            <Grid2 container alignItems="top">
+                                <Grid2 size={{ xs: 4 }}>
+                                    <Typography variant="label">Stadt</Typography>
+                                </Grid2>
+                                <Grid2 size={{ xs: 8 }}>
+                                    <Controller
+                                        name="city"
+                                        control={control}
+                                        render={({ field }) => (
+                                            <FormControl fullWidth error={!!errors.city}>
+                                                <Select
+                                                    {...field}
+                                                    variant="outlined"
+                                                >
+                                                    {AvailableCities.map((city: City) => (
+                                                        <MenuItem key={city.value} value={city.value}>
+                                                            {city.label}
+                                                        </MenuItem>
+                                                    ))}
+                                                </Select>
+                                                {errors.city &&
+                                                    <FormHelperText>
+                                                        {errors.city.message as string}
+                                                    </FormHelperText>}
+                                            </FormControl>
+                                        )}
+                                    />
+                                </Grid2>
+                            </Grid2>
+                        </Grid2>
+
+                        {/* Area */}
+                        <Grid2 size={{ xs: labelWidth }}>
+                            <Grid2 container alignItems="top">
+                                <Grid2 size={{ xs: 4 }}>
+                                    <Typography variant="label">Lage (z.B. Stadteil)</Typography>
+                                </Grid2>
+                                <Grid2 size={{ xs: 8 }}>
+                                    <Controller
+                                        name="area"
+                                        control={control}
+                                        render={({ field }) => (
+                                            <TextField
+                                                {...field}
+                                                fullWidth
+                                                variant="outlined"
+                                                error={!!errors.area}
+                                                helperText={errors.area?.message}
+                                            />
+                                        )}
+                                    />
+                                </Grid2>
+                            </Grid2>
+                        </Grid2>
+
+                        {/* Street Address */}
+                        <Grid2 size={{ xs: labelWidth }}>
+                            <Grid2 container alignItems="top">
+                                <Grid2 size={{ xs: 4 }}>
+                                    <Typography variant="label">Anschrift</Typography>
+                                </Grid2>
+                                <Grid2 size={{ xs: 8 }}>
+                                    <Controller
+                                        name="streetAddress"
+                                        control={control}
+                                        render={({ field }) => (
+                                            <TextField
+                                                {...field}
+                                                fullWidth
+                                                variant="outlined"
+                                                error={!!errors.streetAddress}
+                                                helperText={errors.streetAddress?.message}
+                                            />
+                                        )}
+                                    />
+                                </Grid2>
+                            </Grid2>
+                        </Grid2>
+
+                        {/* Postal Code */}
+                        <Grid2 size={{ xs: labelWidth }}>
+                            <Grid2 container alignItems="flex-start">
+                                <Grid2 size={{ xs: 4 }} >
+                                    <Typography variant="label">Postleitzahl</Typography>
+                                </Grid2>
+                                <Grid2 size={{ xs: 8 }}>
+                                    <Controller
+                                        name="postalCode"
+                                        control={control}
+                                        render={({ field }) => (
+                                            <TextField
+                                                {...field}
+                                                fullWidth
+                                                variant="outlined"
+                                                error={!!errors.postalCode}
+                                                helperText={errors.postalCode?.message}
+                                            />
+                                        )}
+                                    />
+                                </Grid2>
+                            </Grid2>
+                        </Grid2>
+
+                        {/* Categories */}
+                        <Grid2 size={{ xs: labelWidth }}>
+                            <Grid2 container alignItems="top">
+                                <Grid2 size={{ xs: 4 }}>
+                                    <Typography variant="label">Event-Anlässe</Typography>
+                                </Grid2>
+                                <Grid2 size={{ xs: 8 }}>
+                                    <Controller
+                                        name="eventCategories"
+                                        control={control}
+                                        render={({ field }) => (
+                                            <>
+                                                {/* Display Selected Categories */}
+                                                <Box display="flex" flexWrap="wrap" gap={1} mt={0.6} mb={2}>
+                                                    {(field.value || []).map((category) => (
+                                                        <Chip
+                                                            key={category}
+                                                            label={formatEventCategoriesSync([category as EventCategories])}
+                                                            onDelete={() => {
+                                                                const updatedCategories = (field.value || []).filter(
+                                                                    (item) => item !== category
+                                                                );
+                                                                field.onChange(updatedCategories);
+                                                            }}
+                                                            deleteIcon={<CircleMinus />}
+                                                        />
+                                                    ))}
+                                                </Box>
+
+                                                {/* Categories Dropdown */}
+                                                <TextField
+                                                    select
+                                                    fullWidth
+                                                    label="Anlass hinzufügen"
+                                                    value={field.value || []} // Ensure value is an array
+                                                    onChange={(e) => {
+                                                        const newCategory = e.target.value;
+                                                        field.onChange([...(field.value || []), newCategory]);
+                                                    }}
+                                                >
+                                                    {AvailableEventCategories.filter(
+                                                        (category) => !(field.value || []).includes(category as EventCategories)
+                                                    ).map((category) => (
+                                                        <MenuItem key={category} value={category}>
+                                                            {formatEventCategoriesSync([category as EventCategories])}
+                                                        </MenuItem>
+                                                    ))}
+                                                </TextField>
+                                            </>
+                                        )}
+                                    />
+                                </Grid2>
+                            </Grid2>
+                        </Grid2>
+
+                        <Grid2 size={{ xs: labelWidth }} mt={2} mb={2}>
+                            <ImageUploadField name="image" />
+                        </Grid2>
+
+                        {/* Submit */}
+                        <Grid2 size={{ xs: 12 }}>
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                type="submit"
+                                disabled={isSubmitting}
+                                sx={{
+                                    lineHeight: 0,
+                                    outline: '3px solid transparent',
+                                    mb: 1,
+                                    '&:hover': {
+                                        outline: '3px solid #00000033',
+                                    },
+                                    '.icon': {
+                                        color: '#ffffff',
+                                    },
+                                    '&:hover .icon': {
+                                        color: '#ffffff',
+                                    },
+                                }}
+                            >
+                                {isSubmitting ? "Speichern..." : "Location Speichern"}
+                                <Box component="span" sx={{ ml: 1 }}>
+                                    <Save className="icon" width={16} height={16} />
+                                </Box>
+                            </Button>
+                        </Grid2>
+
                     </Grid2>
-                    <Grid2 size={{ xs: 12 }}>
-                        <TextField
-                            fullWidth
-                            label="Stadt"
-                            name="city"
-                            value={formData.city}
-                            onChange={handleInputChange}
-                            required
-                        />
-                    </Grid2>
-                    <Grid2 size={{ xs: 12 }}>
-                        <TextField
-                            fullWidth
-                            label="Lage (z.B. Stadteil oder bekannter Platz)"
-                            name="area"
-                            value={formData.area}
-                            onChange={handleInputChange}
-                        />
-                    </Grid2>
-                    <Grid2 size={{ xs: 12 }}>
-                        <TextField
-                            fullWidth
-                            label="Anschrift"
-                            name="streetAddress"
-                            value={formData.streetAddress}
-                            onChange={handleInputChange}
-                            required
-                        />
-                    </Grid2>
-                    <Grid2 size={{ xs: 12 }}>
-                        <TextField
-                            fullWidth
-                            label="Postleitzahl"
-                            name="postalCode"
-                            value={formData.postalCode}
-                            onChange={handleInputChange}
-                            required
-                        />
-                    </Grid2>
-                    <Grid2 size={{ xs: 12 }}>
-                        <Typography variant="subtitle1">Event-Anlässe</Typography>
-                        <Box display="flex" flexWrap="wrap" gap={1} mb={2}>
-                            {formData.eventCategories.map((category) => (
-                                <Chip
-                                    key={category}
-                                    label={formatEventCategoriesSync([category as EventCategories])}
-                                    onDelete={() => handleRemoveCategory(category)}
-                                    deleteIcon={<CircleMinus />}
-                                />
-                            ))}
-                        </Box>
-                        <TextField
-                            select
-                            fullWidth
-                            label="Anlass hinzufügen"
-                            value=""
-                            onChange={(e) => handleAddCategory(e.target.value)}
-                        >
-                            {AvailableEventCategories
-                                .filter(
-                                    (category) =>
-                                        !formData.eventCategories.includes(category)
-                                )
-                                .map((category) => (
-                                    <MenuItem key={category} value={category}>
-                                        {formatEventCategoriesSync([category as EventCategories])}
-                                    </MenuItem>
-                                ))}
-                        </TextField>
-                    </Grid2>
-                    <Grid2 size={{ xs: 12 }}>
-                        <TextField
-                            fullWidth
-                            label="Preis pro Tag (optional)"
-                            type="number"
-                            name="price"
-                            value={formData.price}
-                            onChange={handleInputChange}
-                        />
-                    </Grid2>
-                    <Grid2 size={{ xs: 12 }}>
-                        <Button variant="contained" component="label">
-                            Bild hinzufügen
-                            <input
-                                type="file"
-                                accept="image/*"
-                                hidden
-                                onChange={handleFileChange}
-                            />
-                        </Button>
-                        {formData.image && <Typography>{formData.image.name}</Typography>}
-                    </Grid2>
-                    <Grid2 size={{ xs: 12 }}>
-                        <Button
-                            type="submit"
-                            variant="contained"
-                            color="primary"
-                            fullWidth
-                            disabled={isSubmitting}
-                            startIcon={isSubmitting && <CircularProgress size={20} />}
-                        >
-                            {isSubmitting
-                                ? "Submitting..."
-                                : isEdit
-                                    ? "Location speichern"
-                                    : "Location speichern"}
-                        </Button>
-                    </Grid2>
-                </Grid2>
-            </form>
+                </form>
+            </FormProvider>
             {responseMessage && (
-                <Typography sx={{ mt: 2 }} color="primary">
-                    {responseMessage}
-                </Typography>
+                <Grid2 size={{ xs: labelWidth }}>
+                    <Typography variant="body2" color="success">
+                        {responseMessage}
+                    </Typography>
+                </Grid2>
             )}
-        </Box>
+        </Box >
     );
 };
 

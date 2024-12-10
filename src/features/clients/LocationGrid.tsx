@@ -90,7 +90,7 @@ const LocationGrid = ({ sx }: LocationGridProps) => {
                     <Grid2 key={location.id} size={{ xs: 12, sm: 6, md: 4, lg: 4, xl: 3 }}>
                         <GridItem
                             id={location.id}
-                            image={location.image}
+                            image={location.image as string}
                             title={location.title}
                             priceTag={`Ab ${formatPrice(location.price)} / Tag`}
                             listItems={[

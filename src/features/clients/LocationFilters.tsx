@@ -9,19 +9,11 @@ import {
 } from '@mui/material';
 import { ChevronDown, EuroIcon } from 'lucide-react';
 import useStore, { createDefaultFilters } from '@/stores/eventStore';
-import City from '@/models/City';
+import City, { AvailableCities } from '@/models/City';
 
 interface LocationFiltersProps {
     sx?: SxProps<Theme>;
 }
-
-const cities = [
-    { label: 'München', value: 'munich' },
-    { label: 'Hamburg', value: 'hamburg' },
-    { label: 'Berlin', value: 'berlin' },
-    { label: 'Frankfurt', value: 'frankfurt' },
-    { label: 'Köln', value: 'cologne' },
-];
 
 export default function LocationFilters({ sx }: LocationFiltersProps) {
     const { eventConfigurationFilters, setEventConfigurationFilters } = useStore();
@@ -100,7 +92,7 @@ export default function LocationFilters({ sx }: LocationFiltersProps) {
         >
             {/* City Select */}
             <Autocomplete
-                options={cities}
+                options={AvailableCities}
                 value={eventConfigurationFilters?.city || null}
                 onChange={(_event, newValue: City | null) => handleCityChange(newValue)}
                 renderInput={(params) => (

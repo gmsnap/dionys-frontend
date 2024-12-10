@@ -1,8 +1,8 @@
 import { EventCategories } from "@/constants/EventCategories";
 
 export interface GeoLocation {
-    type: "Point"; // Fixed value as the API specifies "Point"
-    coordinates: [number, number]; // Tuple for longitude and latitude
+    lat: number;
+    lng: number;
 }
 
 export interface LocationModel {
@@ -14,9 +14,24 @@ export interface LocationModel {
     streetAddress: string;
     postalCode: string;
     geoLocation: GeoLocation;
-    image: string;
+    image: string | File | null;
     price: number;
     eventCategories: EventCategories[];
-    createdAt: Date;
-    updatedAt: Date;
 }
+
+export const createEmptyLocationModel = (): LocationModel => ({
+    id: 0,
+    partnerId: 0,
+    title: '',
+    city: '',
+    area: '',
+    streetAddress: '',
+    postalCode: '',
+    geoLocation: {
+        lat: 0,
+        lng: 0,
+    },
+    image: null,
+    price: 0,
+    eventCategories: [],
+});
