@@ -1,7 +1,8 @@
 export interface RoomModel {
     id: number;
-    venueId: number;
+    locationId: number;
     name: string;
+    description: string;
     size: number;
     price: number;
     minPersons: number;
@@ -10,10 +11,11 @@ export interface RoomModel {
     roomConfigurations: RoomConfigurationModel[];
 }
 
-export const createEmptyRoomModel = (venueId: number): RoomModel => ({
+export const createEmptyRoomModel = (locationId: number): RoomModel => ({
     id: 0,
-    venueId: venueId,
+    locationId: locationId,
     name: '',
+    description: '',
     size: 0,
     price: 0,
     minPersons: 0,

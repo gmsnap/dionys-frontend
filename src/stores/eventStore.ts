@@ -35,8 +35,8 @@ export default useStore;
 export const createDefaultEventConfigurationModel = (locationId: number): EventConfigurationModel => {
     return {
         locationId: locationId,
-        venueId: 0,
-        venue: null,
+        roomId: 0,
+        room: null,
         occasion: null,
         persons: 50,
         roomConfigurationId: 0,

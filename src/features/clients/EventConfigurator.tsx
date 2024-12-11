@@ -3,7 +3,7 @@ import { Box, SxProps, Theme, Typography, Button } from '@mui/material';
 import useStore, { createDefaultEventConfigurationModel } from '@/stores/eventStore';
 import { formatEventCategory } from '@/utils/formatEventCategories';
 import { EventConfigurationModel } from '@/models/EventConfigurationModel';
-import Venues from './Venues';
+import Rooms from './Rooms';
 import RoomConfigurator from './RoomConfigurator';
 
 interface EventConfiguratorProps {
@@ -153,7 +153,7 @@ const EventConfigurator = ({ locationId, sx }: EventConfiguratorProps) => {
                         <Typography variant="h3">PERSONEN</Typography>
                     </Box>}
                 {selectedItem === 2 &&
-                    <Venues sx={{ height: '100%', mt: 4 }} />}
+                    <Rooms sx={{ height: '100%', mt: 4 }} />}
                 {selectedItem === 3 &&
                     <Box sx={{ mt: 4 }}>
                         {selectedConfiguratorItem === 0 && <RoomConfigurator />}

@@ -4,13 +4,14 @@ import React, { useState, useEffect } from "react";
 import { Alert, Box, Button, TextField, Typography } from "@mui/material";
 import { PartnerUserModel } from "@/models/PartnerUserModel";
 import useStore from '@/stores/partnerStore';
+import { fetchLocationByPartnerId } from "@/services/locationService";
 
 const PartnerLoginForm: React.FC = ({ }) => {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState("");
-    const { partnerUser, setPartnerUser } = useStore();
+    const { partnerUser, setPartnerUser, setPartnerLocation } = useStore();
 
     const handleLogin = async () => {
         setIsLoading(true);
@@ -43,6 +44,15 @@ const PartnerLoginForm: React.FC = ({ }) => {
     const handleLogout = () => {
         setPartnerUser(null);
     };
+
+    useEffect(() => {
+        if (partnerUser?.id) {
+            fetchLocationByPartnerId(partnerUser.id, null, null)
+                .then((location) => {
+                    location && setPartnerLocation(location);
+                });
+        }
+    }, [partnerUser]);
 
     return (
         <Box sx={{ textAlign: "center", p: 4 }}>

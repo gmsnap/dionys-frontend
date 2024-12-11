@@ -8,34 +8,31 @@ import {
     Typography,
     Button,
     TextField,
-    Select,
-    MenuItem,
-    FormControl,
     InputAdornment
 } from '@mui/material';
 import PartnerContentLayout from '@/layouts/PartnerContentLayout';
 import { NextPageWithLayout } from '@/types/page';
 import { createEmptyRoomModel, RoomModel } from '@/models/RoomModel';
-import { fetchVenuesByLocationId } from '@/services/venueService';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 import PartnerLayout from '@/layouts/PartnerLayout';
-import { VenueModel } from '@/models/VenueModel';
 import { Save, X } from 'lucide-react';
-import { handleDeleteRoom } from '@/services/roomService';
+import { fetchLocationWithRooms, handleDeleteRoom } from '@/services/roomService';
 import ImageUploadForm from '@/features/partners/ImageUploadForm';
 import DeleteButton from '@/components/DeleteButton';
 
 // Validation schema
 const roomValidationSchema = yup.object().shape({
-    venueId: yup
+    locationId: yup
         .number()
-        .required('Venue ist erforderlich')
-        .positive('Wählen Sie einen gültigen Veranstaltungsort aus'),
+        .required('Location ist erforderlich')
+        .positive('Wählen Sie eine gültige Location aus'),
     name: yup
         .string()
         .required('Bezeichnung ist erforderlich')
         .min(1, 'Bezeichnung muss mindestens 1 Zeichen lang sein'),
+    description: yup
+        .string(),
     size: yup
         .number()
         .typeError('Quadratmeter muss eine Zahl sein')
@@ -67,7 +64,6 @@ const PartnerPage: NextPageWithLayout = () => {
     const { partnerLocation } = useStore();
 
     const [roomId, setRoomId] = useState(0);
-    const [venues, setVenues] = useState<VenueModel[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -157,17 +153,6 @@ const PartnerPage: NextPageWithLayout = () => {
             return;
         }
 
-        const fetchVenues = async () => {
-            try {
-                const venuesData = await fetchVenuesByLocationId(partnerLocation.id, setLoading, setError);
-                setVenues(venuesData);
-            } catch (err) {
-                setError('Error fetching venues');
-            }
-        };
-
-        fetchVenues();
-
         const fetchRoomData = async () => {
             try {
                 setLoading(true);
@@ -191,6 +176,9 @@ const PartnerPage: NextPageWithLayout = () => {
         if (roomId > 0) {
             fetchRoomData();
         } else {
+            // Set locationId in the form
+            setValue("locationId", partnerLocation.id);
+            console.log("locationId " + partnerLocation.id);
             setLoading(false);
         }
 
@@ -203,9 +191,9 @@ const PartnerPage: NextPageWithLayout = () => {
         setSuccess(false);
 
         try {
-            const isEdit = id && Number(id) > 0;
+            const isEdit = roomId && roomId > 0;
             const url = isEdit
-                ? `${process.env.NEXT_PUBLIC_API_URL}/rooms/${id}`
+                ? `${process.env.NEXT_PUBLIC_API_URL}/rooms/${roomId}`
                 : `${process.env.NEXT_PUBLIC_API_URL}/rooms`;
 
             const method = isEdit ? "PUT" : "POST";
@@ -222,9 +210,9 @@ const PartnerPage: NextPageWithLayout = () => {
                 throw new Error(responseData.message || "Failed to submit room");
             }
 
-            if (!isEdit && responseData.id) {
-                setRoomId(responseData.id);
-                router.push(`/partner/rooms/${responseData.id}`, undefined, { shallow: true });
+            if (!isEdit && responseData?.room?.id) {
+                setRoomId(responseData.room.id);
+                //router.push(`/partner/rooms/${responseData.id}`, undefined, { shallow: true });
             }
 
             setSuccess(true);
@@ -256,38 +244,6 @@ const PartnerPage: NextPageWithLayout = () => {
                 <form onSubmit={handleSubmit(onSubmit)}>
                     <Grid2 container spacing={2}>
 
-                        {/* Venue */}
-                        <Grid2 size={{ xs: labelWidth }}>
-                            <Grid2 container alignItems="top">
-                                <Grid2 size={{ xs: 4 }}>
-                                    <Typography variant="label">Venue</Typography>
-                                </Grid2>
-                                <Grid2 size={{ xs: 8 }}>
-                                    <Controller
-                                        name="venueId"
-                                        control={control}
-                                        render={({ field }) => (
-                                            <FormControl fullWidth variant="outlined">
-                                                <Select
-                                                    {...field}
-                                                    displayEmpty
-                                                >
-                                                    <MenuItem value="" disabled>
-                                                        Select a Venue
-                                                    </MenuItem>
-                                                    {venues.map((venue) => (
-                                                        <MenuItem key={venue.id} value={venue.id}>
-                                                            {venue.title}
-                                                        </MenuItem>
-                                                    ))}
-                                                </Select>
-                                            </FormControl>
-                                        )}
-                                    />
-                                </Grid2>
-                            </Grid2>
-                        </Grid2>
-
                         {/* Title */}
                         <Grid2 size={{ xs: labelWidth }}>
                             <Grid2 container alignItems="top">
@@ -305,6 +261,30 @@ const PartnerPage: NextPageWithLayout = () => {
                                                 variant="outlined"
                                                 error={!!errors.name}
                                                 helperText={errors.name?.message}
+                                            />
+                                        )}
+                                    />
+                                </Grid2>
+                            </Grid2>
+                        </Grid2>
+
+                        {/* Title */}
+                        <Grid2 size={{ xs: labelWidth }}>
+                            <Grid2 container alignItems="top">
+                                <Grid2 size={{ xs: 4 }}>
+                                    <Typography variant="label">Beschreibung</Typography>
+                                </Grid2>
+                                <Grid2 size={{ xs: 8 }}>
+                                    <Controller
+                                        name="description"
+                                        control={control}
+                                        render={({ field }) => (
+                                            <TextField
+                                                {...field}
+                                                fullWidth
+                                                variant="outlined"
+                                                error={!!errors.description}
+                                                helperText={errors.description?.message}
                                             />
                                         )}
                                     />

@@ -6,9 +6,7 @@ import { Pencil, User, X } from 'lucide-react';
 import GridAddItem from '@/components/GridAddItem';
 import Link from 'next/link';
 import { RoomModel } from '@/models/RoomModel';
-import { VenueModel } from '@/models/VenueModel';
-import { handleDeleteRoom } from '@/services/roomService';
-import { fetchVenuesByLocationId } from '@/services/venueService';
+import { fetchLocationWithRooms, handleDeleteRoom } from '@/services/roomService';
 import useStore from '@/stores/partnerStore';
 import router from 'next/router';
 
@@ -25,22 +23,15 @@ const RoomGrid = ({ sx }: RoomGridProps) => {
 
     const fetchRooms = async () => {
         if (partnerLocation?.id) {
-            const venues = await fetchVenuesByLocationId(
+            const location = await fetchLocationWithRooms(
                 partnerLocation.id,
                 setIsLoading,
                 setError
             );
 
-            if (venues) {
-                // Extract rooms from each venue and flatten them into a single array
-                const allRooms = venues.reduce((acc: RoomModel[], venue: VenueModel) => {
-                    if (venue.rooms && Array.isArray(venue.rooms)) {
-                        acc.push(...venue.rooms); // Add rooms from each venue
-                    }
-                    return acc;
-                }, []);
-
-                setRooms(allRooms); // Set all rooms to state
+            // Set rooms to state
+            if (location && location.rooms) {
+                setRooms(location.rooms);
             }
         }
     };
