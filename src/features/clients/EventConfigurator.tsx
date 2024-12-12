@@ -184,8 +184,9 @@ const EventConfigurator = ({ locationId, sx }: EventConfiguratorProps) => {
                             value = eventConfiguration ? eventConfiguration.persons.toString() : '';
                             break;
                         case 2:
-                            value = eventConfiguration && eventConfiguration.venue
-                                ? eventConfiguration.venue.title : '';
+                            value = eventConfiguration && eventConfiguration.room ?
+                                eventConfiguration.room.name :
+                                '';
                             break;
                         default:
                             value = "";

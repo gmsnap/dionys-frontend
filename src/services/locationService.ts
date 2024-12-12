@@ -4,7 +4,9 @@ export const fetchLocationByPartnerId = async (
     setError: ((error: string | null) => void) | null
 ): Promise<any> => {
     try {
-        setIsLoading && setIsLoading(true);
+        if (setIsLoading != null) {
+            setIsLoading(true);
+        }
         const response =
             await fetch(`${process.env.NEXT_PUBLIC_API_URL}/locations/partner/${partnerId}?single=1`);
         if (!response.ok) {
@@ -13,9 +15,15 @@ export const fetchLocationByPartnerId = async (
         const result = await response.json();
         return result; // Return the result instead of setting it to a parameter
     } catch (err) {
-        setError && setError(err instanceof Error ? err.message : 'An unknown error occurred');
+        if (setError != null) {
+            setError(err instanceof Error ?
+                err.message :
+                'An unknown error occurred');
+        }
         return null; // In case of error, return null
     } finally {
-        setIsLoading && setIsLoading(false);
+        if (setIsLoading != null) {
+            setIsLoading(false);
+        }
     }
 };

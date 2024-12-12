@@ -15,34 +15,6 @@ const Rooms = ({ sx }: VenueProps) => {
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const { eventConfiguration, setEventConfiguration } = useStore();
 
-    const fetchRooms = async (newVenueId: number): Promise<RoomModel[]> => {
-        try {
-            if (eventConfiguration) {
-
-                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/venues/${newVenueId}/rooms`);
-
-                if (response.status === 404) {
-                    return [];
-                }
-
-                if (!response.ok) {
-                    throw new Error(`Error: ${response.status} ${response.statusText}`);
-                }
-
-                const rooms: RoomModel[] = await response.json();
-
-                return rooms;
-            }
-        } catch (err) {
-            if (err instanceof Error) {
-                setError(err.message);
-            } else {
-                setError('An unknown error occurred');
-            }
-        }
-        return [];
-    };
-
     // Function to handle updating the venueId
     const handleRoomChange = async (newRoomId: number) => {
         if (eventConfiguration) {
@@ -62,7 +34,7 @@ const Rooms = ({ sx }: VenueProps) => {
                 setIsLoading(true);
 
                 const response =
-                    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/locations/${eventConfiguration?.locationId}?include=rooms`);
+                    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/locations/${eventConfiguration?.locationId}/rooms?include=roomConfigurations`);
 
                 if (response.status === 404) {
                     setIsLoading(false);
@@ -76,7 +48,7 @@ const Rooms = ({ sx }: VenueProps) => {
 
                 const result = await response.json();
 
-                setRooms(result.rooms || []);
+                setRooms(result || []);
 
                 setIsLoading(false);
             } catch (err) {
@@ -116,7 +88,8 @@ const Rooms = ({ sx }: VenueProps) => {
                     {/* Left Column */}
                     <Box flexBasis="50%" sx={{
                         flexGrow: 1,
-                        maxWidth: '450px',
+                        minWidth: '200px',
+                        maxWidth: '500px',
                         mr: 5,
                     }}>
                         <Typography

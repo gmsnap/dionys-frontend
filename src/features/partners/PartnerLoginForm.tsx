@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import { Alert, Box, Button, TextField, Typography } from "@mui/material";
-import { PartnerUserModel } from "@/models/PartnerUserModel";
 import useStore from '@/stores/partnerStore';
 import { fetchLocationByPartnerId } from "@/services/locationService";
 
@@ -49,7 +48,9 @@ const PartnerLoginForm: React.FC = ({ }) => {
         if (partnerUser?.id) {
             fetchLocationByPartnerId(partnerUser.id, null, null)
                 .then((location) => {
-                    location && setPartnerLocation(location);
+                    if (location) {
+                        setPartnerLocation(location);
+                    }
                 });
         }
     }, [partnerUser]);

@@ -21,7 +21,7 @@ const Home: NextPageWithLayout = () => {
             m: 2,
           }}
         >
-          Locations <ArrowRight />
+          Locations finden<ArrowRight />
         </Button>
         <Button
           href='/partner'

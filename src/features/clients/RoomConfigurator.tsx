@@ -8,18 +8,10 @@ interface RoomConfiguratorProps {
 }
 
 const RoomConfigurator = ({ sx }: RoomConfiguratorProps) => {
-    const theme = useTheme();
     const [rooms, setRooms] = useState<RoomModel[]>([]);
     const [roomConfiguration, setRoomConfiguration] = useState<RoomConfigurationModel>();
     const [fadeIn, setFadeIn] = useState(false);
     const { eventConfiguration, setEventConfiguration } = useStore();
-
-    // Function to handle updating the venueId
-    const handleVenueChange = (newVenueId: number) => {
-        if (eventConfiguration) {
-            setEventConfiguration({ ...eventConfiguration, venueId: newVenueId });
-        }
-    };
 
     const handleConfigurationChange = async (confg: RoomConfigurationModel) => {
         setRoomConfiguration(confg);
@@ -38,10 +30,10 @@ const RoomConfigurator = ({ sx }: RoomConfiguratorProps) => {
         return () => clearTimeout(timer); // Cleanup timeout on unmount or change
     }, [roomConfiguration]);
 
-    if (!eventConfiguration?.venue) {
+    if (!eventConfiguration?.room) {
         return <Box sx={{ ...sx }}>
             <Typography variant="h3" sx={{ mb: 8 }}>CONFIGURATOR - ROOM</Typography>
-            <Typography variant="h5" sx={{ mt: 4 }}>Bitte Venue auswählen</Typography>
+            <Typography variant="h5" sx={{ mt: 4 }}>Bitte Room auswählen</Typography>
         </Box>;
     };
 
@@ -138,10 +130,12 @@ const RoomConfigurator = ({ sx }: RoomConfiguratorProps) => {
                     <Box
                         component="img"
                         sx={{
-                            width: '100%', // Match parent width
-                            objectFit: 'cover', // Maintain aspect ratio and crop overflow
-                            opacity: fadeIn ? 1 : 0, // Fade-in effect
-                            transition: fadeIn ? 'opacity 0.6s ease-out' : 'none', // Smooth fade-in only
+                            width: '100%',
+                            objectFit: 'cover',
+                            // Fade-in effect
+                            opacity: fadeIn ? 1 : 0,
+                            // Smooth fade-in only
+                            transition: fadeIn ? 'opacity 0.6s ease-out' : 'none',
                         }}
                         src={roomConfiguration.images[1]}
                         alt={'Content Image'}

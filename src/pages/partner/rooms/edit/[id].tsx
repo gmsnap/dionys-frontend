@@ -178,7 +178,6 @@ const PartnerPage: NextPageWithLayout = () => {
         } else {
             // Set locationId in the form
             setValue("locationId", partnerLocation.id);
-            console.log("locationId " + partnerLocation.id);
             setLoading(false);
         }
 
