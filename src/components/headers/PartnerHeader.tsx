@@ -16,13 +16,14 @@ import { usePathname } from 'next/navigation';
 import router from 'next/router';
 import { CircleUserRound, MenuIcon, X } from 'lucide-react';
 import MenuItem from '../MenuItem';
-import useStore from '@/stores/partnerStore';
 import PartnerSettings from '@/features/partners/PartnerSettings';
+import { useAuthContext } from '@/auth/AuthContext';
+import CircleInitials from '../CircleInitials';
 
 const Header: FC = () => {
     const theme = useTheme();
     const pathname = usePathname();
-    const { partnerUser, setPartnerUser } = useStore();
+    const { authUser, logout } = useAuthContext();
 
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [userPanelAnchorEl, setUserPanelAnchorEl] = useState<null | HTMLElement>(null);
@@ -59,8 +60,7 @@ const Header: FC = () => {
     };
 
     const handleLogout = () => {
-        setPartnerUser(null);
-        router.push('/partner');
+        logout();
     };
 
     const handleOpenOverlay = () => {
@@ -79,6 +79,14 @@ const Header: FC = () => {
             handleCloseOverlay();
         }
     }, [pathname]);
+
+    useEffect(() => {
+        //console.log('PartnerHeader User: ', authUser);
+        if (!authUser) {
+            router.push('/partner');
+            return;
+        }
+    }, [authUser]);
 
     return (
         <>
@@ -163,7 +171,7 @@ const Header: FC = () => {
                                             onClick={handleUserIconClick}
                                             sx={{ backgroundColor: 'red', borderRadius: '5px' }}>
                                             <CircleUserRound width={30} height={30} strokeWidth={1} />
-                                            <Typography sx={{ ml: 1 }}>{partnerUser?.givenName}</Typography>
+                                            <Typography sx={{ ml: 1 }}>{authUser?.username}</Typography>
                                         </IconButton>
                                         <Popover
                                             open={Boolean(userPanelAnchorEl)}
@@ -186,10 +194,10 @@ const Header: FC = () => {
                                                 }}
                                             >
                                                 <Button
-                                                    onClick={partnerUser ? handleLogout : () => router.push('/partner')}
+                                                    onClick={authUser ? handleLogout : () => router.push('/partner')}
                                                     sx={{ mb: 1, width: '100%', color: 'inherit' }}
                                                 >
-                                                    {partnerUser ? 'Logout' : 'Login'}
+                                                    {authUser ? 'Logout' : 'Login'}
                                                 </Button>
                                                 <Button
                                                     onClick={handleOpenOverlay}
@@ -215,7 +223,19 @@ const Header: FC = () => {
                                 ))}
                                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                                     <IconButton onClick={handleUserIconClick}>
-                                        <CircleUserRound width={32} height={32} strokeWidth={1} />
+                                        {authUser ?
+                                            <CircleInitials
+                                                givenName={authUser?.givenName ?? ''}
+                                                familyName={authUser?.familyName ?? ''}
+                                                sx={{
+                                                    width: 32,
+                                                    height: 32,
+                                                    fontSize: '14px',
+                                                    fontFamily: "'Nunito', sans-serif",
+                                                }}
+                                            /> :
+                                            <CircleUserRound width={32} height={32} strokeWidth={1} />
+                                        }
                                     </IconButton>
                                     <Popover
                                         open={Boolean(userPanelAnchorEl)}
@@ -249,10 +269,10 @@ const Header: FC = () => {
                                                 <Button
                                                     variant="contained"
                                                     color="primary"
-                                                    onClick={partnerUser ? handleLogout : () => router.push('/partner')}
+                                                    onClick={authUser ? handleLogout : () => router.push('/partner')}
                                                     sx={{ ml: 2, mr: 2 }}
                                                 >
-                                                    {partnerUser ? 'Logout' : 'Login'}
+                                                    {authUser ? 'Logout' : 'Login'}
                                                 </Button>
                                             </Box>
                                         </Box>

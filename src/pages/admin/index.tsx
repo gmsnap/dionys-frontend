@@ -1,27 +1,55 @@
 import { ReactElement } from 'react';
 import AdminLayout from '../../layouts/AdminLayout';
 import type { NextPageWithLayout } from '../../types/page';
-import Head from 'next/head';
+import { Box } from '@mui/material';
+import { SignUp } from '@/components/SignUp';
+import ConfirmSignup from '@/features/admins/ConfirmSignup';
 
-const ClientHome: NextPageWithLayout = () => {
+const AdminHome: NextPageWithLayout = () => {
     return (
-        <>
-            <Head>
-                <title>Admin Dashboard</title>
-                <meta name="description" content="Manage your event locations and bookings." />
-            </Head>
-            <div>
-                <h1>Welcome to the Client Dashboard</h1>
-                <p>Here you can manage your event locations, view bookings, and more.</p>
-                {/* Additional Client-specific content */}
-            </div>
-        </>
+        <Box
+            display="flex"
+            flexDirection="row"
+            width="100vw"
+            height="100vh"
+        >
+            <Box
+                sx={{
+                    flexBasis: '50%',
+                    height: '100%',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                }}
+            >
+                <SignUp />
+                <ConfirmSignup />
+            </Box>
+            <Box
+                sx={{
+                    flexBasis: '50%',
+                    height: '100%',
+                    overflow: 'hidden',
+                }}
+            >
+                <Box
+                    component="img"
+                    sx={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                    }}
+                    src="/admin-login.png"
+                    alt="Login Image"
+                />
+            </Box>
+        </Box>
     );
 };
 
 // Use ClientLayout as the layout for this page
-ClientHome.getLayout = function getLayout(page: ReactElement) {
+AdminHome.getLayout = function getLayout(page: ReactElement) {
     return <AdminLayout>{page}</AdminLayout>;
 };
 
-export default ClientHome;
+export default AdminHome;

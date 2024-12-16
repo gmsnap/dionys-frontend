@@ -43,12 +43,7 @@ const Header: FC = () => {
                     Admin Dashboard
                 </Typography>
 
-                <Box sx={{ display: 'flex', gap: 2 }}>
-                    <Button sx={{ color: '#781C6A' }}>Events</Button>
-                    <Button sx={{ color: '#781C6A' }}>Locations</Button>
-                    <Button sx={{ color: '#781C6A' }}>Services</Button>
-                    <Button sx={{ color: '#781C6A' }}>Über uns</Button>
-                    <Button sx={{ color: '#781C6A' }}>Kontakt</Button>
+                <Box sx={{ display: 'flex', gap: 2 }}> 
                 </Box>
             </Toolbar>
         </AppBar>

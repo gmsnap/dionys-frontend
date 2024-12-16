@@ -4,8 +4,10 @@ import React, { useState, useEffect } from "react";
 import { Alert, Box, Button, TextField, Typography } from "@mui/material";
 import useStore from '@/stores/partnerStore';
 import { fetchLocationByPartnerId } from "@/services/locationService";
+import { useAuthContext } from '@/auth/AuthContext';
 
 const PartnerLoginForm: React.FC = ({ }) => {
+    const { authUser, login, logout } = useAuthContext();
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [isLoading, setIsLoading] = useState(false);
@@ -17,18 +19,8 @@ const PartnerLoginForm: React.FC = ({ }) => {
         setError("");
 
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/partner-users/login`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ username, password }),
-            });
-
-            if (!response.ok) {
-                throw new Error("Invalid username or password");
-            }
-
-            const result = await response.json();
-            setPartnerUser(result.user);
+            // Sign in with Amplify Auth
+            const user = await login(username, password);
         } catch (err) {
             if (err instanceof Error) {
                 setError(err.message);
@@ -40,29 +32,72 @@ const PartnerLoginForm: React.FC = ({ }) => {
         }
     };
 
-    const handleLogout = () => {
-        setPartnerUser(null);
+    const handleLogout = async () => {
+        try {
+            logout();
+        } catch (error) {
+            console.error("Error signing out: ", error);
+        }
     };
 
     useEffect(() => {
-        if (partnerUser?.id) {
-            fetchLocationByPartnerId(partnerUser.id, null, null)
-                .then((location) => {
-                    if (location) {
-                        setPartnerLocation(location);
-                    }
-                });
-        }
+        const fetchLocation = async () => {
+            if (partnerUser?.id) {
+                const location = await fetchLocationByPartnerId(partnerUser.id, null, null);
+                if (location) {
+                    setPartnerLocation(location);
+                    return;
+                }
+            }
+            setPartnerLocation(null);
+        };
+
+        fetchLocation();
     }, [partnerUser]);
+
+    useEffect(() => {
+        console.log("authUser:", authUser?.username);
+
+        if (authUser?.username) {
+            const fetchUserData = async () => {
+                try {
+                    // Fetch additional user data from your API
+                    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/partner-users/sub/${authUser.sub}`);
+
+                    if (!response.ok) {
+                        throw new Error("Failed to fetch user data");
+                    }
+
+                    const result = await response.json();
+                    setPartnerUser(result);
+                    console.log("db user:", result);
+                } catch (err) {
+                    if (err instanceof Error) {
+                        setError(err.message);
+                    } else {
+                        setError("An unknown error occurred");
+                    }
+                    setPartnerUser(null);
+                } finally {
+                    setIsLoading(false);
+                }
+            }
+
+            fetchUserData();
+            return;
+        }
+
+        setPartnerUser(null);
+    }, [authUser]);
 
     return (
         <Box sx={{ textAlign: "center", p: 4 }}>
-            {partnerUser ? (
+            {authUser ? (
                 <>
                     <Typography variant="h3">
-                        {partnerUser.givenName} {partnerUser.familyName}
+                        {authUser.givenName} {authUser.familyName}
                     </Typography>
-                    <Typography variant="h5">{partnerUser.company}</Typography>
+                    <Typography variant="h5">{partnerUser?.company}</Typography>
                     <Button
                         variant="contained"
                         color="primary"

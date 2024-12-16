@@ -9,6 +9,7 @@ import { RoomModel } from '@/models/RoomModel';
 import { fetchLocationWithRooms, handleDeleteRoom } from '@/services/roomService';
 import useStore from '@/stores/partnerStore';
 import router from 'next/router';
+import NoLocationMessage from './NoLocationMessage';
 
 interface RoomGridProps {
     sx?: SxProps<Theme>;
@@ -32,8 +33,12 @@ const RoomGrid = ({ sx }: RoomGridProps) => {
             // Set rooms to state
             if (location && location.rooms) {
                 setRooms(location.rooms);
+                return;
             }
         }
+        setRooms([]);
+        setIsLoading(false);
+        setError("Location");
     };
 
     useEffect(() => {
@@ -44,6 +49,14 @@ const RoomGrid = ({ sx }: RoomGridProps) => {
         return (
             <Box display="flex" justifyContent="center" sx={sx}>
                 <CircularProgress color="secondary" />
+            </Box>
+        );
+    }
+
+    if (partnerLocation === null) {
+        return (
+            <Box display="flex" justifyContent="center" sx={sx}>
+                <NoLocationMessage />
             </Box>
         );
     }
