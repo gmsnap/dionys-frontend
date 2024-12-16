@@ -17,26 +17,29 @@ export interface AuthUser {
     idToken: string;
 }
 
+export interface LoginResult {
+    status: 'success' | 'confirm' | 'reset' | 'error';
+    user: AuthUser | null;
+}
+
 const isValidEmail = (email: string): boolean => {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+(?:\.[^\s@]+)*$/.test(email);
 }
 
 export const useAuth = () => {
     const [authUser, setAuthUser] = useState<AuthUser | null>(null);
-    const [loading, setLoading] = useState(true);
+    const [authLoading, setAuthLoading] = useState(true);
 
     const getCurrentUser2 = useCallback(async () => {
         try {
             const session = await fetchAuthSession();
             const attr = await fetchUserAttributes();
-            console.log('session.identityId ', session);
-            if (session.identityId &&
-                session.tokens?.idToken &&
+            if (session.tokens?.idToken &&
                 attr.email
             ) {
                 const formattedUser: AuthUser = {
                     sub: session.userSub,
-                    username: session.identityId,
+                    username: attr.email,
                     idToken: session.tokens.idToken.toString(),
                     email: attr.email,
                     givenName: attr.given_name,
@@ -48,13 +51,13 @@ export const useAuth = () => {
         } catch {
             //
         } finally {
-            setLoading(false);
+            setAuthLoading(false);
         }
 
         setAuthUser(null);
     }, []);
 
-    const login = async (email: string, password: string): Promise<AuthUser> => {
+    const login = async (email: string, password: string): Promise<LoginResult> => {
         if (!isValidEmail(email)) {
             throw new Error("Invalid email format");
         }
@@ -63,10 +66,27 @@ export const useAuth = () => {
         }
 
         try {
-            await signIn({ username: email, password });
-            // Ensure up-to-date attributes are fetched
-            await getCurrentUser2();
-            return authUser as AuthUser;
+            const signInResult = await signIn({ username: email, password });
+            const nextStep = signInResult.nextStep?.signInStep;
+            switch (nextStep) {
+                case 'RESET_PASSWORD':
+                // TODO: prompt user to reset their password
+                case 'CONFIRM_SIGN_UP':
+                    //User needs to enter email verification code 
+                    return {
+                        status: 'confirm',
+                        user: null
+                    };
+                case 'DONE':
+                    // Ensure up-to-date attributes are fetched
+                    await getCurrentUser2();
+                    return {
+                        status: 'success',
+                        user: authUser as AuthUser
+                    };
+                default:
+                    throw Error('unhandled signInStep: $signInStep');
+            }
         } catch (error) {
             console.error('Login error:', error);
             throw error;
@@ -126,7 +146,7 @@ export const useAuth = () => {
     return {
         authUser,
         setAuthUser,
-        loading,
+        authLoading,
         login,
         logout,
         signUp2,

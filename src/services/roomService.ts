@@ -1,3 +1,36 @@
+const baseUrl = process.env.NEXT_PUBLIC_API_URL;
+
+export const fetchRooms = async (
+    locationId: number,
+    setIsLoading: (loading: boolean) => void,
+    setError: (error: string | null) => void
+): Promise<any> => {
+    try {
+        setIsLoading(true);
+
+        const response =
+            await fetch(`${baseUrl}/locations/${locationId}/rooms?include=roomConfigurations`);
+
+        if (response.status === 404) {
+            setIsLoading(false);
+            return [];
+        }
+
+        if (!response.ok) {
+            throw new Error(`Error: ${response.status} ${response.statusText}`);
+        }
+
+        const result = await response.json();
+        setError(null);
+        return result || [];
+    } catch (err) {
+        setError(err instanceof Error ? err.message : 'An unknown error occurred');
+        return null;
+    } finally {
+        setIsLoading(false);
+    }
+}
+
 export const fetchLocationWithRooms = async (
     locationId: number,
     setIsLoading: (loading: boolean) => void,
@@ -6,7 +39,7 @@ export const fetchLocationWithRooms = async (
     try {
         setIsLoading(true);
         const response =
-            await fetch(`${process.env.NEXT_PUBLIC_API_URL}/locations/${locationId}?include=rooms`);
+            await fetch(`${baseUrl}/locations/${locationId}?include=rooms`);
         if (!response.ok) {
             throw new Error(`Error: ${response.status} ${response.statusText}`);
         }

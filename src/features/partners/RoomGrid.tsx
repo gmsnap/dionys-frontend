@@ -6,7 +6,7 @@ import { Pencil, User, X } from 'lucide-react';
 import GridAddItem from '@/components/GridAddItem';
 import Link from 'next/link';
 import { RoomModel } from '@/models/RoomModel';
-import { fetchLocationWithRooms, handleDeleteRoom } from '@/services/roomService';
+import { fetchRooms, handleDeleteRoom } from '@/services/roomService';
 import useStore from '@/stores/partnerStore';
 import router from 'next/router';
 import NoLocationMessage from './NoLocationMessage';
@@ -22,27 +22,27 @@ const RoomGrid = ({ sx }: RoomGridProps) => {
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
-    const fetchRooms = async () => {
+    const fetchRoomsFromApi = async () => {
         if (partnerLocation?.id) {
-            const location = await fetchLocationWithRooms(
+            const roomsResult = await fetchRooms(
                 partnerLocation.id,
                 setIsLoading,
                 setError
             );
 
             // Set rooms to state
-            if (location && location.rooms) {
-                setRooms(location.rooms);
+            if (roomsResult) {
+                setRooms(roomsResult);
                 return;
             }
         }
         setRooms([]);
         setIsLoading(false);
-        setError("Location");
+        setError("No Location found");
     };
 
     useEffect(() => {
-        fetchRooms();
+        fetchRoomsFromApi();
     }, [partnerLocation]);
 
     if (isLoading) {
@@ -133,7 +133,7 @@ const RoomGrid = ({ sx }: RoomGridProps) => {
                                     lineHeight: 0,
                                 }}
                                 onClick={
-                                    () => handleDeleteRoom(room.id, () => fetchRooms())
+                                    () => handleDeleteRoom(room.id, () => fetchRoomsFromApi())
                                 }
                             >
                                 Delete

@@ -1,10 +1,10 @@
 import React, { createContext, useContext, ReactNode, useEffect } from 'react';
-import { AuthUser, useAuth } from './useAuth';
+import { AuthUser, LoginResult, useAuth } from './useAuth';
 
 interface AuthContextType {
     authUser: AuthUser | null;
-    loading: boolean;
-    login: (email: string, password: string) => Promise<AuthUser>;
+    authLoading: boolean;
+    login: (email: string, password: string) => Promise<LoginResult>;
     logout: () => Promise<void>;
     signUp2: (email: string, password: string, givenName: string, familyName: string) => Promise<any>;
     confirmSignUp2: (email: string, verificationCode: string) => Promise<any>;
@@ -13,7 +13,15 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const { authUser, loading, login, logout, signUp2, confirmSignUp2, getCurrentUser2 } = useAuth();
+    const {
+        authUser,
+        authLoading,
+        login,
+        logout,
+        signUp2,
+        confirmSignUp2,
+        getCurrentUser2
+    } = useAuth();
 
     // Call `getCurrentUser2` on provider mount
     useEffect(() => {
@@ -27,7 +35,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         <AuthContext.Provider
             value={{
                 authUser,
-                loading,
+                authLoading,
                 login,
                 logout,
                 signUp2,

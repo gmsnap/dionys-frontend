@@ -17,7 +17,7 @@ import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 import PartnerLayout from '@/layouts/PartnerLayout';
 import { Save, X } from 'lucide-react';
-import { fetchLocationWithRooms, handleDeleteRoom } from '@/services/roomService';
+import { handleDeleteRoom } from '@/services/roomService';
 import ImageUploadForm from '@/features/partners/ImageUploadForm';
 import DeleteButton from '@/components/DeleteButton';
 

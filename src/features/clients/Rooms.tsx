@@ -4,6 +4,9 @@ import { title } from 'process';
 import useStore from '@/stores/eventStore';
 import { RoomModel } from '@/models/RoomModel';
 import ImageSlideShow from './ImageSlideShow';
+import { fetchRooms } from '@/services/roomService';
+
+const baseUrl = process.env.NEXT_PUBLIC_API_URL;
 
 interface VenueProps {
     sx?: SxProps<Theme>;
@@ -31,26 +34,22 @@ const Rooms = ({ sx }: VenueProps) => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                setIsLoading(true);
+                if (eventConfiguration?.locationId) {
+                    const roomsResult = await fetchRooms(
+                        eventConfiguration.locationId,
+                        setIsLoading,
+                        setError
+                    );
 
-                const response =
-                    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/locations/${eventConfiguration?.locationId}/rooms?include=roomConfigurations`);
-
-                if (response.status === 404) {
-                    setIsLoading(false);
-                    setRooms([]);
-                    return;
+                    // Set rooms to state
+                    if (roomsResult) {
+                        setRooms(roomsResult);
+                        return;
+                    }
                 }
-
-                if (!response.ok) {
-                    throw new Error(`Error: ${response.status} ${response.statusText}`);
-                }
-
-                const result = await response.json();
-
-                setRooms(result || []);
-
+                setRooms([]);
                 setIsLoading(false);
+                setError("No Location found");
             } catch (err) {
                 if (err instanceof Error) {
                     setError(err.message);

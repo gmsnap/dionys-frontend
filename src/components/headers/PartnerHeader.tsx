@@ -23,7 +23,7 @@ import CircleInitials from '../CircleInitials';
 const Header: FC = () => {
     const theme = useTheme();
     const pathname = usePathname();
-    const { authUser, logout } = useAuthContext();
+    const { authUser, logout, authLoading } = useAuthContext();
 
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [userPanelAnchorEl, setUserPanelAnchorEl] = useState<null | HTMLElement>(null);
@@ -81,12 +81,11 @@ const Header: FC = () => {
     }, [pathname]);
 
     useEffect(() => {
-        //console.log('PartnerHeader User: ', authUser);
-        if (!authUser) {
+        if (!authLoading && !authUser) {
             router.push('/partner');
             return;
         }
-    }, [authUser]);
+    }, [authUser, authLoading]);
 
     return (
         <>

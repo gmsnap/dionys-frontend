@@ -1,4 +1,5 @@
 import { AppBar, Toolbar, Typography, Box, Button } from '@mui/material';
+import router from 'next/router';
 import { FC } from 'react';
 
 const Header: FC = () => {
@@ -18,9 +19,10 @@ const Header: FC = () => {
                         WebkitTextFillColor: 'transparent',
                         paddingX: '40px',
                         paddingY: '20px',
-                        pointerEvents: 'none',
                         userSelect: 'none',
+                        cursor: 'pointer',
                     }}
+                    onClick={() => router.push('/')}
                 >
                     DIONYS
                 </Typography>
@@ -43,7 +45,7 @@ const Header: FC = () => {
                     Admin Dashboard
                 </Typography>
 
-                <Box sx={{ display: 'flex', gap: 2 }}> 
+                <Box sx={{ display: 'flex', gap: 2 }}>
                 </Box>
             </Toolbar>
         </AppBar>

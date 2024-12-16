@@ -23,7 +23,6 @@ const AdminHome: NextPageWithLayout = () => {
                 }}
             >
                 <SignUp />
-                <ConfirmSignup />
             </Box>
             <Box
                 sx={{
