@@ -1,7 +1,8 @@
 import React from 'react';
 import { useForm, Controller } from 'react-hook-form';
-import { TextField, Button, Box, Typography, Alert, Grid2 } from '@mui/material';
-import { useAuthContext } from '@/auth/AuthContext';
+import { TextField, Button, Box, Typography, Alert, Grid2, Link } from '@mui/material';
+import { useAuthContext } from '@/auth/AuthContext'
+import theme from '@/theme';
 
 interface SignUpFormInputs {
     email: string;
@@ -172,7 +173,7 @@ export const SignUp: React.FC = () => {
                             variant="contained"
                             color="primary"
                             fullWidth
-                            disabled={isSubmitting}
+                            disabled={isSubmitting || success}
                             sx={{ mt: 2 }}
                         >
                             {isSubmitting ? 'Signing Up...' : 'Sign Up'}
@@ -181,7 +182,21 @@ export const SignUp: React.FC = () => {
                 </Grid2>
             </form>
             {formError && <Alert severity="error" sx={{ mt: 2 }}>{formError}</Alert>}
-            {success && <Alert severity="success" sx={{ mt: 2 }}>Sign up successful! Please check your email for verification.</Alert>}
+            {success && (
+                <Alert severity="success" sx={{ mt: 2 }}>
+                    Partner Registration successful!<br />
+                    We have sent a verification code to the email address.<br />
+                    Partner can now{' '}
+                    <Link
+                        href="/partner"
+                        sx={{
+                            fontWeight: 'bold',
+                            color: theme.palette.customColors.pink.dark
+                        }}
+                    >log in</Link>{' '}
+                    with the verification code.
+                </Alert>
+            )}
         </Box>
     );
 };

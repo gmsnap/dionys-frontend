@@ -375,7 +375,10 @@ const LocationForm: React.FC<{ locationId?: string }> = ({ }) => {
                                     <Typography variant="label">Event-Anlässe</Typography>
                                 </Grid2>
                                 <Grid2 size={{ xs: 8 }}>
-                                    <EventCategoriesField control={control} />
+                                    <EventCategoriesField
+                                        control={control}
+                                        errors={errors}
+                                    />
                                 </Grid2>
                             </Grid2>
                         </Grid2>

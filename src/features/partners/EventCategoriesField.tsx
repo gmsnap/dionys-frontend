@@ -7,9 +7,10 @@ import { AvailableEventCategories, EventCategories } from "@/constants/EventCate
 
 interface ImageUploadFieldProps {
     control: any;
+    errors: any;
 }
 
-const EventCategoriesField: React.FC<ImageUploadFieldProps> = ({ control }) => {
+const EventCategoriesField: React.FC<ImageUploadFieldProps> = ({ control, errors }) => {
     return (
         <Controller
             name="eventCategories"
@@ -51,6 +52,8 @@ const EventCategoriesField: React.FC<ImageUploadFieldProps> = ({ control }) => {
                                 displayEmpty: true,
                             },
                         }}
+                        error={!!errors.eventCategories}
+                        helperText={errors.eventCategories?.message}
                     >
                         {AvailableEventCategories.filter(
                             (category) => !(field.value || []).includes(category as EventCategories)

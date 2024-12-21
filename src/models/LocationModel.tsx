@@ -33,7 +33,7 @@ export const createEmptyLocationModel = (partnerId: number): LocationModel => ({
         lat: 0,
         lng: 0,
     },
-    image: 'https://d18yz6yiwm54x7.cloudfront.net/media/images/46696f05-6bd7-4826-bf32-64b4937a5d54.jpg',
+    image: null,
     price: 0,
     eventCategories: [],
     rooms: [],

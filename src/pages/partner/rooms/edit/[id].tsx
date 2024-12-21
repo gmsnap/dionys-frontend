@@ -66,9 +66,9 @@ const labelWidth = 4;
 const PartnerPage: NextPageWithLayout = () => {
     const router = useRouter();
     const { id } = router.query;
-    
+
     const { partnerLocation } = useStore();
-    
+
     const [roomId, setRoomId] = useState(0);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [loading, setLoading] = useState(true);
@@ -411,7 +411,10 @@ const PartnerPage: NextPageWithLayout = () => {
                                     <Typography variant="label">Kategorien</Typography>
                                 </Grid2>
                                 <Grid2 size={{ xs: 8 }}>
-                                    <EventCategoriesField control={control} />
+                                    <EventCategoriesField
+                                        control={control}
+                                        errors={errors}
+                                    />
                                 </Grid2>
                             </Grid2>
                         </Grid2>

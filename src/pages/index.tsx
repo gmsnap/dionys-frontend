@@ -51,7 +51,7 @@ const Home: NextPageWithLayout = () => {
             m: 2,
           }}
         >
-          Partner-Sign-Up <ArrowRight />
+          Dionys-Admin <ArrowRight />
         </Button>
       </Box>
     </Box>

@@ -27,7 +27,6 @@ const PartnerLoginForm: React.FC = ({ }) => {
         try {
             // Sign in with Amplify Auth
             const result = await login(username, password);
-            console.log("Login result:", result);
             if (result?.status === 'confirm') {
                 setConfirmForm(true);
             }
@@ -122,7 +121,7 @@ const PartnerLoginForm: React.FC = ({ }) => {
                 </>
             ) : (
                 confirmForm ?
-                    <ConfirmSignup /> :
+                    <ConfirmSignup email={username} /> :
                     <>
                         <Typography variant="h6" align="center" sx={{ mb: 6 }}>
                             Partner Login

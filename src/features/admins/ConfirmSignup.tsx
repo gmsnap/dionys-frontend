@@ -1,29 +1,45 @@
 import React from 'react';
 import { useForm, Controller } from 'react-hook-form';
-import { TextField, Button, Box, Typography, Alert, Grid2 } from '@mui/material';
+import { TextField, Button, Box, Typography, Alert, Grid2, Link } from '@mui/material';
 import { useAuthContext } from '@/auth/AuthContext';
+import theme from '@/theme';
+
+interface ConfirmSignupProps {
+    email: string | null;
+}
 
 interface ConfirmSignupInputs {
     email: string;
     verificationCode: string;
 }
 
-const ConfirmSignup: React.FC = () => {
+const ConfirmSignup: React.FC<ConfirmSignupProps> = ({ email }) => {
     const { confirmSignUp2 } = useAuthContext();
-    const { control, handleSubmit, formState: { errors } } = useForm<ConfirmSignupInputs>();
-    const [message, setMessage] = React.useState<string | null>(null);
+    const {
+        control,
+        handleSubmit,
+        formState: { errors },
+    } = useForm<ConfirmSignupInputs>({
+        defaultValues: {
+            email: email || '',
+            verificationCode: '',
+        },
+    });
     const [isLoading, setIsLoading] = React.useState(false);
+    const [success, setSuccess] = React.useState(false);
+    const [failed, setFailed] = React.useState(false);
 
     const onSubmit = async (data: ConfirmSignupInputs) => {
         setIsLoading(true);
-        setMessage(null);
+        setSuccess(false);
+        setFailed(false);
 
         try {
             await confirmSignUp2(data.email, data.verificationCode);
-            setMessage('Sign-up successfully confirmed! You can now log in.');
-        } catch (error: any) {
+            setSuccess(true);
+        } catch (error) {
+            setFailed(true);
             console.error('Error confirming sign-up:', error);
-            setMessage(error.message || 'Failed to confirm sign-up. Please try again.');
         } finally {
             setIsLoading(false);
         }
@@ -34,7 +50,7 @@ const ConfirmSignup: React.FC = () => {
             <Typography variant="h6" align="center" sx={{ mb: 3 }}>
                 Bestätigen Sie die Anmeldung
             </Typography>
-            <Typography variant="body1" sx={{ mb: 6 }}>
+            <Typography variant="body2" sx={{ mb: 6 }}>
                 Wir haben einen Bestätigungscode an Ihre E-Mail-Adresse geschickt.<br />
                 Bitte geben Sie hier Ihre E-Mail-Adresse und den Code ein.<br />
                 Überprüfen Sie auch Ihren Spam-Ordner
@@ -49,7 +65,10 @@ const ConfirmSignup: React.FC = () => {
                             name="email"
                             control={control}
                             defaultValue=""
-                            rules={{ required: 'Email ist erforderlich', pattern: { value: /^\S+@\S+$/i, message: 'Invalid email address' } }}
+                            rules={{
+                                required: 'Email ist erforderlich',
+                                pattern: { value: /^\S+@\S+$/i, message: 'Invalid email address' }
+                            }}
                             render={({ field }) => (
                                 <TextField
                                     {...field}
@@ -63,7 +82,7 @@ const ConfirmSignup: React.FC = () => {
                     </Grid2>
 
                     <Grid2 size={{ xs: 12, sm: 4 }}>
-                        <Typography variant="body1" textAlign="left">Verification Code</Typography>
+                        <Typography variant="body1" textAlign="left">Bestätigungscode</Typography>
                     </Grid2>
                     <Grid2 size={{ xs: 12, sm: 8 }}>
                         <Controller
@@ -89,7 +108,7 @@ const ConfirmSignup: React.FC = () => {
                             variant="contained"
                             color="primary"
                             fullWidth
-                            disabled={isLoading}
+                            disabled={isLoading || success}
                             sx={{ mt: 2, fontSize: '12px' }}
                         >
                             {isLoading ? 'Wird überprüft...' : 'Abschicken'}
@@ -97,9 +116,21 @@ const ConfirmSignup: React.FC = () => {
                     </Grid2>
                 </Grid2>
             </form>
-            {message && (
-                <Alert severity={message.includes('successfully') ? 'success' : 'error'} sx={{ mt: 2 }}>
-                    {message}
+            {success && (
+                <Alert severity={'success'} sx={{ mt: 2, textAlign: 'left' }}>
+                    Anmeldung erfolgreich! Sie können sich jetzt{' '}
+                    <Link
+                        href="/partner"
+                        sx={{
+                            fontWeight: 'bold',
+                            color: theme.palette.customColors.pink.dark
+                        }}
+                    > einloggen</Link>.
+                </Alert>
+            )}
+            {failed && (
+                <Alert severity={'error'} sx={{ mt: 2, textAlign: 'left' }}>
+                    Die Anmeldung konnte nicht bestätigt werden.<br />Bitte versuchen Sie es erneut.
                 </Alert>
             )}
         </Box>

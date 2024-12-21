@@ -145,11 +145,13 @@ export const useAuth = () => {
                 username: email,
                 confirmationCode: verificationCode
             });
-            console.log('Signup successful:', isSignUpComplete);
             return;
-        } catch (error: any) {
-            console.error('Signup error:', error);
-            throw new Error(error.message || 'Failed to sign up');
+        } catch (error) {
+            if (error instanceof Error) {
+                console.error("Confirmation error: ", error?.message);
+                throw (error?.message || 'Failed to confirm');
+            }
+            throw ('Unknow error');
         }
     }
 
