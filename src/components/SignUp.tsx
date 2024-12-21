@@ -8,29 +8,42 @@ interface SignUpFormInputs {
     password: string;
     givenName: string;
     familyName: string;
+    company: string;
 }
 
 export const SignUp: React.FC = () => {
-    const { control, handleSubmit, formState: { errors } } = useForm<SignUpFormInputs>();
-    const [error, setError] = React.useState<string | null>(null);
+    const { control, handleSubmit, formState: { errors, isSubmitting } } = useForm<SignUpFormInputs>();
+    const [formError, setFormError] = React.useState<string | null>(null);
     const [success, setSuccess] = React.useState(false);
     const { signUp2 } = useAuthContext();
 
     const onSubmit = async (data: SignUpFormInputs) => {
+        if (isSubmitting) return; // Prevent multiple submissions
         try {
-            await signUp2(data.email, data.password, data.givenName, data.familyName);
+            const result = await signUp2(
+                data.email,
+                data.password,
+                data.givenName,
+                data.familyName,
+                data.company,
+            );
+            console.log('Signup result:', result);
             setSuccess(true);
-            setError(null);
-        } catch (error: any) {
-            console.error('Signup error:', error);
-            setError(error.message || 'Failed to sign up');
+            setFormError(null);
+        } catch (err) {
+            if (err instanceof Error) {
+                setFormError(err.message);
+            } else {
+                setFormError("An unknown error occurred");
+            }
+
             setSuccess(false);
         }
     };
 
     return (
         <Box sx={{ maxWidth: 600, mx: 'auto', mt: 8, px: 2 }}>
-            <Typography variant="h4" component="h1" gutterBottom align="center">
+            <Typography variant="h6" align="center" sx={{ mb: 6 }}>
                 Sign Up new Partner
             </Typography>
             <form onSubmit={handleSubmit(onSubmit)}>
@@ -43,7 +56,13 @@ export const SignUp: React.FC = () => {
                             name="email"
                             control={control}
                             defaultValue=""
-                            rules={{ required: 'Email is required', pattern: { value: /^\S+@\S+$/i, message: 'Invalid email address' } }}
+                            rules={{
+                                required: 'Email is required',
+                                pattern: {
+                                    value: /^\S+@\S+$/i,
+                                    message: 'Invalid email address'
+                                }
+                            }}
                             render={({ field }) => (
                                 <TextField
                                     {...field}
@@ -64,7 +83,13 @@ export const SignUp: React.FC = () => {
                             name="password"
                             control={control}
                             defaultValue=""
-                            rules={{ required: 'Password is required', minLength: { value: 8, message: 'Password must be at least 8 characters' } }}
+                            rules={{
+                                required: 'Password is required',
+                                minLength: {
+                                    value: 8,
+                                    message: 'Password must be at least 8 characters'
+                                }
+                            }}
                             render={({ field }) => (
                                 <TextField
                                     {...field}
@@ -120,20 +145,42 @@ export const SignUp: React.FC = () => {
                         />
                     </Grid2>
 
+                    <Grid2 size={{ xs: 12, sm: 3 }}>
+                        <Typography variant="body1">Company Name</Typography>
+                    </Grid2>
+                    <Grid2 size={{ xs: 12, sm: 8 }}>
+                        <Controller
+                            name="company"
+                            control={control}
+                            defaultValue=""
+                            rules={{ required: 'Company Name is required' }}
+                            render={({ field }) => (
+                                <TextField
+                                    {...field}
+                                    variant="outlined"
+                                    fullWidth
+                                    error={!!errors.company}
+                                    helperText={errors.company?.message}
+                                />
+                            )}
+                        />
+                    </Grid2>
+
                     <Grid2 size={{ xs: 12, sm: 4 }}>
                         <Button
                             type="submit"
                             variant="contained"
                             color="primary"
                             fullWidth
+                            disabled={isSubmitting}
                             sx={{ mt: 2 }}
                         >
-                            Sign Up
+                            {isSubmitting ? 'Signing Up...' : 'Sign Up'}
                         </Button>
                     </Grid2>
                 </Grid2>
             </form>
-            {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
+            {formError && <Alert severity="error" sx={{ mt: 2 }}>{formError}</Alert>}
             {success && <Alert severity="success" sx={{ mt: 2 }}>Sign up successful! Please check your email for verification.</Alert>}
         </Box>
     );

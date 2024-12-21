@@ -9,7 +9,9 @@ const Home: NextPageWithLayout = () => {
   return (
     <Box pt={3} className="gradient-background" sx={{ height: '100vh' }}>
       <Typography variant="h2" textAlign="center" sx={{ mt: 4 }}>Home (tbd)</Typography>
-      <Box textAlign={'center'} mt={10}>
+
+      <Box textAlign={'center'} mt={10} display={'flex'} flexDirection={'column'}>
+
         <Button
           href='/locations'
           sx={{
@@ -23,6 +25,7 @@ const Home: NextPageWithLayout = () => {
         >
           Locations finden<ArrowRight />
         </Button>
+
         <Button
           href='/partner'
           sx={{
@@ -35,6 +38,20 @@ const Home: NextPageWithLayout = () => {
           }}
         >
           Partner-Login <ArrowRight />
+        </Button>
+
+        <Button
+          href='/admin'
+          sx={{
+            color: 'secondary.main',
+            fontFamily: "'Gugi', sans-serif",
+            fontSize: '20px',
+            fontWeight: 400,
+            letterSpacing: '-0.07em',
+            m: 2,
+          }}
+        >
+          Partner-Sign-Up <ArrowRight />
         </Button>
       </Box>
     </Box>

@@ -21,9 +21,9 @@ export interface LocationModel {
     rooms: RoomModel[] | null;
 }
 
-export const createEmptyLocationModel = (): LocationModel => ({
+export const createEmptyLocationModel = (partnerId: number): LocationModel => ({
     id: 0,
-    partnerId: 0,
+    partnerId: partnerId,
     title: '',
     city: '',
     area: '',
@@ -33,7 +33,7 @@ export const createEmptyLocationModel = (): LocationModel => ({
         lat: 0,
         lng: 0,
     },
-    image: null,
+    image: 'https://d18yz6yiwm54x7.cloudfront.net/media/images/46696f05-6bd7-4826-bf32-64b4937a5d54.jpg',
     price: 0,
     eventCategories: [],
     rooms: [],

@@ -1,3 +1,9 @@
+
+import useStore from '@/stores/partnerStore';
+import { useEffect } from 'react';
+
+const baseUrl = process.env.NEXT_PUBLIC_API_URL;
+
 export const fetchLocationByPartnerId = async (
     partnerId: number,
     setIsLoading: ((loading: boolean) => void) | null,
@@ -8,7 +14,7 @@ export const fetchLocationByPartnerId = async (
             setIsLoading(true);
         }
         const response =
-            await fetch(`${process.env.NEXT_PUBLIC_API_URL}/locations/partner/${partnerId}?single=1`);
+            await fetch(`${baseUrl}/locations/partner/${partnerId}?single=1`);
         if (!response.ok) {
             throw new Error(`Error: ${response.status} ${response.statusText}`);
         }
@@ -26,4 +32,45 @@ export const fetchLocationByPartnerId = async (
             setIsLoading(false);
         }
     }
+};
+
+export const fetchLocationWithRooms = async (
+    locationId: number,
+    setIsLoading: (loading: boolean) => void,
+    setError: (error: string | null) => void
+): Promise<any> => {
+    try {
+        setIsLoading(true);
+        const response =
+            await fetch(`${baseUrl}/locations/${locationId}?include=rooms`);
+        if (!response.ok) {
+            throw new Error(`Error: ${response.status} ${response.statusText}`);
+        }
+        const result = await response.json();
+        return result; // Return the result instead of setting it to a parameter
+    } catch (err) {
+        setError(err instanceof Error ? err.message : 'An unknown error occurred');
+        return null; // In case of error, return null
+    } finally {
+        setIsLoading(false);
+    }
+};
+
+export const useSetLocationByCurrentPartner = () => {
+    const { partnerUser, setPartnerLocation } = useStore();
+
+    useEffect(() => {
+        const setLocation = async () => {
+            if (partnerUser?.id) {
+                const location = await fetchLocationByPartnerId(partnerUser.id, null, null);
+                if (location) {
+                    setPartnerLocation(location);
+                    return;
+                }
+            }
+            setPartnerLocation(null);
+        };
+
+        setLocation();
+    }, [partnerUser, setPartnerLocation]);
 };

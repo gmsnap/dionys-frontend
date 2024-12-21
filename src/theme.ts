@@ -15,6 +15,7 @@ const customColors = {
         primary: '#000000',
         secondary: '#535353',
         tertiary: '#606060',
+        input: '#6f6f6f',
     },
     textBackround: {
         halfdark: '#F5F5F5',

@@ -20,6 +20,8 @@ import { Save, X } from 'lucide-react';
 import { handleDeleteRoom } from '@/services/roomService';
 import ImageUploadForm from '@/features/partners/ImageUploadForm';
 import DeleteButton from '@/components/DeleteButton';
+import EventCategoriesField from '@/features/partners/EventCategoriesField';
+import { useSetLocationByCurrentPartner } from "@/services/locationService";
 
 // Validation schema
 const roomValidationSchema = yup.object().shape({
@@ -58,11 +60,15 @@ const roomValidationSchema = yup.object().shape({
     images: yup.array().of(yup.string()),
 });
 
+const controlWidth = 7;
+const labelWidth = 4;
+
 const PartnerPage: NextPageWithLayout = () => {
     const router = useRouter();
     const { id } = router.query;
+    
     const { partnerLocation } = useStore();
-
+    
     const [roomId, setRoomId] = useState(0);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [loading, setLoading] = useState(true);
@@ -84,6 +90,8 @@ const PartnerPage: NextPageWithLayout = () => {
 
     const watchedModel = watch() as RoomModel;
     const [images, setImages] = useState<string[]>(watchedModel.images || []);
+
+    useSetLocationByCurrentPartner();
 
     const handleImageUpload = async (image: string) => {
         if (!roomId) {
@@ -227,8 +235,6 @@ const PartnerPage: NextPageWithLayout = () => {
         `Räume: ${watch('name')}` :
         'Räume: Raum hinzufügen';
 
-    const labelWidth = 10;
-
     return (
         <Box sx={{ height: "100vh", }}>
             <Typography variant="h5"
@@ -244,9 +250,9 @@ const PartnerPage: NextPageWithLayout = () => {
                     <Grid2 container spacing={2}>
 
                         {/* Title */}
-                        <Grid2 size={{ xs: labelWidth }}>
+                        <Grid2 size={{ xs: controlWidth }}>
                             <Grid2 container alignItems="top">
-                                <Grid2 size={{ xs: 4 }}>
+                                <Grid2 size={{ xs: labelWidth }}>
                                     <Typography variant="label">Bezeichnung</Typography>
                                 </Grid2>
                                 <Grid2 size={{ xs: 8 }}>
@@ -268,9 +274,9 @@ const PartnerPage: NextPageWithLayout = () => {
                         </Grid2>
 
                         {/* Title */}
-                        <Grid2 size={{ xs: labelWidth }}>
+                        <Grid2 size={{ xs: controlWidth }}>
                             <Grid2 container alignItems="top">
-                                <Grid2 size={{ xs: 4 }}>
+                                <Grid2 size={{ xs: labelWidth }}>
                                     <Typography variant="label">Beschreibung</Typography>
                                 </Grid2>
                                 <Grid2 size={{ xs: 8 }}>
@@ -292,9 +298,9 @@ const PartnerPage: NextPageWithLayout = () => {
                         </Grid2>
 
                         {/* Size */}
-                        <Grid2 size={{ xs: labelWidth }}>
+                        <Grid2 size={{ xs: controlWidth }}>
                             <Grid2 container alignItems="top">
-                                <Grid2 size={{ xs: 4 }}>
+                                <Grid2 size={{ xs: labelWidth }}>
                                     <Typography variant="label">Quadratmeter</Typography>
                                 </Grid2>
                                 <Grid2 size={{ xs: 8 }}>
@@ -316,9 +322,9 @@ const PartnerPage: NextPageWithLayout = () => {
                         </Grid2>
 
                         {/* Price */}
-                        <Grid2 size={{ xs: labelWidth }}>
+                        <Grid2 size={{ xs: controlWidth }}>
                             <Grid2 container alignItems="top">
-                                <Grid2 size={{ xs: 4 }}>
+                                <Grid2 size={{ xs: labelWidth }}>
                                     <Typography variant="label">Preis / Tag</Typography>
                                 </Grid2>
                                 <Grid2 size={{ xs: 8 }}>
@@ -341,11 +347,11 @@ const PartnerPage: NextPageWithLayout = () => {
 
                         <Grid2
                             container
-                            size={{ xs: labelWidth }}
+                            size={{ xs: controlWidth }}
                             spacing={0}
                             alignItems="top">
                             {/* Label */}
-                            <Grid2 size={{ xs: 4 }}>
+                            <Grid2 size={{ xs: labelWidth }}>
                                 <Typography variant="label">Personenanzahl</Typography>
                             </Grid2>
 
@@ -398,9 +404,21 @@ const PartnerPage: NextPageWithLayout = () => {
                             </Grid2>
                         </Grid2>
 
+                        {/* Categories */}
+                        <Grid2 size={{ xs: controlWidth }}>
+                            <Grid2 container alignItems="top">
+                                <Grid2 size={{ xs: labelWidth }}>
+                                    <Typography variant="label">Kategorien</Typography>
+                                </Grid2>
+                                <Grid2 size={{ xs: 8 }}>
+                                    <EventCategoriesField control={control} />
+                                </Grid2>
+                            </Grid2>
+                        </Grid2>
+
                         {/* Submit */}
                         <Grid2
-                            size={{ xs: labelWidth }}
+                            size={{ xs: controlWidth }}
                             display={'flex'}
                             gap={2}
                             sx={{ mt: 2 }}
@@ -442,12 +460,12 @@ const PartnerPage: NextPageWithLayout = () => {
 
                         {/* Messages */}
                         {error && (
-                            <Grid2 size={{ xs: labelWidth }}>
+                            <Grid2 size={{ xs: controlWidth }}>
                                 <Typography color="error">{error}</Typography>
                             </Grid2>
                         )}
                         {success && (
-                            <Grid2 size={{ xs: labelWidth }}>
+                            <Grid2 size={{ xs: controlWidth }}>
                                 <Typography variant="body2" color="success">
                                     {responseMessage}
                                 </Typography>

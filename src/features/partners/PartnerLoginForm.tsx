@@ -3,9 +3,9 @@
 import React, { useState, useEffect } from "react";
 import { Alert, Box, Button, TextField, Typography } from "@mui/material";
 import useStore from '@/stores/partnerStore';
-import { fetchLocationByPartnerId } from "@/services/locationService";
 import { useAuthContext } from '@/auth/AuthContext';
 import ConfirmSignup from "../admins/ConfirmSignup";
+import { useSetLocationByCurrentPartner } from "@/services/locationService";
 
 const baseUrl = process.env.NEXT_PUBLIC_API_URL;
 
@@ -16,7 +16,9 @@ const PartnerLoginForm: React.FC = ({ }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [confirmForm, setConfirmForm] = useState(false);
     const [error, setError] = useState("");
-    const { partnerUser, setPartnerUser, setPartnerLocation } = useStore();
+    const { partnerUser, setPartnerUser } = useStore();
+
+    useSetLocationByCurrentPartner();
 
     const handleLogin = async () => {
         setIsLoading(true);
@@ -49,21 +51,6 @@ const PartnerLoginForm: React.FC = ({ }) => {
     };
 
     useEffect(() => {
-        const fetchLocation = async () => {
-            if (partnerUser?.id) {
-                const location = await fetchLocationByPartnerId(partnerUser.id, null, null);
-                if (location) {
-                    setPartnerLocation(location);
-                    return;
-                }
-            }
-            setPartnerLocation(null);
-        };
-
-        fetchLocation();
-    }, [partnerUser]);
-
-    useEffect(() => {
         console.log("authUser:", authUser?.username);
 
         if (authUser?.username) {
@@ -72,6 +59,7 @@ const PartnerLoginForm: React.FC = ({ }) => {
                     // Fetch additional user data from your API
                     let response = await fetch(`${baseUrl}/partner-users/sub/${authUser.sub}`);
 
+                    // Create user if not exists
                     if (response.status === 404) {
                         const createResponse = await fetch(
                             `${baseUrl}/partner-users`,
@@ -83,6 +71,7 @@ const PartnerLoginForm: React.FC = ({ }) => {
                                     email: authUser.email,
                                     givenName: authUser.givenName,
                                     familyName: authUser.familyName,
+                                    company: authUser.company,
                                 }),
                                 headers: { "Content-Type": "application/json" },
                             });

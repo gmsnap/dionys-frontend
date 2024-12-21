@@ -11,20 +11,19 @@ import {
     Typography,
     CircularProgress,
     MenuItem,
-    Chip,
     Grid2,
     FormControl,
     Select,
     FormHelperText,
 } from "@mui/material";
-import { CircleMinus, Save } from "lucide-react";
+import { Save } from "lucide-react";
 import { CreateLocationResponse } from "@/types/geolocation";
-import { AvailableEventCategories, EventCategories } from "@/constants/EventCategories";
-import { formatEventCategoriesSync } from "@/utils/formatEventCategories";
+import { EventCategories } from "@/constants/EventCategories";
 import useStore from '@/stores/partnerStore';
 import { createEmptyLocationModel } from "@/models/LocationModel";
 import City, { AvailableCities } from "@/models/City";
 import ImageUploadField from "./ImageUploadField";
+import EventCategoriesField from "./EventCategoriesField";
 
 // Validation schema
 const locationValidationSchema = yup.object().shape({
@@ -47,10 +46,6 @@ const locationValidationSchema = yup.object().shape({
         .string()
         .required('Postleitzahl ist erforderlich')
         .min(1, 'Postleitzahl muss mindestens 1 Zeichen lang sein'),
-    geoLocation: yup.object().shape({
-        lat: yup.number().required('Latitude is required'),
-        lng: yup.number().required('Longitude is required'),
-    }),
     image: yup
         .mixed()
         .nullable()
@@ -91,7 +86,7 @@ const LocationForm: React.FC<{ locationId?: string }> = ({ }) => {
     const { partnerUser } = useStore();
 
     const methods = useForm({
-        defaultValues: createEmptyLocationModel(),
+        defaultValues: createEmptyLocationModel(0),
         resolver: yupResolver(locationValidationSchema),
     });
 
@@ -102,8 +97,17 @@ const LocationForm: React.FC<{ locationId?: string }> = ({ }) => {
         const fetchLocationData = async (partnerId: number) => {
             try {
                 setIsLoading(true);
-                const response =
-                    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/locations/partner/${partnerId}?single=1`);
+
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/locations/partner/${partnerId}?single=1`);
+
+                if (response.status === 404 || response.status === 204) {
+                    // Switch to "Create Mode"
+                    setIsEdit(false);
+                    reset(createEmptyLocationModel(partnerId));
+                    setIsLoading(false);
+                    return;
+                }
+
                 if (!response.ok) {
                     throw new Error(`Failed to fetch location`);
                 }
@@ -117,9 +121,12 @@ const LocationForm: React.FC<{ locationId?: string }> = ({ }) => {
             }
         };
 
-        if (partnerUser) {
+        if (partnerUser?.id) {
             fetchLocationData(partnerUser.id);
         } else {
+            // No user found; reset form to create mode
+            reset(createEmptyLocationModel(0));
+            setIsEdit(false);
             setIsLoading(false);
         }
     }, [partnerUser]);
@@ -134,7 +141,7 @@ const LocationForm: React.FC<{ locationId?: string }> = ({ }) => {
             };
 
             const url = isEdit
-                ? `${process.env.NEXT_PUBLIC_API_URL}/locations/${partnerUser?.id}`
+                ? `${process.env.NEXT_PUBLIC_API_URL}/locations/${data.id}`
                 : `${process.env.NEXT_PUBLIC_API_URL}/locations`;
 
             const method = isEdit ? "PUT" : "POST";
@@ -337,6 +344,30 @@ const LocationForm: React.FC<{ locationId?: string }> = ({ }) => {
                             </Grid2>
                         </Grid2>
 
+                        {/* Price */}
+                        <Grid2 size={{ xs: labelWidth }}>
+                            <Grid2 container alignItems="top">
+                                <Grid2 size={{ xs: 4 }} >
+                                    <Typography variant="label">Preis / Tag</Typography>
+                                </Grid2>
+                                <Grid2 size={{ xs: 8 }}>
+                                    <Controller
+                                        name="price"
+                                        control={control}
+                                        render={({ field }) => (
+                                            <TextField
+                                                {...field}
+                                                fullWidth
+                                                variant="outlined"
+                                                error={!!errors.price}
+                                                helperText={errors.price?.message}
+                                            />
+                                        )}
+                                    />
+                                </Grid2>
+                            </Grid2>
+                        </Grid2>
+
                         {/* Categories */}
                         <Grid2 size={{ xs: labelWidth }}>
                             <Grid2 container alignItems="top">
@@ -344,50 +375,7 @@ const LocationForm: React.FC<{ locationId?: string }> = ({ }) => {
                                     <Typography variant="label">Event-Anlässe</Typography>
                                 </Grid2>
                                 <Grid2 size={{ xs: 8 }}>
-                                    <Controller
-                                        name="eventCategories"
-                                        control={control}
-                                        render={({ field }) => (
-                                            <>
-                                                {/* Display Selected Categories */}
-                                                <Box display="flex" flexWrap="wrap" gap={1} mt={0.6} mb={2}>
-                                                    {(field.value || []).map((category) => (
-                                                        <Chip
-                                                            key={category}
-                                                            label={formatEventCategoriesSync([category as EventCategories])}
-                                                            onDelete={() => {
-                                                                const updatedCategories = (field.value || []).filter(
-                                                                    (item) => item !== category
-                                                                );
-                                                                field.onChange(updatedCategories);
-                                                            }}
-                                                            deleteIcon={<CircleMinus />}
-                                                        />
-                                                    ))}
-                                                </Box>
-
-                                                {/* Categories Dropdown */}
-                                                <TextField
-                                                    select
-                                                    fullWidth
-                                                    label="Anlass hinzufügen"
-                                                    value={field.value || []} // Ensure value is an array
-                                                    onChange={(e) => {
-                                                        const newCategory = e.target.value;
-                                                        field.onChange([...(field.value || []), newCategory]);
-                                                    }}
-                                                >
-                                                    {AvailableEventCategories.filter(
-                                                        (category) => !(field.value || []).includes(category as EventCategories)
-                                                    ).map((category) => (
-                                                        <MenuItem key={category} value={category}>
-                                                            {formatEventCategoriesSync([category as EventCategories])}
-                                                        </MenuItem>
-                                                    ))}
-                                                </TextField>
-                                            </>
-                                        )}
-                                    />
+                                    <EventCategoriesField control={control} />
                                 </Grid2>
                             </Grid2>
                         </Grid2>
@@ -428,6 +416,10 @@ const LocationForm: React.FC<{ locationId?: string }> = ({ }) => {
                     </Grid2>
                 </form>
             </FormProvider>
+            {/*<Button onClick={() => console.log("Current Form Values: ", methods.getValues())}>
+                Log Form Values
+            </Button>*/}
+
             {responseMessage && (
                 <Grid2 size={{ xs: labelWidth }}>
                     <Typography variant="body2" color="success">

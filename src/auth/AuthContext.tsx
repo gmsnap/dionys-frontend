@@ -6,7 +6,13 @@ interface AuthContextType {
     authLoading: boolean;
     login: (email: string, password: string) => Promise<LoginResult>;
     logout: () => Promise<void>;
-    signUp2: (email: string, password: string, givenName: string, familyName: string) => Promise<any>;
+    signUp2: (
+        email: string,
+        password: string,
+        givenName: string,
+        familyName: string,
+        company: string,
+    ) => Promise<any>;
     confirmSignUp2: (email: string, verificationCode: string) => Promise<any>;
 }
 

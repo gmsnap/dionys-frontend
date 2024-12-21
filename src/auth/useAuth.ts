@@ -14,6 +14,7 @@ export interface AuthUser {
     email: string;
     givenName?: string;
     familyName?: string;
+    company?: string;
     idToken: string;
 }
 
@@ -88,8 +89,13 @@ export const useAuth = () => {
                     throw Error('unhandled signInStep: $signInStep');
             }
         } catch (error) {
-            console.error('Login error:', error);
-            throw error;
+            if (error instanceof Error) {
+                throw Error(error?.message || 'Login error');
+            }
+            return {
+                status: 'error',
+                user: null
+            };
         }
     };
 
@@ -107,10 +113,11 @@ export const useAuth = () => {
         email: string,
         password: string,
         givenName: string,
-        familyName: string
+        familyName: string,
+        company: string
     ) => {
         try {
-            const result = await signUp({
+            const { nextStep } = await signUp({
                 username: email,
                 password,
                 options: {
@@ -118,14 +125,17 @@ export const useAuth = () => {
                         email,
                         given_name: givenName,
                         family_name: familyName,
+                        'custom:company': company,
                     },
                 },
             });
-            console.log('Signup successful:', result);
-            return result;
-        } catch (error: any) {
-            console.error('Signup error:', error);
-            throw new Error(error.message || 'Failed to sign up');
+            console.log('Signup successful:', nextStep);
+        } catch (error) {
+            if (error instanceof Error) {
+                console.error("Signup error: ", error?.message);
+                throw Error(error?.message || 'Failed to sign up');
+            }
+            throw Error('Unknow error');
         }
     };
 

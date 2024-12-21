@@ -6,10 +6,11 @@ import { Pencil, User, X } from 'lucide-react';
 import GridAddItem from '@/components/GridAddItem';
 import Link from 'next/link';
 import { RoomModel } from '@/models/RoomModel';
-import { fetchRooms, handleDeleteRoom } from '@/services/roomService';
+import { handleDeleteRoom } from '@/services/roomService';
 import useStore from '@/stores/partnerStore';
 import router from 'next/router';
 import NoLocationMessage from './NoLocationMessage';
+import { fetchLocationWithRooms, useSetLocationByCurrentPartner } from '@/services/locationService';
 
 interface RoomGridProps {
     sx?: SxProps<Theme>;
@@ -22,23 +23,34 @@ const RoomGrid = ({ sx }: RoomGridProps) => {
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
+    useSetLocationByCurrentPartner();
+
     const fetchRoomsFromApi = async () => {
         if (partnerLocation?.id) {
-            const roomsResult = await fetchRooms(
+            const location = await fetchLocationWithRooms(
                 partnerLocation.id,
                 setIsLoading,
                 setError
             );
 
-            // Set rooms to state
+            setIsLoading(false);
+
+            if (!location) {
+                setRooms([]);
+                setError("No Location found");
+                return;
+            }
+
+            const roomsResult = location.rooms;
             if (roomsResult) {
+                // Set rooms to state
                 setRooms(roomsResult);
+                setError(null);
                 return;
             }
         }
         setRooms([]);
-        setIsLoading(false);
-        setError("No Location found");
+        setError("Error fetching rooms");
     };
 
     useEffect(() => {
