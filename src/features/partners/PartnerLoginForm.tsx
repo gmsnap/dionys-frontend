@@ -82,7 +82,6 @@ const PartnerLoginForm: React.FC = ({ }) => {
 
                     const result = await response.json();
                     setPartnerUser(result);
-                    console.log("db user:", result);
                 } catch (err) {
                     if (err instanceof Error) {
                         setError(err.message);

@@ -1,4 +1,5 @@
 const baseUrl = process.env.NEXT_PUBLIC_API_URL;
+export const roomsBaseUrl = `${baseUrl}/partner/rooms`;
 
 export const fetchRooms = async (
     locationId: number,
@@ -42,7 +43,7 @@ export const handleDeleteRoom = async (
             return;
         }
 
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/rooms/${roomId}?force=${forceDelete}`, {
+        const response = await fetch(`${roomsBaseUrl}/${roomId}?force=${forceDelete}`, {
             method: 'DELETE',
         });
 

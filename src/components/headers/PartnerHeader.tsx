@@ -136,7 +136,7 @@ const Header: FC = () => {
                         DIONYS
                     </Typography>
 
-                    <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                    <Box sx={{ display: 'flex' }}>
                         {isMobile ? (
                             <>
                                 <IconButton
@@ -165,52 +165,15 @@ const Header: FC = () => {
                                             {item.label}
                                         </MuiMenuItem>
                                     ))}
-                                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                        <IconButton
-                                            onClick={handleUserIconClick}
-                                            sx={{ backgroundColor: 'red', borderRadius: '5px' }}>
-                                            <CircleUserRound width={30} height={30} strokeWidth={1} />
-                                            <Typography sx={{ ml: 1 }}>{authUser?.username}</Typography>
-                                        </IconButton>
-                                        <Popover
-                                            open={Boolean(userPanelAnchorEl)}
-                                            anchorEl={userPanelAnchorEl}
-                                            onClose={handleUserPanelClose}
-                                            anchorOrigin={{
-                                                vertical: 'bottom',
-                                                horizontal: 'right',
-                                            }}
-                                            transformOrigin={{
-                                                vertical: 'top',
-                                                horizontal: 'right',
-                                            }}
-                                        >
-                                            <Box
-                                                sx={{
-                                                    p: 2,
-                                                    color: theme.palette.customColors.pink.dark, // Adjust to your desired color
-                                                    backgroundColor: 'transparent', // Example background color
-                                                }}
-                                            >
-                                                <Button
-                                                    onClick={authUser ? handleLogout : () => router.push('/partner')}
-                                                    sx={{ mb: 1, width: '100%', color: 'inherit' }}
-                                                >
-                                                    {authUser ? 'Logout' : 'Login'}
-                                                </Button>
-                                                <Button
-                                                    onClick={handleOpenOverlay}
-                                                    sx={{ width: '100%', color: 'inherit' }}
-                                                >
-                                                    Einstellungen
-                                                </Button>
-                                            </Box>
-                                        </Popover>
-                                    </Box>
                                 </Menu>
                             </>
                         ) : (
-                            <>
+                            <Box sx={{
+                                display: 'flex',
+                                gap: 2,
+                                alignItems: 'center',
+                                mr: 2,
+                            }}>
                                 {menuItems.map((item, index) => (
                                     <MenuItem
                                         key={index}
@@ -220,65 +183,66 @@ const Header: FC = () => {
                                         {item.label}
                                     </MenuItem>
                                 ))}
-                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                    <IconButton onClick={handleUserIconClick}>
-                                        {authUser ?
-                                            <CircleInitials
-                                                givenName={authUser?.givenName ?? ''}
-                                                familyName={authUser?.familyName ?? ''}
-                                                sx={{
-                                                    width: 32,
-                                                    height: 32,
-                                                    fontSize: '14px',
-                                                    fontFamily: "'Nunito', sans-serif",
-                                                }}
-                                            /> :
-                                            <CircleUserRound width={32} height={32} strokeWidth={1} />
-                                        }
-                                    </IconButton>
-                                    <Popover
-                                        open={Boolean(userPanelAnchorEl)}
-                                        anchorEl={userPanelAnchorEl}
-                                        onClose={handleUserPanelClose}
-                                        anchorOrigin={{
-                                            vertical: 'bottom',
-                                            horizontal: 'right',
-                                        }}
-                                        transformOrigin={{
-                                            vertical: 'top',
-                                            horizontal: 'right',
-                                        }}
-                                        disableScrollLock // Prevents layout shift                                      
-                                    >
-                                        <Box
-                                            sx={{
-                                                pt: 2,
-                                                pb: 2,
-                                                color: theme.palette.customColors.pink.dark,
-                                                backgroundColor: 'transparent',
-                                            }}
-                                        >
-                                            <Button
-                                                onClick={handleOpenOverlay}
-                                                sx={{ mb: 1, width: '100%', color: 'inherit' }}
-                                            >
-                                                Einstellungen
-                                            </Button>
-                                            <Box sx={{ width: '100%', alignItems: 'center' }}>
-                                                <Button
-                                                    variant="contained"
-                                                    color="primary"
-                                                    onClick={authUser ? handleLogout : () => router.push('/partner')}
-                                                    sx={{ ml: 2, mr: 2 }}
-                                                >
-                                                    {authUser ? 'Logout' : 'Login'}
-                                                </Button>
-                                            </Box>
-                                        </Box>
-                                    </Popover>
-                                </Box>
-                            </>
+                            </Box>
                         )}
+                        {/* Profile Icon */}
+                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            <IconButton onClick={handleUserIconClick}>
+                                {authUser ?
+                                    <CircleInitials
+                                        givenName={authUser?.givenName ?? ''}
+                                        familyName={authUser?.familyName ?? ''}
+                                        sx={{
+                                            width: 32,
+                                            height: 32,
+                                            fontSize: '14px',
+                                            fontFamily: "'Nunito', sans-serif",
+                                        }}
+                                    /> :
+                                    <CircleUserRound width={32} height={32} strokeWidth={1} />
+                                }
+                            </IconButton>
+                            <Popover
+                                open={Boolean(userPanelAnchorEl)}
+                                anchorEl={userPanelAnchorEl}
+                                onClose={handleUserPanelClose}
+                                anchorOrigin={{
+                                    vertical: 'bottom',
+                                    horizontal: 'right',
+                                }}
+                                transformOrigin={{
+                                    vertical: 'top',
+                                    horizontal: 'right',
+                                }}
+                                disableScrollLock // Prevents layout shift                                      
+                            >
+                                <Box
+                                    sx={{
+                                        pt: 2,
+                                        pb: 2,
+                                        color: theme.palette.customColors.pink.dark,
+                                        backgroundColor: 'transparent',
+                                    }}
+                                >
+                                    <Button
+                                        onClick={handleOpenOverlay}
+                                        sx={{ mb: 1, width: '100%', color: 'inherit' }}
+                                    >
+                                        Einstellungen
+                                    </Button>
+                                    <Box sx={{ width: '100%', alignItems: 'center' }}>
+                                        <Button
+                                            variant="contained"
+                                            color="primary"
+                                            onClick={authUser ? handleLogout : () => router.push('/partner')}
+                                            sx={{ ml: 2, mr: 2 }}
+                                        >
+                                            {authUser ? 'Logout' : 'Login'}
+                                        </Button>
+                                    </Box>
+                                </Box>
+                            </Popover>
+                        </Box>
                     </Box>
                 </Toolbar>
             </AppBar>

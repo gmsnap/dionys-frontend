@@ -133,7 +133,7 @@ const ImageUploadForm: React.FC<ImageUploadFormProps> = ({
                     </Box>
                 ) : (
                     <Typography variant="body1" color="text.secondary">
-                        Select an image to preview
+                        Noch keine Bilder vorhanden
                     </Typography>
                 )}
             </Box>

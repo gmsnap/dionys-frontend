@@ -16,12 +16,13 @@ import { createEmptyRoomModel, RoomModel } from '@/models/RoomModel';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 import PartnerLayout from '@/layouts/PartnerLayout';
-import { Save, X } from 'lucide-react';
-import { handleDeleteRoom } from '@/services/roomService';
+import { Save } from 'lucide-react';
+import { roomsBaseUrl, handleDeleteRoom } from '@/services/roomService';
 import ImageUploadForm from '@/features/partners/ImageUploadForm';
 import DeleteButton from '@/components/DeleteButton';
 import EventCategoriesField from '@/features/partners/EventCategoriesField';
 import { useSetLocationByCurrentPartner } from "@/services/locationService";
+import { useAuthContext } from '@/auth/AuthContext';
 
 // Validation schema
 const roomValidationSchema = yup.object().shape({
@@ -67,6 +68,7 @@ const PartnerPage: NextPageWithLayout = () => {
     const router = useRouter();
     const { id } = router.query;
 
+    const { authUser } = useAuthContext();
     const { partnerLocation } = useStore();
 
     const [roomId, setRoomId] = useState(0);
@@ -102,11 +104,14 @@ const PartnerPage: NextPageWithLayout = () => {
         try {
             // Call API to get presigned URL and upload the file
             const response = await fetch(
-                `${process.env.NEXT_PUBLIC_API_URL}/rooms/${roomId}/images`,
+                `${roomsBaseUrl}/${roomId}/images`,
                 {
                     method: "POST",
                     body: JSON.stringify({ image }),
-                    headers: { "Content-Type": "application/json" },
+                    headers: {
+                        Authorization: `Bearer ${authUser?.idToken}`,
+                        "Content-Type": "application/json"
+                    },
                 });
             if (response.ok) {
                 // Update local state with the new image
@@ -128,11 +133,14 @@ const PartnerPage: NextPageWithLayout = () => {
         try {
             // Call API to get presigned URL and upload the file
             const response = await fetch(
-                `${process.env.NEXT_PUBLIC_API_URL}/rooms/${roomId}/images`,
+                `${roomsBaseUrl}/${roomId}/images`,
                 {
                     method: "DELETE",
                     body: JSON.stringify({ image }),
-                    headers: { "Content-Type": "application/json" },
+                    headers: {
+                        Authorization: `Bearer ${authUser?.idToken}`,
+                        "Content-Type": "application/json"
+                    },
                 });
             if (response.ok) {
                 // Update local state to remove the deleted image
@@ -151,7 +159,7 @@ const PartnerPage: NextPageWithLayout = () => {
     }, [watchedModel]);
 
     useEffect(() => {
-        if (id === undefined || !partnerLocation?.id) {
+        if (id === undefined || !partnerLocation?.id || !authUser) {
             return;
         }
 
@@ -164,7 +172,11 @@ const PartnerPage: NextPageWithLayout = () => {
         const fetchRoomData = async () => {
             try {
                 setLoading(true);
-                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/rooms/${roomId}`);
+                const response = await fetch(`${roomsBaseUrl}/${roomId}`, {
+                    headers: {
+                        Authorization: `Bearer ${authUser.idToken}`,
+                    },
+                });
                 if (!response.ok) {
                     throw new Error(`Failed to fetch room with id ${roomId}`);
                 }
@@ -200,14 +212,17 @@ const PartnerPage: NextPageWithLayout = () => {
         try {
             const isEdit = roomId && roomId > 0;
             const url = isEdit
-                ? `${process.env.NEXT_PUBLIC_API_URL}/rooms/${roomId}`
-                : `${process.env.NEXT_PUBLIC_API_URL}/rooms`;
+                ? `${roomsBaseUrl}/${roomId}`
+                : `${roomsBaseUrl}`;
 
             const method = isEdit ? "PUT" : "POST";
 
             const response = await fetch(url, {
                 method,
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    Authorization: `Bearer ${authUser?.idToken}`,
+                    "Content-Type": "application/json"
+                },
                 body: JSON.stringify(data),
             });
 
@@ -247,15 +262,19 @@ const PartnerPage: NextPageWithLayout = () => {
                 height: "100%",
             }}>
                 <form onSubmit={handleSubmit(onSubmit)}>
-                    <Grid2 container spacing={2}>
+                    <Box sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 2,
+                    }}>
 
                         {/* Title */}
-                        <Grid2 size={{ xs: controlWidth }}>
+                        <Grid2 size={{ sm: controlWidth }}>
                             <Grid2 container alignItems="top">
-                                <Grid2 size={{ xs: labelWidth }}>
+                                <Grid2 size={{ sm: labelWidth }}>
                                     <Typography variant="label">Bezeichnung</Typography>
                                 </Grid2>
-                                <Grid2 size={{ xs: 8 }}>
+                                <Grid2 size={{ xs: 12, sm: 4 }}>
                                     <Controller
                                         name="name"
                                         control={control}
@@ -273,13 +292,13 @@ const PartnerPage: NextPageWithLayout = () => {
                             </Grid2>
                         </Grid2>
 
-                        {/* Title */}
-                        <Grid2 size={{ xs: controlWidth }}>
+                        {/* Description */}
+                        <Grid2 size={{ sm: controlWidth }}>
                             <Grid2 container alignItems="top">
                                 <Grid2 size={{ xs: labelWidth }}>
                                     <Typography variant="label">Beschreibung</Typography>
                                 </Grid2>
-                                <Grid2 size={{ xs: 8 }}>
+                                <Grid2 size={{ xs: 12, sm: 4 }}>
                                     <Controller
                                         name="description"
                                         control={control}
@@ -298,12 +317,12 @@ const PartnerPage: NextPageWithLayout = () => {
                         </Grid2>
 
                         {/* Size */}
-                        <Grid2 size={{ xs: controlWidth }}>
+                        <Grid2 size={{ sm: controlWidth }}>
                             <Grid2 container alignItems="top">
                                 <Grid2 size={{ xs: labelWidth }}>
                                     <Typography variant="label">Quadratmeter</Typography>
                                 </Grid2>
-                                <Grid2 size={{ xs: 8 }}>
+                                <Grid2 size={{ xs: 12, sm: 4 }}>
                                     <Controller
                                         name="size"
                                         control={control}
@@ -322,12 +341,12 @@ const PartnerPage: NextPageWithLayout = () => {
                         </Grid2>
 
                         {/* Price */}
-                        <Grid2 size={{ xs: controlWidth }}>
+                        <Grid2 size={{ sm: controlWidth }}>
                             <Grid2 container alignItems="top">
                                 <Grid2 size={{ xs: labelWidth }}>
                                     <Typography variant="label">Preis / Tag</Typography>
                                 </Grid2>
-                                <Grid2 size={{ xs: 8 }}>
+                                <Grid2 size={{ xs: 12, sm: 4 }}>
                                     <Controller
                                         name="price"
                                         control={control}
@@ -347,16 +366,16 @@ const PartnerPage: NextPageWithLayout = () => {
 
                         <Grid2
                             container
-                            size={{ xs: controlWidth }}
+                            size={{ xs: 12, sm: controlWidth }}
                             spacing={0}
                             alignItems="top">
                             {/* Label */}
-                            <Grid2 size={{ xs: labelWidth }}>
+                            <Grid2 size={{ xs: 12, sm: labelWidth }}>
                                 <Typography variant="label">Personenanzahl</Typography>
                             </Grid2>
 
                             {/* Min Persons */}
-                            <Grid2 size={{ xs: 4 }}>
+                            <Grid2 size={{ xs: 6, sm: 0.5 * labelWidth }}>
                                 <Controller
                                     name="minPersons"
                                     control={control}
@@ -380,7 +399,7 @@ const PartnerPage: NextPageWithLayout = () => {
                             </Grid2>
 
                             {/* Max Persons */}
-                            <Grid2 size={{ xs: 4 }} sx={{ ml: 0 }}>
+                            <Grid2 size={{ xs: 6, sm: 0.5 * labelWidth }} sx={{ ml: 0 }}>
                                 <Controller
                                     name="maxPersons"
                                     control={control}
@@ -405,12 +424,12 @@ const PartnerPage: NextPageWithLayout = () => {
                         </Grid2>
 
                         {/* Categories */}
-                        <Grid2 size={{ xs: controlWidth }}>
+                        <Grid2 size={{ sm: controlWidth }}>
                             <Grid2 container alignItems="top">
                                 <Grid2 size={{ xs: labelWidth }}>
                                     <Typography variant="label">Kategorien</Typography>
                                 </Grid2>
-                                <Grid2 size={{ xs: 8 }}>
+                                <Grid2 size={{ xs: 12, sm: 4 }}>
                                     <EventCategoriesField
                                         control={control}
                                         errors={errors}
@@ -474,7 +493,7 @@ const PartnerPage: NextPageWithLayout = () => {
                                 </Typography>
                             </Grid2>
                         )}
-                    </Grid2>
+                    </Box>
                 </form>
                 {roomId > 0 &&
                     <>

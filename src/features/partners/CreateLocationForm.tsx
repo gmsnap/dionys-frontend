@@ -204,7 +204,7 @@ const LocationForm: React.FC<{ locationId?: string }> = ({ }) => {
         );
     }
 
-    const labelWidth = 10;
+    const controlWidth = 10;
 
     return (
         <Box sx={{ maxWidth: 500, mx: "auto", mt: 4 }}>
@@ -216,12 +216,12 @@ const LocationForm: React.FC<{ locationId?: string }> = ({ }) => {
                     <Grid2 container spacing={2}>
 
                         {/* Title */}
-                        <Grid2 size={{ xs: labelWidth }}>
+                        <Grid2 size={{ xs: 12, sm: controlWidth }}>
                             <Grid2 container alignItems="top">
-                                <Grid2 size={{ xs: 4 }}>
+                                <Grid2 size={{ xs: 12, sm: 4 }}>
                                     <Typography variant="label">Name der Location</Typography>
                                 </Grid2>
-                                <Grid2 size={{ xs: 8 }}>
+                                <Grid2 size={{ xs: 12, sm: 8 }}>
                                     <Controller
                                         name="title"
                                         control={control}
@@ -240,12 +240,12 @@ const LocationForm: React.FC<{ locationId?: string }> = ({ }) => {
                         </Grid2>
 
                         {/* City */}
-                        <Grid2 size={{ xs: labelWidth }}>
+                        <Grid2 size={{ xs: 12, sm: controlWidth }}>
                             <Grid2 container alignItems="top">
-                                <Grid2 size={{ xs: 4 }}>
+                                <Grid2 size={{ xs: 12, sm: 4 }}>
                                     <Typography variant="label">Stadt</Typography>
                                 </Grid2>
-                                <Grid2 size={{ xs: 8 }}>
+                                <Grid2 size={{ xs: 12, sm: 8 }}>
                                     <Controller
                                         name="city"
                                         control={control}
@@ -273,12 +273,12 @@ const LocationForm: React.FC<{ locationId?: string }> = ({ }) => {
                         </Grid2>
 
                         {/* Area */}
-                        <Grid2 size={{ xs: labelWidth }}>
+                        <Grid2 size={{ xs: 12, sm: controlWidth }}>
                             <Grid2 container alignItems="top">
-                                <Grid2 size={{ xs: 4 }}>
+                                <Grid2 size={{ xs: 12, sm: 4 }}>
                                     <Typography variant="label">Lage (z.B. Stadteil)</Typography>
                                 </Grid2>
-                                <Grid2 size={{ xs: 8 }}>
+                                <Grid2 size={{ xs: 12, sm: 8 }}>
                                     <Controller
                                         name="area"
                                         control={control}
@@ -297,12 +297,12 @@ const LocationForm: React.FC<{ locationId?: string }> = ({ }) => {
                         </Grid2>
 
                         {/* Street Address */}
-                        <Grid2 size={{ xs: labelWidth }}>
+                        <Grid2 size={{ xs: 12, sm: controlWidth }}>
                             <Grid2 container alignItems="top">
-                                <Grid2 size={{ xs: 4 }}>
+                                <Grid2 size={{ xs: 12, sm: 4 }}>
                                     <Typography variant="label">Anschrift</Typography>
                                 </Grid2>
-                                <Grid2 size={{ xs: 8 }}>
+                                <Grid2 size={{ xs: 12, sm: 8 }}>
                                     <Controller
                                         name="streetAddress"
                                         control={control}
@@ -321,12 +321,12 @@ const LocationForm: React.FC<{ locationId?: string }> = ({ }) => {
                         </Grid2>
 
                         {/* Postal Code */}
-                        <Grid2 size={{ xs: labelWidth }}>
+                        <Grid2 size={{ xs: 12, sm: controlWidth }}>
                             <Grid2 container alignItems="flex-start">
-                                <Grid2 size={{ xs: 4 }} >
+                                <Grid2 size={{ xs: 12, sm: 4 }} >
                                     <Typography variant="label">Postleitzahl</Typography>
                                 </Grid2>
-                                <Grid2 size={{ xs: 8 }}>
+                                <Grid2 size={{ xs: 12, sm: 8 }}>
                                     <Controller
                                         name="postalCode"
                                         control={control}
@@ -345,12 +345,12 @@ const LocationForm: React.FC<{ locationId?: string }> = ({ }) => {
                         </Grid2>
 
                         {/* Price */}
-                        <Grid2 size={{ xs: labelWidth }}>
+                        <Grid2 size={{ xs: 12, sm: controlWidth }}>
                             <Grid2 container alignItems="top">
-                                <Grid2 size={{ xs: 4 }} >
+                                <Grid2 size={{ xs: 12, sm: 4 }} >
                                     <Typography variant="label">Preis / Tag</Typography>
                                 </Grid2>
-                                <Grid2 size={{ xs: 8 }}>
+                                <Grid2 size={{ xs: 12, sm: 8 }}>
                                     <Controller
                                         name="price"
                                         control={control}
@@ -369,12 +369,12 @@ const LocationForm: React.FC<{ locationId?: string }> = ({ }) => {
                         </Grid2>
 
                         {/* Categories */}
-                        <Grid2 size={{ xs: labelWidth }}>
+                        <Grid2 size={{ xs: 12, sm: controlWidth }}>
                             <Grid2 container alignItems="top">
-                                <Grid2 size={{ xs: 4 }}>
+                                <Grid2 size={{ xs: 12, sm: 4 }}>
                                     <Typography variant="label">Event-Anlässe</Typography>
                                 </Grid2>
-                                <Grid2 size={{ xs: 8 }}>
+                                <Grid2 size={{ xs: 12, sm: 8 }}>
                                     <EventCategoriesField
                                         control={control}
                                         errors={errors}
@@ -383,7 +383,7 @@ const LocationForm: React.FC<{ locationId?: string }> = ({ }) => {
                             </Grid2>
                         </Grid2>
 
-                        <Grid2 size={{ xs: labelWidth }} mt={2} mb={2}>
+                        <Grid2 size={{ xs: 12, sm: controlWidth }} mt={2} mb={2}>
                             <ImageUploadField name="image" />
                         </Grid2>
 
@@ -424,7 +424,7 @@ const LocationForm: React.FC<{ locationId?: string }> = ({ }) => {
             </Button>*/}
 
             {responseMessage && (
-                <Grid2 size={{ xs: labelWidth }}>
+                <Grid2 size={{ xs: 12, sm: controlWidth }}>
                     <Typography variant="body2" color="success">
                         {responseMessage}
                     </Typography>
