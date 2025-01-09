@@ -30,7 +30,7 @@ const LocationGrid = ({ sx }: LocationGridProps) => {
         if (eventConfiguration) {
             /*if (eventConfiguration.locationId === locationId) {
                 if (eventConfiguration.occasion) {
-                    router.push(`/configurator/${id}`);
+                    router.push(`/configurator/?id=${id}`);
                     return;
                 }
                 router.push(`/configurator/occasion`);
@@ -108,7 +108,7 @@ const LocationGrid = ({ sx }: LocationGridProps) => {
                                     variant="outlined"
                                     color="primary"
                                     component={Link}
-                                    href={`/configurator/${location.id}`}
+                                    href={`/configurator/?id=${location.id}`}
                                     sx={{ flex: 1 }}
                                 >
                                     Mehr Details

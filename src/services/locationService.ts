@@ -35,6 +35,36 @@ export const fetchLocationByPartnerId = async (
     }
 };
 
+export const fetchLocationByCode = async (
+    code: string,
+    setIsLoading: ((loading: boolean) => void) | null,
+    setError: ((error: string | null) => void) | null
+): Promise<any> => {
+    try {
+        if (setIsLoading != null) {
+            setIsLoading(true);
+        }
+        const response =
+            await fetch(`${locationsBaseUrl}/code/${code}?single=1`);
+        if (!response.ok) {
+            throw new Error(`Error: ${response.status} ${response.statusText}`);
+        }
+        const result = await response.json();
+        return result; // Return the result instead of setting it to a parameter
+    } catch (err) {
+        if (setError != null) {
+            setError(err instanceof Error ?
+                err.message :
+                'An unknown error occurred');
+        }
+        return null; // In case of error, return null
+    } finally {
+        if (setIsLoading != null) {
+            setIsLoading(false);
+        }
+    }
+};
+
 export const fetchLocationWithRooms = async (
     locationId: number,
     setIsLoading: (loading: boolean) => void,

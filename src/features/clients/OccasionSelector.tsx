@@ -33,7 +33,7 @@ const OccasionSelector = ({ sx }: OccasionSelectorProps) => {
             });
 
             router.push(eventConfiguration.locationId ?
-                `/configurator/${eventConfiguration.locationId}` :
+                `/configurator/?id=${eventConfiguration.locationId}` :
                 `/locations`);
 
             return;

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useForm, Controller, FormProvider } from 'react-hook-form';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -15,19 +15,20 @@ import {
     FormControl,
     Select,
     FormHelperText,
+    Tooltip,
+    IconButton,
 } from "@mui/material";
-import { Save } from "lucide-react";
+import { ClipboardCheck, Save } from "lucide-react";
 import { CreateLocationResponse } from "@/types/geolocation";
 import { EventCategories } from "@/constants/EventCategories";
 import useStore from '@/stores/partnerStore';
 import { createEmptyLocationModel } from "@/models/LocationModel";
 import City, { AvailableCities } from "@/models/City";
 import ImageUploadField from "./ImageUploadField";
-import EventCategoriesField from "./EventCategoriesField";
 import { locationsBaseUrl } from "@/services/locationService";
 import { formatEventCategoriesSync } from "@/utils/formatEventCategories";
-import theme from "@/theme";
 import ImmutableItemList from "./ImmutableItemList";
+import { Clipboard } from 'lucide-react';
 
 // Validation schema
 const locationValidationSchema = yup.object().shape({
@@ -84,6 +85,10 @@ const LocationForm: React.FC<{ locationId?: string }> = ({ }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [isEdit, setIsEdit] = useState(false);
     const [eventCategories, setEventCategories] = useState<string[]>([]);
+    const [idCode, setIdCode] = useState<string | null>(null);
+    const [domain, setDomain] = useState<string | null>(null);
+    const [copied, setCopied] = useState(false);
+    const contentRef = useRef<HTMLDivElement | null>(null);
 
     const { partnerUser } = useStore();
 
@@ -118,6 +123,8 @@ const LocationForm: React.FC<{ locationId?: string }> = ({ }) => {
                 reset(locationData);
                 setIsEdit(true);
                 setEventCategories(locationData.eventCategories || []);
+                setIdCode(locationData.idCode);
+                console.log('Fetched location data:', locationData);
             } catch (err) {
                 console.error(err);
             } finally {
@@ -134,6 +141,10 @@ const LocationForm: React.FC<{ locationId?: string }> = ({ }) => {
             setIsLoading(false);
         }
     }, [partnerUser]);
+
+    useEffect(() => {
+        setDomain(window.location.hostname);
+    }, []);
 
     const onSubmit = async (data: any) => {
         setIsSubmitting(true);
@@ -194,6 +205,16 @@ const LocationForm: React.FC<{ locationId?: string }> = ({ }) => {
             }
         } catch (error) {
             console.error("File upload error:", error);
+        }
+    };
+
+    const copyToClipboard = () => {
+        if (contentRef.current) {
+            const textToCopy = contentRef.current.innerText;
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
+            });
         }
     };
 
@@ -443,6 +464,63 @@ const LocationForm: React.FC<{ locationId?: string }> = ({ }) => {
                     />
                 </Box>
             )}
+
+            {idCode && domain &&
+                (<Box
+                    sx={{
+                        mt: 4,
+                        mb: 4,
+                    }}
+                >
+                    <Typography
+                        variant="h5"
+                        sx={{
+                            color: 'primary.main',
+                            lineHeight: 2,
+                        }}>Embed Code
+                    </Typography>
+                    <Typography variant="body2"
+                        sx={{
+                            color: 'primary.main',
+                            lineHeight: 2,
+                        }}>
+
+                        Copy and paste the following code into your website to embed the configurator:
+                    </Typography>
+                    <Box sx={{ position: 'relative', display: 'inline-block' }}>
+                        <Tooltip title={copied ? 'Copied!' : 'Copy'}>
+                            <IconButton
+                                onClick={copyToClipboard}
+                                sx={{
+                                    position: 'absolute',
+                                    top: 0,
+                                    right: 0,
+                                    color: '#555',
+                                }}
+                            >
+                                {copied ? <ClipboardCheck size={16} /> : <Clipboard size={16} />}
+                            </IconButton>
+                        </Tooltip>
+                        <Typography
+                            ref={contentRef}
+                            sx={{
+                                fontFamily: 'monospace',
+                                fontSize: '12px',
+                                color: '#555',
+                                padding: 2,
+                                border: '1px solid #ddd',
+                                overflowX: 'auto',
+                                overflowWrap: 'anywhere',
+                                borderRadius: '4px',
+                            }}
+                        >
+                            &lt;div id=&quot;configurator-container&quot;&gt;&lt;/div&gt;
+                            <br />
+                            &lt;script src=&quot;https://{domain}/assets/embed.js?code={idCode}&quot;&gt;&lt;/script&gt;
+                        </Typography>
+                    </Box>
+                </Box>
+                )}
 
             {/*<Button onClick={() => console.log("Current Form Values: ", methods.getValues())}>
                 Log Form Values

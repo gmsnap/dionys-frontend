@@ -6,33 +6,35 @@ import { Box } from '@mui/material'
 import EventConfigurator from '@/features/clients/EventConfigurator'
 
 const Configurator: NextPageWithLayout = () => {
-    const router = useRouter()
-    const [id, setId] = useState<number | null>(null)
+    const router = useRouter();
+
+    const [locationId, setLocationId] = useState<number | null>(null);
 
     useEffect(() => {
         if (router.isReady) {
             const parsedId = parseInt(router.query.id as string, 10)
             if (isNaN(parsedId)) {
-                router.push('/configurator/1')
+                setLocationId(null);
             } else {
-                setId(parsedId)
+                setLocationId(parsedId);
             }
         }
     }, [router.isReady, router.query.id])
 
-    if (id === null) {
+    if (locationId === null) {
         return <Box pt={3} sx={{ height: '100vh' }}>
-        </Box>
+            No Location
+        </Box>;
     }
 
     return (
-        <EventConfigurator locationId={id} sx={{ height: '100%' }} />
-    )
+        <EventConfigurator locationId={locationId} sx={{ height: '100%' }} />
+    );
 }
 
 // Use ClientLayout as the layout for this page
 Configurator.getLayout = function getLayout(page: ReactElement) {
-    return <Layout>{page}</Layout>
+    return <Layout>{page}</Layout>;
 }
 
 export default Configurator
