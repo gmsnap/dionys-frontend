@@ -17,6 +17,9 @@ export const formatEventCategory = async (category: EventCategories): Promise<st
 };
 
 export const formatEventCategoriesSync = (categories: EventCategories[]): string => {
+    if (!categories || categories.length === 0) {
+        return "-";
+    }
     const staticTranslations = {
         "lunch": "Business Lunch",
         "business": "Corporate Event",

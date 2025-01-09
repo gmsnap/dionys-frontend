@@ -2,7 +2,8 @@
 import useStore from '@/stores/partnerStore';
 import { useEffect } from 'react';
 
-const baseUrl = process.env.NEXT_PUBLIC_API_URL;
+export const locationsBaseUrl = `${process.env.NEXT_PUBLIC_API_URL}/locations`;
+export const allLocationsUrl = `${locationsBaseUrl}?include=eventCategories`;
 
 export const fetchLocationByPartnerId = async (
     partnerId: number,
@@ -14,7 +15,7 @@ export const fetchLocationByPartnerId = async (
             setIsLoading(true);
         }
         const response =
-            await fetch(`${baseUrl}/locations/partner/${partnerId}?single=1`);
+            await fetch(`${locationsBaseUrl}/partner/${partnerId}?single=1`);
         if (!response.ok) {
             throw new Error(`Error: ${response.status} ${response.statusText}`);
         }
@@ -42,7 +43,7 @@ export const fetchLocationWithRooms = async (
     try {
         setIsLoading(true);
         const response =
-            await fetch(`${baseUrl}/locations/${locationId}?include=rooms`);
+            await fetch(`${locationsBaseUrl}/${locationId}?include=rooms`);
         if (!response.ok) {
             throw new Error(`Error: ${response.status} ${response.statusText}`);
         }

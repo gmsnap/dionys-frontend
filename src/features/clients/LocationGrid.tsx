@@ -8,6 +8,7 @@ import GridItem from '../../components/GridItem';
 import { formatPrice } from '@/utils/formatPrice';
 import { LocationModel } from '@/models/LocationModel';
 import { formatEventCategoriesSync } from '@/utils/formatEventCategories';
+import { allLocationsUrl } from '@/services/locationService';
 
 interface ListItem {
     icon: React.ReactNode;
@@ -20,7 +21,7 @@ interface LocationGridProps {
 
 const LocationGrid = ({ sx }: LocationGridProps) => {
     const { eventConfiguration, setEventConfiguration } = useStore();
-    const { eventConfigurationFilters, setEventConfigurationFilters } = useStore();
+    const { eventConfigurationFilters } = useStore();
     const [locations, setLocations] = useState<LocationModel[]>([]);
     const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -44,7 +45,7 @@ const LocationGrid = ({ sx }: LocationGridProps) => {
         const fetchData = async () => {
             try {
                 setIsLoading(true);
-                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/locations`);
+                const response = await fetch(allLocationsUrl);
                 if (!response.ok) {
                     throw new Error(`Error: ${response.status} ${response.statusText}`);
                 }
@@ -96,7 +97,10 @@ const LocationGrid = ({ sx }: LocationGridProps) => {
                             listItems={[
                                 { icon: <MapPin />, label: location.area },
                                 { icon: <User />, label: '10-50' },
-                                { icon: <Layers2 />, label: formatEventCategoriesSync(location.eventCategories) },
+                                {
+                                    icon: <Layers2 />,
+                                    label: formatEventCategoriesSync(location.eventCategories)
+                                },
                             ]}
                             buttons={[
                                 <Button

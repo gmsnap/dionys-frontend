@@ -24,6 +24,10 @@ import { createEmptyLocationModel } from "@/models/LocationModel";
 import City, { AvailableCities } from "@/models/City";
 import ImageUploadField from "./ImageUploadField";
 import EventCategoriesField from "./EventCategoriesField";
+import { locationsBaseUrl } from "@/services/locationService";
+import { formatEventCategoriesSync } from "@/utils/formatEventCategories";
+import theme from "@/theme";
+import ImmutableItemList from "./ImmutableItemList";
 
 // Validation schema
 const locationValidationSchema = yup.object().shape({
@@ -72,10 +76,6 @@ const locationValidationSchema = yup.object().shape({
         .typeError('Preis / Tag muss eine Zahl sein')
         .positive('Preis / Tag muss positiv sein')
         .required('Preis / Tag ist erforderlich'),
-    eventCategories: yup
-        .array()
-        .of(yup.mixed<EventCategories>().required())
-        .min(1, 'Mindestens eine Kategorie ist erforderlich'),
 });
 
 const LocationForm: React.FC<{ locationId?: string }> = ({ }) => {
@@ -83,6 +83,8 @@ const LocationForm: React.FC<{ locationId?: string }> = ({ }) => {
     const [responseMessage, setResponseMessage] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [isEdit, setIsEdit] = useState(false);
+    const [eventCategories, setEventCategories] = useState<string[]>([]);
+
     const { partnerUser } = useStore();
 
     const methods = useForm({
@@ -98,7 +100,8 @@ const LocationForm: React.FC<{ locationId?: string }> = ({ }) => {
             try {
                 setIsLoading(true);
 
-                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/locations/partner/${partnerId}?single=1`);
+                const response =
+                    await fetch(`${locationsBaseUrl}/partner/${partnerId}?single=1&include=eventCategories`);
 
                 if (response.status === 404 || response.status === 204) {
                     // Switch to "Create Mode"
@@ -114,6 +117,7 @@ const LocationForm: React.FC<{ locationId?: string }> = ({ }) => {
                 const locationData = await response.json();
                 reset(locationData);
                 setIsEdit(true);
+                setEventCategories(locationData.eventCategories || []);
             } catch (err) {
                 console.error(err);
             } finally {
@@ -210,6 +214,10 @@ const LocationForm: React.FC<{ locationId?: string }> = ({ }) => {
         <Box sx={{ maxWidth: 500, mx: "auto", mt: 4 }}>
             <Typography variant="h3" sx={{ mb: 4 }}>
                 {isEdit ? "Location bearbeiten" : "Location erstellen"}
+            </Typography>
+            <Typography variant="h5"
+                sx={{ mb: 2, color: 'primary.main' }}>
+                Allgemein
             </Typography>
             <FormProvider {...methods}>
                 <form onSubmit={handleSubmit(onSubmit)}>
@@ -368,21 +376,6 @@ const LocationForm: React.FC<{ locationId?: string }> = ({ }) => {
                             </Grid2>
                         </Grid2>
 
-                        {/* Categories */}
-                        <Grid2 size={{ xs: 12, sm: controlWidth }}>
-                            <Grid2 container alignItems="top">
-                                <Grid2 size={{ xs: 12, sm: 4 }}>
-                                    <Typography variant="label">Event-Anlässe</Typography>
-                                </Grid2>
-                                <Grid2 size={{ xs: 12, sm: 8 }}>
-                                    <EventCategoriesField
-                                        control={control}
-                                        errors={errors}
-                                    />
-                                </Grid2>
-                            </Grid2>
-                        </Grid2>
-
                         <Grid2 size={{ xs: 12, sm: controlWidth }} mt={2} mb={2}>
                             <ImageUploadField name="image" />
                         </Grid2>
@@ -419,6 +412,38 @@ const LocationForm: React.FC<{ locationId?: string }> = ({ }) => {
                     </Grid2>
                 </form>
             </FormProvider>
+
+            {/* Display Event Categories */}
+            {eventCategories.length > 0 && (
+                <Box
+                    sx={{
+                        display: 'flex',
+                        flexDirection: { xs: 'column', sm: 'row', },
+                        gap: { xs: 2, sm: 0, },
+                        mt: 4,
+                    }}
+                >
+                    <Box sx={{
+                        width: {
+                            xs: "100%", // 100% width for small screens
+                            sm: "25%", // Same as 3/12 in Grid2
+                        },
+                    }}><Typography variant="h5"
+                        sx={{
+                            color: 'primary.main',
+                            lineHeight: 2,
+                        }}>
+                            Kategorien
+                        </Typography>
+                    </Box>
+                    <ImmutableItemList
+                        strings={eventCategories.map((c) =>
+                            formatEventCategoriesSync([c as EventCategories])
+                        )}
+                    />
+                </Box>
+            )}
+
             {/*<Button onClick={() => console.log("Current Form Values: ", methods.getValues())}>
                 Log Form Values
             </Button>*/}
