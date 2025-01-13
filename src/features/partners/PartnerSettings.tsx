@@ -1,18 +1,35 @@
 import PartnerContentLayout from "@/layouts/PartnerContentLayout";
-import theme from "@/theme";
-import { Box, Typography, List, ListItem, ListItemText, Theme, useTheme, ListItemButton } from "@mui/material";
+import {
+    Box,
+    Typography,
+    List,
+    ListItem,
+    ListItemText,
+    useTheme,
+    ListItemButton
+} from "@mui/material";
 import { useState } from "react";
 import PartnerUserEditForm from "./PartnerUserEditForm";
+import PartnerCompanyForm from "./PartnerCompanyForm";
+import PartnerTeamList from "./PartnerTeamList";
 
 const PartnerSettings: React.FC = () => {
     const theme = useTheme();
 
     const [selectedItem, setSelectedItem] = useState(0);
 
-    const menuItems = ["Persönliche Informationen", "Zahlungsoptionen", "Lizenz"];
+    const menuItems = [
+        "Persönliche Informationen",
+        "Unternehmen",
+        "Team",
+        "Zahlungsoptionen",
+        "Lizenz"
+    ];
 
     const content = [
         <PartnerUserEditForm key="profile" />,
+        <PartnerCompanyForm key="company" />,
+        <PartnerTeamList key="team" />,
         <Typography key="billing" variant="body1">Billing details and payment methods content goes here.</Typography>,
         <Typography key="licence" variant="body1">License goes here.</Typography>,
     ];

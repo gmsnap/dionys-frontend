@@ -8,7 +8,7 @@ export interface GeoLocation {
 
 export interface LocationModel {
     id: number;
-    partnerId: number;
+    companyId: number;
     title: string;
     city: string;
     area: string;
@@ -21,9 +21,9 @@ export interface LocationModel {
     rooms: RoomModel[] | null;
 }
 
-export const createEmptyLocationModel = (partnerId: number): LocationModel => ({
+export const createEmptyLocationModel = (companyId: number): LocationModel => ({
     id: 0,
-    partnerId: partnerId,
+    companyId,
     title: '',
     city: '',
     area: '',

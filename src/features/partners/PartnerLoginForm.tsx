@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Alert, Box, Button, TextField, Typography } from "@mui/material";
+import { Alert, Box, Button, Link, TextField, Typography } from "@mui/material";
 import useStore from '@/stores/partnerStore';
 import { useAuthContext } from '@/auth/AuthContext';
 import ConfirmSignup from "../admins/ConfirmSignup";
 import { useSetLocationByCurrentPartner } from "@/services/locationService";
+import theme from "@/theme";
 
 const baseUrl = process.env.NEXT_PUBLIC_API_URL;
 
@@ -55,10 +56,10 @@ const PartnerLoginForm: React.FC = ({ }) => {
         if (authUser?.username) {
             const fetchUserData = async () => {
                 try {
-                    // Fetch additional user data from your API
+                    // Fetch additional user data from API
                     let response = await fetch(`${baseUrl}/partner-users/sub/${authUser.sub}`);
 
-                    // Create user if not exists
+                    // Create user via API if not exists
                     if (response.status === 404) {
                         const createResponse = await fetch(
                             `${baseUrl}/partner-users`,
@@ -70,12 +71,12 @@ const PartnerLoginForm: React.FC = ({ }) => {
                                     email: authUser.email,
                                     givenName: authUser.givenName,
                                     familyName: authUser.familyName,
-                                    company: authUser.company,
                                 }),
                                 headers: { "Content-Type": "application/json" },
                             });
                         response = await fetch(`${baseUrl}/partner-users/sub/${authUser.sub}`);
                     }
+
                     if (!response.ok) {
                         throw new Error("Failed to fetch user data");
                     }
@@ -108,7 +109,7 @@ const PartnerLoginForm: React.FC = ({ }) => {
                     <Typography variant="h3">
                         {authUser.givenName} {authUser.familyName}
                     </Typography>
-                    <Typography variant="h5">{partnerUser?.company}</Typography>
+                    <Typography variant="h5">{partnerUser?.company?.companyName ?? "-"}</Typography>
                     <Button
                         variant="contained"
                         color="primary"
@@ -153,8 +154,23 @@ const PartnerLoginForm: React.FC = ({ }) => {
                         >
                             {isLoading ? "Logging in..." : "Login"}
                         </Button>
-                    </>
 
+                        <Box>
+                            <Typography variant="body1" sx={{ mt: 2 }}>
+                                Sie haben noch kein Konto?
+                                {' '}
+                                <Link
+                                    href="/partner/register"
+                                    sx={{
+                                        fontWeight: 'bold',
+                                        color: theme.palette.customColors.pink.dark
+                                    }}
+                                >
+                                    Registrieren
+                                </Link>
+                            </Typography>
+                        </Box>
+                    </>
             )}
         </Box>
     );

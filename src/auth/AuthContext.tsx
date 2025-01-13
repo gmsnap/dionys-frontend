@@ -11,7 +11,6 @@ interface AuthContextType {
         password: string,
         givenName: string,
         familyName: string,
-        company: string,
     ) => Promise<any>;
     confirmSignUp2: (email: string, verificationCode: string) => Promise<any>;
 }

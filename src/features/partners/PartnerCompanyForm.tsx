@@ -1,18 +1,22 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Box, Button, TextField, Typography, Grid2 } from "@mui/material";
+import { Box, Button, TextField, Typography, Grid2, useTheme } from "@mui/material";
 import useStore from "@/stores/partnerStore";
 import router from "next/router";
+import { fetchCompanyById } from "@/services/partnerService";
+import { PartnerCompanyModel } from "@/models/PartnerCompanyModel";
 
-const PartnerUserEditForm: React.FC = () => {
+const PartnerCompanyForm: React.FC = () => {
+    const theme = useTheme();
 
     const { partnerUser, setPartnerUser } = useStore();
 
     const [formData, setFormData] = useState({
-        givenName: partnerUser?.givenName || "",
-        familyName: partnerUser?.familyName || "",
-        email: partnerUser?.email || "",
+        companyName: "",
+        companyRegistrationNumber: "",
+        companyTaxId: "",
+        contactEmail: "",
     });
 
     const [error, setError] = useState<string | null>(null);
@@ -28,47 +32,73 @@ const PartnerUserEditForm: React.FC = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!formData.email || !formData.givenName || !formData.familyName) {
-            setError("Name and email are required.");
+        if (!formData.companyName) {
+            setError("Company Name is required.");
             setSuccess(false);
             return;
         }
 
         try {
-            const response =
-                await fetch(`${process.env.NEXT_PUBLIC_API_URL}/partner-users/${partnerUser?.id}`,
-                    {
-                        method: "PUT",
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify({
-                            ...partnerUser,
-                            ...formData,
-                        }),
-                    });
+            if (!partnerUser) {
+                setError("Please login.");
+                setSuccess(false);
+                return;
+            }
+
+            const response = await fetch(
+                `${process.env.NEXT_PUBLIC_API_URL}/partner-companies/${partnerUser?.companyId}`,
+                {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        ...formData,
+                    }),
+                }
+            );
 
             if (!response.ok) {
                 throw new Error(`Error ${response.status}: ${response.statusText}`);
             }
 
-            const updatedUser = await response.json();
-            setPartnerUser(updatedUser.user);
+            const updatedCompany = (await response?.json())?.company as PartnerCompanyModel;
+
+            if (updatedCompany) {
+                // Update partnerUser's company in the store
+                setPartnerUser({
+                    ...partnerUser,
+                    company: updatedCompany,
+                });
+            }
+
             setError(null);
             setSuccess(true);
+
         } catch (err) {
-            setError("Failed to update profile. Please try again.");
+            console.error("Error updating company:", err);
+            setError("Failed to update company. Please try again.");
             setSuccess(false);
         }
     };
 
     useEffect(() => {
-        if (partnerUser) {
-            setFormData({
-                givenName: partnerUser.givenName,
-                familyName: partnerUser.familyName,
-                email: partnerUser.email,
-            });
+        if (partnerUser?.companyId) {
+            const fetchCompany = async (companyId: number) => {
+                const response = await fetchCompanyById(companyId, null, null);
+                if (!response || !response.response.ok) {
+                    console.log(
+                        `Error ${response?.response.status}: ${response?.response.statusText}`
+                    );
+                    return;
+                }
+
+                setFormData(() => ({
+                    ...response.result,
+                }));
+            };
+
+            fetchCompany(partnerUser.companyId);
         }
     }, [partnerUser]);
 
@@ -94,16 +124,16 @@ const PartnerUserEditForm: React.FC = () => {
         }}>
             <form onSubmit={handleSubmit}>
                 <Grid2 container spacing={2}>
-                    {/* Given Name */}
+                    {/* Company Name */}
                     <Grid2 size={{ xs: 12 }}>
                         <Grid2 container alignItems="center">
                             <Grid2 size={{ xs: 4 }}>
-                                <Typography>Vorname</Typography>
+                                <Typography>Firmenname</Typography>
                             </Grid2>
                             <Grid2 size={{ xs: 8 }}>
                                 <TextField
-                                    name="givenName"
-                                    value={formData.givenName}
+                                    name="companyName"
+                                    value={formData.companyName}
                                     onChange={handleChange}
                                     fullWidth
                                     variant="outlined"
@@ -112,16 +142,16 @@ const PartnerUserEditForm: React.FC = () => {
                         </Grid2>
                     </Grid2>
 
-                    {/* Family Name */}
+                    {/* Company Registration Number */}
                     <Grid2 size={{ xs: 12 }}>
                         <Grid2 container alignItems="center">
                             <Grid2 size={{ xs: 4 }}>
-                                <Typography>Nachname</Typography>
+                                <Typography>Handelsregister-Nr.</Typography>
                             </Grid2>
                             <Grid2 size={{ xs: 8 }}>
                                 <TextField
-                                    name="familyName"
-                                    value={formData.familyName}
+                                    name="companyRegistrationNumber"
+                                    value={formData.companyRegistrationNumber}
                                     onChange={handleChange}
                                     fullWidth
                                     variant="outlined"
@@ -130,17 +160,34 @@ const PartnerUserEditForm: React.FC = () => {
                         </Grid2>
                     </Grid2>
 
-                    {/* Email */}
+                    {/* Company Tax Id */}
                     <Grid2 size={{ xs: 12 }}>
                         <Grid2 container alignItems="center">
                             <Grid2 size={{ xs: 4 }}>
-                                <Typography>Email</Typography>
+                                <Typography>USt-ID</Typography>
                             </Grid2>
                             <Grid2 size={{ xs: 8 }}>
                                 <TextField
-                                    name="email"
-                                    type="email"
-                                    value={formData.email}
+                                    name="companyTaxId"
+                                    value={formData.companyTaxId}
+                                    onChange={handleChange}
+                                    fullWidth
+                                    variant="outlined"
+                                />
+                            </Grid2>
+                        </Grid2>
+                    </Grid2>
+
+                    {/* Contact Email */}
+                    <Grid2 size={{ xs: 12 }}>
+                        <Grid2 container alignItems="center">
+                            <Grid2 size={{ xs: 4 }}>
+                                <Typography>Kontakt-Email</Typography>
+                            </Grid2>
+                            <Grid2 size={{ xs: 8 }}>
+                                <TextField
+                                    name="contactEmail"
+                                    value={formData.contactEmail}
                                     onChange={handleChange}
                                     fullWidth
                                     variant="outlined"
@@ -164,7 +211,7 @@ const PartnerUserEditForm: React.FC = () => {
                     )}
                     {success && (
                         <Grid2 size={{ xs: 12 }}>
-                            <Typography color="success">Profil gespeichert!</Typography>
+                            <Typography color="success">Unternehmensdaten wurden aktualisiert.</Typography>
                         </Grid2>
                     )}
                 </Grid2>
@@ -173,4 +220,4 @@ const PartnerUserEditForm: React.FC = () => {
     );
 };
 
-export default PartnerUserEditForm;
+export default PartnerCompanyForm;

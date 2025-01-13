@@ -5,18 +5,18 @@ import { LocationModel } from '@/models/LocationModel';
 
 interface StoreState {
     partnerUser: PartnerUserModel | null;
-    partnerLocation: LocationModel | null;
+    partnerLocations: LocationModel[] | null;
     setPartnerUser: (partnerUser: PartnerUserModel | null) => void;
-    setPartnerLocation: (partnerLocation: LocationModel | null) => void;
+    setPartnerLocations: (partnerLocations: LocationModel[] | null) => void;
 }
 
 const useStore = create<StoreState>()(
     persist(
         (set) => ({
             partnerUser: null,
-            partnerLocation: null,
+            partnerLocations: null,
             setPartnerUser: (partnerUser) => set({ partnerUser }),
-            setPartnerLocation: (partnerLocation) => set({ partnerLocation }),
+            setPartnerLocations: (partnerLocations) => set({ partnerLocations }),
         }),
         {
             // unique name for local storage

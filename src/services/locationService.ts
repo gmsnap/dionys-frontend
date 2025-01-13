@@ -5,8 +5,8 @@ import { useEffect } from 'react';
 export const locationsBaseUrl = `${process.env.NEXT_PUBLIC_API_URL}/locations`;
 export const allLocationsUrl = `${locationsBaseUrl}?include=eventCategories`;
 
-export const fetchLocationByPartnerId = async (
-    partnerId: number,
+export const fetchLocationsByCompanyId = async (
+    companyId: number,
     setIsLoading: ((loading: boolean) => void) | null,
     setError: ((error: string | null) => void) | null
 ): Promise<any> => {
@@ -15,7 +15,7 @@ export const fetchLocationByPartnerId = async (
             setIsLoading(true);
         }
         const response =
-            await fetch(`${locationsBaseUrl}/partner/${partnerId}?single=1`);
+            await fetch(`${locationsBaseUrl}/company/${companyId}`);
         if (!response.ok) {
             throw new Error(`Error: ${response.status} ${response.statusText}`);
         }
@@ -88,20 +88,20 @@ export const fetchLocationWithRooms = async (
 };
 
 export const useSetLocationByCurrentPartner = () => {
-    const { partnerUser, setPartnerLocation } = useStore();
+    const { partnerUser, setPartnerLocations } = useStore();
 
     useEffect(() => {
         const setLocation = async () => {
-            if (partnerUser?.id) {
-                const location = await fetchLocationByPartnerId(partnerUser.id, null, null);
-                if (location) {
-                    setPartnerLocation(location);
+            if (partnerUser?.companyId) {
+                const locations = await fetchLocationsByCompanyId(partnerUser.companyId, null, null);
+                if (locations) {
+                    setPartnerLocations(locations);
                     return;
                 }
             }
-            setPartnerLocation(null);
+            setPartnerLocations(null);
         };
 
         setLocation();
-    }, [partnerUser, setPartnerLocation]);
+    }, [partnerUser, setPartnerLocations]);
 };

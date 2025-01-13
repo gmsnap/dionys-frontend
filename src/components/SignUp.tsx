@@ -9,7 +9,6 @@ interface SignUpFormInputs {
     password: string;
     givenName: string;
     familyName: string;
-    company: string;
 }
 
 export const SignUp: React.FC = () => {
@@ -26,7 +25,6 @@ export const SignUp: React.FC = () => {
                 data.password,
                 data.givenName,
                 data.familyName,
-                data.company,
             );
             console.log('Signup result:', result);
             setSuccess(true);
@@ -45,7 +43,7 @@ export const SignUp: React.FC = () => {
     return (
         <Box sx={{ maxWidth: 600, mx: 'auto', mt: 8, px: 2 }}>
             <Typography variant="h6" align="center" sx={{ mb: 6 }}>
-                Sign Up new Partner
+                Als Partner registrieren
             </Typography>
             <form onSubmit={handleSubmit(onSubmit)}>
                 <Grid2 container spacing={2} alignItems="center">
@@ -58,7 +56,7 @@ export const SignUp: React.FC = () => {
                             control={control}
                             defaultValue=""
                             rules={{
-                                required: 'Email is required',
+                                required: 'Email ist erforderlich',
                                 pattern: {
                                     value: /^\S+@\S+$/i,
                                     message: 'Invalid email address'
@@ -85,7 +83,7 @@ export const SignUp: React.FC = () => {
                             control={control}
                             defaultValue=""
                             rules={{
-                                required: 'Password is required',
+                                required: 'Password ist erforderlich',
                                 minLength: {
                                     value: 8,
                                     message: 'Password must be at least 8 characters'
@@ -105,14 +103,14 @@ export const SignUp: React.FC = () => {
                     </Grid2>
 
                     <Grid2 size={{ xs: 12, sm: 3 }}>
-                        <Typography variant="body1">Given Name</Typography>
+                        <Typography variant="body1">Ihr Vorname</Typography>
                     </Grid2>
                     <Grid2 size={{ xs: 12, sm: 8 }}>
                         <Controller
                             name="givenName"
                             control={control}
                             defaultValue=""
-                            rules={{ required: 'Given Name is required' }}
+                            rules={{ required: 'Vorname ist erforderlich' }}
                             render={({ field }) => (
                                 <TextField
                                     {...field}
@@ -126,14 +124,14 @@ export const SignUp: React.FC = () => {
                     </Grid2>
 
                     <Grid2 size={{ xs: 12, sm: 3 }}>
-                        <Typography variant="body1">Family Name</Typography>
+                        <Typography variant="body1">Ihr Name</Typography>
                     </Grid2>
                     <Grid2 size={{ xs: 12, sm: 8 }}>
                         <Controller
                             name="familyName"
                             control={control}
                             defaultValue=""
-                            rules={{ required: 'Family Name is required' }}
+                            rules={{ required: 'Familienname ist erforderlich' }}
                             render={({ field }) => (
                                 <TextField
                                     {...field}
@@ -146,37 +144,16 @@ export const SignUp: React.FC = () => {
                         />
                     </Grid2>
 
-                    <Grid2 size={{ xs: 12, sm: 3 }}>
-                        <Typography variant="body1">Company Name</Typography>
-                    </Grid2>
-                    <Grid2 size={{ xs: 12, sm: 8 }}>
-                        <Controller
-                            name="company"
-                            control={control}
-                            defaultValue=""
-                            rules={{ required: 'Company Name is required' }}
-                            render={({ field }) => (
-                                <TextField
-                                    {...field}
-                                    variant="outlined"
-                                    fullWidth
-                                    error={!!errors.company}
-                                    helperText={errors.company?.message}
-                                />
-                            )}
-                        />
-                    </Grid2>
-
-                    <Grid2 size={{ xs: 12, sm: 4 }}>
+                    <Grid2 size={{ xs: 12, sm: 11 }}>
                         <Button
                             type="submit"
                             variant="contained"
                             color="primary"
                             fullWidth
                             disabled={isSubmitting || success}
-                            sx={{ mt: 2 }}
+                            sx={{ mt: 4 }}
                         >
-                            {isSubmitting ? 'Signing Up...' : 'Sign Up'}
+                            {isSubmitting ? 'Konto erstellen...' : 'Konto erstellen'}
                         </Button>
                     </Grid2>
                 </Grid2>

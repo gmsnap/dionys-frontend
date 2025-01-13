@@ -1,10 +1,10 @@
 import { ReactElement } from 'react';
-import PartnerLayout from '@/layouts/PartnerLayout';
-import type { NextPageWithLayout } from '@/types/page';
 import { Box } from '@mui/material';
-import PartnerLoginForm from '@/features/partners/PartnerLoginForm';
+import { SignUp } from '@/components/SignUp';
+import PartnerLayout from '@/layouts/PartnerLayout';
+import { NextPageWithLayout } from '@/types/page';
 
-const ClientHome: NextPageWithLayout = () => {
+const RegisterPage: NextPageWithLayout = () => {
     return (
         <Box
             display="flex"
@@ -21,7 +21,7 @@ const ClientHome: NextPageWithLayout = () => {
                     alignItems: 'center',
                 }}
             >
-                <PartnerLoginForm />
+                <SignUp />
             </Box>
             <Box
                 sx={{
@@ -46,8 +46,8 @@ const ClientHome: NextPageWithLayout = () => {
 };
 
 // Use ClientLayout as the layout for this page
-ClientHome.getLayout = function getLayout(page: ReactElement) {
+RegisterPage.getLayout = function getLayout(page: ReactElement) {
     return <PartnerLayout>{page}</PartnerLayout>;
 };
 
-export default ClientHome;
+export default RegisterPage;

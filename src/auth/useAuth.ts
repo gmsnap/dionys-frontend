@@ -14,7 +14,6 @@ export interface AuthUser {
     email: string;
     givenName?: string;
     familyName?: string;
-    company?: string;
     idToken: string;
 }
 
@@ -114,7 +113,6 @@ export const useAuth = () => {
         password: string,
         givenName: string,
         familyName: string,
-        company: string
     ) => {
         try {
             const { nextStep } = await signUp({
@@ -125,7 +123,6 @@ export const useAuth = () => {
                         email,
                         given_name: givenName,
                         family_name: familyName,
-                        'custom:company': company,
                     },
                 },
             });

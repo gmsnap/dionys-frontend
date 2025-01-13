@@ -90,7 +90,7 @@ const LocationForm: React.FC<{ locationId?: string }> = ({ }) => {
     const [copied, setCopied] = useState(false);
     const contentRef = useRef<HTMLDivElement | null>(null);
 
-    const { partnerUser } = useStore();
+    const { partnerLocations, partnerUser } = useStore();
 
     const methods = useForm({
         defaultValues: createEmptyLocationModel(0),
@@ -101,17 +101,18 @@ const LocationForm: React.FC<{ locationId?: string }> = ({ }) => {
 
     // Fetch location data
     useEffect(() => {
-        const fetchLocationData = async (partnerId: number) => {
+        const fetchLocationData = async (companyId: number) => {
             try {
                 setIsLoading(true);
 
+                // Fetch Locations
                 const response =
-                    await fetch(`${locationsBaseUrl}/partner/${partnerId}?single=1&include=eventCategories`);
+                    await fetch(`${locationsBaseUrl}/company/${companyId}?single=1&include=eventCategories`);
 
                 if (response.status === 404 || response.status === 204) {
                     // Switch to "Create Mode"
                     setIsEdit(false);
-                    reset(createEmptyLocationModel(partnerId));
+                    reset(createEmptyLocationModel(companyId));
                     setIsLoading(false);
                     return;
                 }
@@ -132,15 +133,15 @@ const LocationForm: React.FC<{ locationId?: string }> = ({ }) => {
             }
         };
 
-        if (partnerUser?.id) {
-            fetchLocationData(partnerUser.id);
+        if (partnerUser?.companyId) {
+            fetchLocationData(partnerUser.companyId);
         } else {
             // No user found; reset form to create mode
             reset(createEmptyLocationModel(0));
             setIsEdit(false);
             setIsLoading(false);
         }
-    }, [partnerUser]);
+    }, [partnerLocations]);
 
     useEffect(() => {
         setDomain(window.location.hostname);

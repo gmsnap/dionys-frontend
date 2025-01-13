@@ -9,6 +9,7 @@ const customColors = {
         main: '#9C248A',
         dark: '#781C6A',
         halfdark: '#781C6A78',
+        halflight: '#DE33C478',
     },
     purple: '#513185',
     text: {

@@ -81,7 +81,9 @@ const Header: FC = () => {
     }, [pathname]);
 
     useEffect(() => {
-        if (!authLoading && !authUser) {
+        if (!authLoading &&
+            !authUser &&
+            router.pathname !== '/partner/register') {
             router.push('/partner');
             return;
         }

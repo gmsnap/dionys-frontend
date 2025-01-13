@@ -1,15 +1,13 @@
-import { LocationModel } from "./LocationModel";
+import { PartnerCompanyModel } from "./PartnerCompanyModel";
 
 export interface PartnerUserModel {
     id: number;
+    companyId: number;
     cognitoSub: string;
     email: string;
     givenName: string;
     familyName: string;
-    company: string;
-    companyRegistrationNumber: string;
-    companyTaxId: string;
     createdAt: Date;
     updatedAt: Date;
-    locations: LocationModel[] | null;
+    company: PartnerCompanyModel | null;
 }
