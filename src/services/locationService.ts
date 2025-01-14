@@ -5,8 +5,8 @@ import { useEffect } from 'react';
 export const locationsBaseUrl = `${process.env.NEXT_PUBLIC_API_URL}/locations`;
 export const allLocationsUrl = `${locationsBaseUrl}?include=eventCategories`;
 
-export const fetchLocationsByCompanyId = async (
-    companyId: number,
+export const fetchLocationById = async (
+    id: number,
     setIsLoading: ((loading: boolean) => void) | null,
     setError: ((error: string | null) => void) | null
 ): Promise<any> => {
@@ -15,7 +15,40 @@ export const fetchLocationsByCompanyId = async (
             setIsLoading(true);
         }
         const response =
-            await fetch(`${locationsBaseUrl}/company/${companyId}`);
+            await fetch(`${locationsBaseUrl}/${id}?include=eventCategories`);
+        if (!response.ok) {
+            throw new Error(`Error: ${response.status} ${response.statusText}`);
+        }
+        const result = await response.json();
+        return result; // Return the result instead of setting it to a parameter
+    } catch (err) {
+        if (setError != null) {
+            setError(err instanceof Error ?
+                err.message :
+                'An unknown error occurred');
+        }
+        return null; // In case of error, return null
+    } finally {
+        if (setIsLoading != null) {
+            setIsLoading(false);
+        }
+    }
+};
+
+export const fetchLocationsByCompanyId = async (
+    companyId: number,
+    setIsLoading: ((loading: boolean) => void) | null,
+    setError: ((error: string | null) => void) | null,
+    includeCategories: boolean = false
+): Promise<any> => {
+    try {
+        if (setIsLoading != null) {
+            setIsLoading(true);
+        }
+        const response =
+            includeCategories ?
+                await fetch(`${locationsBaseUrl}/company/${companyId}?include=eventCategories`) :
+                await fetch(`${locationsBaseUrl}/company/${companyId}`);
         if (!response.ok) {
             throw new Error(`Error: ${response.status} ${response.statusText}`);
         }
@@ -104,4 +137,51 @@ export const useSetLocationByCurrentPartner = () => {
 
         setLocation();
     }, [partnerUser, setPartnerLocations]);
+};
+
+export const storePartnerLocations = (onComplete?: () => void) => {
+    const companyId = useStore.getState().partnerUser?.companyId;
+
+    if (!companyId) {
+        useStore.getState().setPartnerLocations(null);
+        onComplete?.();
+        return;
+    }
+
+    const runFetch = async (companyId: number) => {
+        const locations = await fetchLocationsByCompanyId(companyId, null, null);
+        if (locations) {
+            useStore.getState().setPartnerLocations(locations);
+        }
+        onComplete?.();
+    }
+
+    runFetch(companyId);
+};
+
+export const handleDeleteLocation = async (
+    locationId: number,
+    onSuccess: () => void,
+    forceDelete = false
+): Promise<void> => {
+    try {
+        if (!locationId || locationId <= 0) {
+            console.error('Invalid location ID');
+            return;
+        }
+
+        const response = await fetch(`${locationsBaseUrl}/${locationId}?force=${forceDelete}`, {
+            method: 'DELETE',
+        });
+
+        if (response.ok) {
+            console.log('Location deleted successfully');
+            onSuccess();
+        } else {
+            const errorMessage = await response.text();
+            console.error('Failed to delete location:', errorMessage);
+        }
+    } catch (error) {
+        console.error('Error deleting location:', error);
+    }
 };

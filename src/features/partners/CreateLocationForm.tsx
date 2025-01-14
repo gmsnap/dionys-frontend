@@ -25,7 +25,7 @@ import useStore from '@/stores/partnerStore';
 import { createEmptyLocationModel } from "@/models/LocationModel";
 import City, { AvailableCities } from "@/models/City";
 import ImageUploadField from "./ImageUploadField";
-import { locationsBaseUrl } from "@/services/locationService";
+import { fetchLocationById, storePartnerLocations } from "@/services/locationService";
 import { formatEventCategoriesSync } from "@/utils/formatEventCategories";
 import ImmutableItemList from "./ImmutableItemList";
 import { Clipboard } from 'lucide-react';
@@ -79,10 +79,16 @@ const locationValidationSchema = yup.object().shape({
         .required('Preis / Tag ist erforderlich'),
 });
 
-const LocationForm: React.FC<{ locationId?: string }> = ({ }) => {
+interface LocationFormProps {
+    locationId: number;
+    locationCreated?: (id: number) => void;
+}
+
+const LocationForm = ({ locationId, locationCreated }: LocationFormProps) => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [responseMessage, setResponseMessage] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
     const [isEdit, setIsEdit] = useState(false);
     const [eventCategories, setEventCategories] = useState<string[]>([]);
     const [idCode, setIdCode] = useState<string | null>(null);
@@ -101,26 +107,45 @@ const LocationForm: React.FC<{ locationId?: string }> = ({ }) => {
 
     // Fetch location data
     useEffect(() => {
-        const fetchLocationData = async (companyId: number) => {
+        const companyId = partnerUser?.companyId;
+
+        setResponseMessage('');
+
+        if (!companyId) {
+            // No user found; reset form to create mode
+            reset(createEmptyLocationModel(0));
+            setIsEdit(false);
+            setIsLoading(false);
+            setError('Company not found');
+            return;
+        }
+
+        // Create new location when locationId is 0
+        if (locationId == 0) {
+            // Switch to create mode
+            setIsEdit(false);
+            reset(createEmptyLocationModel(companyId));
+            setIsLoading(false);
+            return;
+        }
+
+        if (!(partnerLocations?.some(location => location.id === locationId))) {
+            setError('Location not found');
+            return;
+        }
+
+        const fetchLocationData = async (locationId: number) => {
             try {
                 setIsLoading(true);
 
                 // Fetch Locations
-                const response =
-                    await fetch(`${locationsBaseUrl}/company/${companyId}?single=1&include=eventCategories`);
+                const locationData =
+                    await fetchLocationById(locationId, setIsLoading, setError);
 
-                if (response.status === 404 || response.status === 204) {
-                    // Switch to "Create Mode"
-                    setIsEdit(false);
-                    reset(createEmptyLocationModel(companyId));
-                    setIsLoading(false);
+                if (!locationData) {
                     return;
                 }
 
-                if (!response.ok) {
-                    throw new Error(`Failed to fetch location`);
-                }
-                const locationData = await response.json();
                 reset(locationData);
                 setIsEdit(true);
                 setEventCategories(locationData.eventCategories || []);
@@ -133,15 +158,9 @@ const LocationForm: React.FC<{ locationId?: string }> = ({ }) => {
             }
         };
 
-        if (partnerUser?.companyId) {
-            fetchLocationData(partnerUser.companyId);
-        } else {
-            // No user found; reset form to create mode
-            reset(createEmptyLocationModel(0));
-            setIsEdit(false);
-            setIsLoading(false);
-        }
-    }, [partnerLocations]);
+        fetchLocationData(locationId);
+
+    }, [locationId]);
 
     useEffect(() => {
         setDomain(window.location.hostname);
@@ -183,6 +202,13 @@ const LocationForm: React.FC<{ locationId?: string }> = ({ }) => {
                     ? "Location gespeichert!"
                     : "Location gespeichert!"
             );
+
+            const newID = responseData.location.id;
+            if (locationCreated && newID) {
+                storePartnerLocations(() => locationCreated(newID));
+            } else {
+                storePartnerLocations();
+            }
         } catch (error) {
             console.error(error);
             setResponseMessage("An error occurred while submitting the location.");
@@ -230,13 +256,23 @@ const LocationForm: React.FC<{ locationId?: string }> = ({ }) => {
         );
     }
 
+    if (error) {
+        return (
+            <Box sx={{ maxWidth: 600, mx: "auto", mt: 4, p: 2, textAlign: "center" }}>
+                <Typography variant="h6" sx={{ mt: 2, color: 'error.main' }}>
+                    Es ist ein Fehler aufgetreten:
+                </Typography>
+                <Typography variant="h5" sx={{ mt: 2, color: 'error.main' }}>
+                    {error}
+                </Typography>
+            </Box>
+        );
+    }
+
     const controlWidth = 10;
 
     return (
         <Box sx={{ maxWidth: 500, mx: "auto", mt: 4 }}>
-            <Typography variant="h3" sx={{ mb: 4 }}>
-                {isEdit ? "Location bearbeiten" : "Location erstellen"}
-            </Typography>
             <Typography variant="h5"
                 sx={{ mb: 2, color: 'primary.main' }}>
                 Allgemein
