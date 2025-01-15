@@ -1,5 +1,5 @@
 const baseUrl = process.env.NEXT_PUBLIC_API_URL;
-export const roomsBaseUrl = `${baseUrl}/partner/rooms`;
+export const roomsBaseUrl = `${baseUrl}/rooms`;
 
 export const fetchRooms = async (
     locationId: number,
@@ -11,6 +11,37 @@ export const fetchRooms = async (
 
         const response =
             await fetch(`${baseUrl}/locations/${locationId}/rooms?include=roomConfigurations`);
+
+        if (response.status === 404) {
+            setIsLoading(false);
+            return [];
+        }
+
+        if (!response.ok) {
+            throw new Error(`Error: ${response.status} ${response.statusText}`);
+        }
+
+        const result = await response.json();
+        setError(null);
+        return result || [];
+    } catch (err) {
+        setError(err instanceof Error ? err.message : 'An unknown error occurred');
+        return null;
+    } finally {
+        setIsLoading(false);
+    }
+}
+
+export const fetchRoomsByCompany = async (
+    companyId: number,
+    setIsLoading: (loading: boolean) => void,
+    setError: (error: string | null) => void
+): Promise<any> => {
+    try {
+        setIsLoading(true);
+
+        const response =
+            await fetch(`${roomsBaseUrl}/company/${companyId}`);
 
         if (response.status === 404) {
             setIsLoading(false);

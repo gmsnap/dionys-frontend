@@ -1,13 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { Box, SxProps, Theme, Grid2, CircularProgress, Button } from '@mui/material';
-import Link from 'next/link';
 import { User, MapPin, Layers2, Pencil, X } from 'lucide-react';
 import useStore from '@/stores/partnerStore';
 import GridItem from '../../components/GridItem';
 import { formatPrice } from '@/utils/formatPrice';
 import { LocationModel } from '@/models/LocationModel';
 import { formatEventCategoriesSync } from '@/utils/formatEventCategories';
-import { fetchLocationsByCompanyId, handleDeleteLocation, storePartnerLocations, useSetLocationByCurrentPartner } from '@/services/locationService';
+import {
+    fetchLocationsByCompanyId,
+    handleDeleteLocation,
+    storePartnerLocations
+} from '@/services/locationService';
 import GridAddItem from '@/components/GridAddItem';
 
 interface ListItem {
@@ -115,9 +118,7 @@ const LocationGrid = ({ sx, selectHandler }: LocationGridProps) => {
                                 onClick={() => { selectHandler?.(location.id); }}
                             >
                                 Edit
-                                <Box
-                                    component="span" sx={{ ml: 1, }}
-                                >
+                                <Box component="span" sx={{ ml: 1, }}>
                                     <Pencil className="icon" width={12} height={12} />
                                 </Box>
                             </Button>,

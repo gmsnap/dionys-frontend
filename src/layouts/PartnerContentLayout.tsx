@@ -5,11 +5,13 @@ import { Box, Typography, useTheme } from '@mui/material';
 interface PartnerContentLayoutProps {
     title: string;
     children: ReactNode;
+    controls?: ReactNode;
 }
 
 const PartnerContentLayout: React.FC<PartnerContentLayoutProps> = ({
     title,
-    children
+    children,
+    controls
 }) => {
     const theme = useTheme();
     return (
@@ -18,15 +20,24 @@ const PartnerContentLayout: React.FC<PartnerContentLayoutProps> = ({
                 pt: 6,
             }}
         >
-            <Typography
-                variant='h3'
+            <Box
                 sx={{
-                    fontFamily: "'Arial', sans-serif",
-                    ml: 3,
-                }}
-            >
-                {title}
-            </Typography>
+                    display: 'flex',
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                }}>
+                <Typography
+                    variant='h3'
+                    sx={{
+                        fontFamily: "'Arial', sans-serif",
+                        ml: 3,
+                    }}
+                >
+                    {title}
+                </Typography>
+                {controls && <Box sx={{ mr: 4 }}>{controls}</Box>}
+            </Box>
             <Box
                 sx={{
                     borderTop: (theme) => `1px solid ${theme.palette.customColors.pink.halfdark}`,

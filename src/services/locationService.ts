@@ -1,5 +1,7 @@
 
+import { useAuthContext } from '@/auth/AuthContext';
 import useStore from '@/stores/partnerStore';
+import { makeAuthHeader } from '@/utils/apiHelper';
 import { useEffect } from 'react';
 
 export const locationsBaseUrl = `${process.env.NEXT_PUBLIC_API_URL}/locations`;
@@ -8,17 +10,23 @@ export const allLocationsUrl = `${locationsBaseUrl}?include=eventCategories`;
 export const fetchLocationById = async (
     id: number,
     setIsLoading: ((loading: boolean) => void) | null,
-    setError: ((error: string | null) => void) | null
+    setError: ((error: string | null) => void) | null,
+    idToken?: string
 ): Promise<any> => {
     try {
         if (setIsLoading != null) {
             setIsLoading(true);
         }
-        const response =
-            await fetch(`${locationsBaseUrl}/${id}?include=eventCategories`);
+
+        const response = await fetch(
+            `${locationsBaseUrl}/${id}?include=eventCategories`,
+            makeAuthHeader(idToken)
+        );
+
         if (!response.ok) {
             throw new Error(`Error: ${response.status} ${response.statusText}`);
         }
+
         const result = await response.json();
         return result; // Return the result instead of setting it to a parameter
     } catch (err) {

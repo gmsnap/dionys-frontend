@@ -207,7 +207,6 @@ const theme = createTheme({
                 primary: {
                     fontFamily: "'Nunito', sans-serif",
                     fontWeight: 700,
-                    fontSize: '16px',
                     letterSpacing: '-0.05em',
                 },
             },

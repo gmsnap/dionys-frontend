@@ -6,81 +6,19 @@ import { Pencil, User, X } from 'lucide-react';
 import GridAddItem from '@/components/GridAddItem';
 import Link from 'next/link';
 import { RoomModel } from '@/models/RoomModel';
-import { handleDeleteRoom } from '@/services/roomService';
+import { fetchRoomsByCompany, handleDeleteRoom } from '@/services/roomService';
 import useStore from '@/stores/partnerStore';
 import router from 'next/router';
-import NoLocationMessage from './NoLocationMessage';
-import { fetchLocationWithRooms, useSetLocationByCurrentPartner } from '@/services/locationService';
+import { fetchLocationWithRooms } from '@/services/locationService';
 
 interface RoomGridProps {
     sx?: SxProps<Theme>;
+    rooms: RoomModel[];
+    selectHandler?: (id: number) => void;
+    roomsChanged?: () => void;
 }
 
-const RoomGrid = ({ sx }: RoomGridProps) => {
-    const { partnerLocation } = useStore();
-
-    const [rooms, setRooms] = useState<RoomModel[]>([]);
-    const [isLoading, setIsLoading] = useState<boolean>(true);
-    const [error, setError] = useState<string | null>(null);
-
-    useSetLocationByCurrentPartner();
-
-    const fetchRoomsFromApi = async () => {
-        if (partnerLocation?.id) {
-            const location = await fetchLocationWithRooms(
-                partnerLocation.id,
-                setIsLoading,
-                setError
-            );
-
-            setIsLoading(false);
-
-            if (!location) {
-                setRooms([]);
-                setError("No Location found");
-                return;
-            }
-
-            const roomsResult = location.rooms;
-            if (roomsResult) {
-                // Set rooms to state
-                setRooms(roomsResult);
-                setError(null);
-                return;
-            }
-        }
-        setRooms([]);
-        setError("Error fetching rooms");
-    };
-
-    useEffect(() => {
-        fetchRoomsFromApi();
-    }, [partnerLocation]);
-
-    if (isLoading) {
-        return (
-            <Box display="flex" justifyContent="center" sx={sx}>
-                <CircularProgress color="secondary" />
-            </Box>
-        );
-    }
-
-    if (partnerLocation === null) {
-        return (
-            <Box display="flex" justifyContent="center" sx={sx}>
-                <NoLocationMessage />
-            </Box>
-        );
-    }
-
-    if (error) {
-        return (
-            <Box display="flex" justifyContent="center" sx={sx}>
-                <div>{error}</div>
-            </Box>
-        );
-    }
-
+const RoomGrid = ({ sx, rooms, selectHandler, roomsChanged }: RoomGridProps) => {
     return (
         <Grid2 container spacing={5} alignItems="stretch" sx={{ ...sx }}>
             {rooms.map((room) => (
@@ -99,8 +37,6 @@ const RoomGrid = ({ sx }: RoomGridProps) => {
                                 key={`${room.id}-1`}
                                 variant="outlined"
                                 color="primary"
-                                component={Link}
-                                href={`/partner/rooms/edit/${room.id}`}
                                 sx={{
                                     flex: 1,
                                     '&:hover': {
@@ -116,6 +52,7 @@ const RoomGrid = ({ sx }: RoomGridProps) => {
                                     },
                                     lineHeight: 0,
                                 }}
+                                onClick={() => { selectHandler?.(room.id); }}
                             >
                                 Edit
                                 <Box
@@ -145,7 +82,7 @@ const RoomGrid = ({ sx }: RoomGridProps) => {
                                     lineHeight: 0,
                                 }}
                                 onClick={
-                                    () => handleDeleteRoom(room.id, () => fetchRoomsFromApi())
+                                    () => handleDeleteRoom(room.id, () => roomsChanged?.())
                                 }
                             >
                                 Delete
@@ -161,7 +98,7 @@ const RoomGrid = ({ sx }: RoomGridProps) => {
                 <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%' }}>
                     <GridAddItem
                         id={-1}
-                        handler={() => { router.push('/partner/rooms/edit/0'); }}
+                        handler={() => { selectHandler?.(0); }}
                         sx={{ flex: 1, height: '100%' }}
                     />
                 </Box>

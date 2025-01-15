@@ -88,7 +88,7 @@ const PartnerPage: NextPageWithLayout = () => {
 PartnerPage.getLayout = function getLayout(page: ReactElement) {
     return (
         <PartnerLayout>
-            <PartnerContentLayout title='Location'>
+            <PartnerContentLayout title='Locations / Venues'>
                 {page}
             </PartnerContentLayout>
         </PartnerLayout>

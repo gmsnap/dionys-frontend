@@ -29,6 +29,7 @@ import { fetchLocationById, storePartnerLocations } from "@/services/locationSer
 import { formatEventCategoriesSync } from "@/utils/formatEventCategories";
 import ImmutableItemList from "./ImmutableItemList";
 import { Clipboard } from 'lucide-react';
+import { useAuthContext } from "@/auth/AuthContext";
 
 // Validation schema
 const locationValidationSchema = yup.object().shape({
@@ -85,6 +86,8 @@ interface LocationFormProps {
 }
 
 const LocationForm = ({ locationId, locationCreated }: LocationFormProps) => {
+    const { authUser } = useAuthContext();
+
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [responseMessage, setResponseMessage] = useState("");
     const [isLoading, setIsLoading] = useState(false);
@@ -107,6 +110,11 @@ const LocationForm = ({ locationId, locationCreated }: LocationFormProps) => {
 
     // Fetch location data
     useEffect(() => {
+        if (!authUser) {
+            setError('Keine Berechtigung. Bitte melden Sie sich an.');
+            return;
+        }
+
         const companyId = partnerUser?.companyId;
 
         setResponseMessage('');
@@ -119,6 +127,8 @@ const LocationForm = ({ locationId, locationCreated }: LocationFormProps) => {
             setError('Company not found');
             return;
         }
+
+        setError(null);
 
         // Create new location when locationId is 0
         if (locationId == 0) {
@@ -140,7 +150,12 @@ const LocationForm = ({ locationId, locationCreated }: LocationFormProps) => {
 
                 // Fetch Locations
                 const locationData =
-                    await fetchLocationById(locationId, setIsLoading, setError);
+                    await fetchLocationById(
+                        locationId,
+                        setIsLoading,
+                        setError,
+                        authUser.idToken
+                    );
 
                 if (!locationData) {
                     return;
@@ -150,7 +165,6 @@ const LocationForm = ({ locationId, locationCreated }: LocationFormProps) => {
                 setIsEdit(true);
                 setEventCategories(locationData.eventCategories || []);
                 setIdCode(locationData.idCode);
-                console.log('Fetched location data:', locationData);
             } catch (err) {
                 console.error(err);
             } finally {

@@ -1,7 +1,5 @@
-import { useRouter } from 'next/router';
 import { useForm, Controller } from 'react-hook-form';
-import { useState, useEffect, ReactElement } from 'react';
-import useStore from '@/stores/partnerStore';
+import { useState, useEffect } from 'react';
 import {
     Grid2,
     Box,
@@ -10,18 +8,14 @@ import {
     TextField,
     InputAdornment
 } from '@mui/material';
-import PartnerContentLayout from '@/layouts/PartnerContentLayout';
-import { NextPageWithLayout } from '@/types/page';
 import { createEmptyRoomModel, RoomModel } from '@/models/RoomModel';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
-import PartnerLayout from '@/layouts/PartnerLayout';
 import { Save } from 'lucide-react';
 import { roomsBaseUrl, handleDeleteRoom } from '@/services/roomService';
 import ImageUploadForm from '@/features/partners/ImageUploadForm';
 import DeleteButton from '@/components/DeleteButton';
 import EventCategoriesField from '@/features/partners/EventCategoriesField';
-import { useSetLocationByCurrentPartner } from "@/services/locationService";
 import { useAuthContext } from '@/auth/AuthContext';
 
 // Validation schema
@@ -59,19 +53,37 @@ const roomValidationSchema = yup.object().shape({
         .min(yup.ref('minPersons'), 'Maximalpersonenanzahl muss größer als Mindestpersonenanzahl sein')
         .required('Maximalpersonenanzahl ist erforderlich'),
     images: yup.array().of(yup.string()),
+    eventCategories: yup
+        .array()
+        .nullable()
+        .of(yup.string())
+        .test(
+            'eventCategories-not-empty',
+            'Mindestens eine Kategorie notwendig',
+            (value) => value != null && value.length > 0
+        ),
 });
 
 const controlWidth = 7;
 const labelWidth = 4;
 
-const PartnerPage: NextPageWithLayout = () => {
-    const router = useRouter();
-    const { id } = router.query;
+interface RoomFormProps {
+    roomId: number;
+    locationId: number | null;
+    roomCreated?: (id: number) => void;
+    roomUpdated?: (id: number) => void;
+    roomDeleted?: (id: number) => void;
+}
 
+const RoomForm = ({ 
+    roomId,
+    locationId,
+    roomCreated,
+    roomUpdated,
+    roomDeleted
+}: RoomFormProps) => {
     const { authUser } = useAuthContext();
-    const { partnerLocation } = useStore();
 
-    const [roomId, setRoomId] = useState(0);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -92,8 +104,6 @@ const PartnerPage: NextPageWithLayout = () => {
 
     const watchedModel = watch() as RoomModel;
     const [images, setImages] = useState<string[]>(watchedModel.images || []);
-
-    useSetLocationByCurrentPartner();
 
     const handleImageUpload = async (image: string) => {
         if (!roomId) {
@@ -117,8 +127,8 @@ const PartnerPage: NextPageWithLayout = () => {
                 // Update local state with the new image
                 setImages((prevImages) => [...prevImages, image]);
                 setValue('images', [...images, image]); // Update form model
+                roomUpdated?.(roomId);
             }
-            const { room } = await response.json();
         } catch (error) {
             console.error("Image upload failed", error);
         }
@@ -146,6 +156,7 @@ const PartnerPage: NextPageWithLayout = () => {
                 // Update local state to remove the deleted image
                 setImages((prevImages) => prevImages.filter((img) => img !== image));
                 setValue('images', images.filter((img) => img !== image)); // Update form model
+                roomUpdated?.(roomId);
             }
         } catch (error) {
             console.error("Image delete failed", error);
@@ -159,13 +170,15 @@ const PartnerPage: NextPageWithLayout = () => {
     }, [watchedModel]);
 
     useEffect(() => {
-        if (id === undefined || !partnerLocation?.id || !authUser) {
+        setResponseMessage("");
+
+        if (!authUser) {
+            setError('Keine Berechtigung. Bitte melden Sie sich an.');
             return;
         }
 
-        const roomId = Number(id);
-        if (isNaN(roomId)) {
-            setError('Invalid room ID');
+        if (roomId === null) {
+            setError('Ungültige Raum-ID');
             return;
         }
 
@@ -196,18 +209,22 @@ const PartnerPage: NextPageWithLayout = () => {
         if (roomId > 0) {
             fetchRoomData();
         } else {
-            // Set locationId in the form
-            setValue("locationId", partnerLocation.id);
+            if (locationId && locationId > 0) {
+                // Set locationId in the form
+                setValue("locationId", locationId);
+            } else {
+                setError('Ungültige Location-ID');
+            }
+
             setLoading(false);
         }
-
-        setRoomId(roomId);
-    }, [id, partnerLocation, setValue]);
+    }, [roomId]);
 
     const onSubmit = async (data: any) => {
         setIsSubmitting(true);
         setError(null);
         setSuccess(false);
+        setResponseMessage("");
 
         try {
             const isEdit = roomId && roomId > 0;
@@ -226,19 +243,29 @@ const PartnerPage: NextPageWithLayout = () => {
                 body: JSON.stringify(data),
             });
 
-            const responseData = await response.json();
-
             if (!response.ok) {
-                throw new Error(responseData.message || "Failed to submit room");
+                setError("Fehler beim Speichern des Raums.");
+                return;
             }
 
-            if (!isEdit && responseData?.room?.id) {
-                setRoomId(responseData.room.id);
-                //router.push(`/partner/rooms/${responseData.id}`, undefined, { shallow: true });
+            if (isEdit) {
+                setSuccess(true);
+                setResponseMessage("Raum gespeichert!");
+                roomUpdated?.(roomId);
+                return;
             }
 
-            setSuccess(true);
-            setResponseMessage(isEdit ? "Raum geupdated!" : "Raum gespeichert!");
+            const responseData = await response.json();
+            const newId = responseData?.room?.id;
+            if (newId) {
+                setSuccess(true);
+                setResponseMessage("Raum gespeichert!");
+                roomCreated?.(newId);
+                return;
+            }
+
+            setSuccess(false);
+            setError("Fehler beim Speichern des Raums.");
         } catch (error) {
             setError("Fehler beim Speichern des Raums.");
         } finally {
@@ -475,7 +502,7 @@ const PartnerPage: NextPageWithLayout = () => {
                                 <DeleteButton
                                     isDisabled={isSubmitting}
                                     onDelete={() => handleDeleteRoom(roomId,
-                                        () => router.push('/partner/rooms'))}
+                                        () => roomDeleted?.(roomId))}
                                 />
                             }
                         </Grid2>
@@ -511,12 +538,4 @@ const PartnerPage: NextPageWithLayout = () => {
     );
 };
 
-PartnerPage.getLayout = function getLayout(page: ReactElement) {
-    return <PartnerLayout>
-        <PartnerContentLayout title='Räume'>
-            {page}
-        </PartnerContentLayout>
-    </PartnerLayout>;
-};
-
-export default PartnerPage;
+export default RoomForm;
