@@ -86,7 +86,7 @@ export const fetchLocationByCode = async (
             setIsLoading(true);
         }
         const response =
-            await fetch(`${locationsBaseUrl}/code/${code}?single=1`);
+            await fetch(`${locationsBaseUrl}/code/${code}?single=1&include=eventCategories,rooms`);
         if (!response.ok) {
             throw new Error(`Error: ${response.status} ${response.statusText}`);
         }

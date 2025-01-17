@@ -20,7 +20,7 @@ const PartnerPage: NextPageWithLayout = () => {
     const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
 
-    const fetchRoomsFromApi = async () => {
+    const fetchRoomsFromApi = async (selectRoom: number | null = null) => {
         const companyId = partnerUser?.companyId;
         if (!companyId) {
             return;
@@ -47,11 +47,30 @@ const PartnerPage: NextPageWithLayout = () => {
         // Set rooms to state
         setRooms(rooms);
         setError(null);
+        if (roomId === 0) {
+            setRoomId(selectRoom);
+        }
     };
 
     useEffect(() => {
+        setRoomId(null);
         fetchRoomsFromApi();
     }, [partnerUser, locationId]);
+
+    if (!partnerLocations || partnerLocations.length == 0) {
+        return (
+            <PartnerContentLayout title='Räume'>
+                <Box sx={{
+                    width: '100%',
+                    mt: 10,
+                }}>
+                    <Typography variant="h5" textAlign="center">
+                        Erstellen Sie bitte zunächst eine Location.
+                    </Typography>
+                </Box>
+            </PartnerContentLayout>
+        );
+    }
 
     return (
         <PartnerContentLayout title='Räume' controls={
@@ -67,56 +86,60 @@ const PartnerPage: NextPageWithLayout = () => {
                 justifyContent: 'left',
                 alignItems: 'top'
             }}>
+
                 {/* Left Menu (rooms selector) */}
-                <List sx={{
-                    mr: { xs: 1, sm: 3 },
-                    minWidth: { xs: '150px', sm: '200px', md: '250px' },
-                }}>
-                    <ListItem key={null} disablePadding>
-                        <ListItemButton onClick={() => setRoomId(null)}>
-                            <ListItemText
-                                primary="Alle Räume"
-                                sx={{
-                                    color: roomId == null ?
-                                        theme.palette.customColors.pink.light :
-                                        'inherit',
-                                }}
-                            />
-                        </ListItemButton>
-                    </ListItem>
-                    {rooms && rooms.map((room) => (
-                        <ListItem
-                            key={room.id}
-                            disablePadding
-                            sx={{
-                                ml: 2,
-                            }}
-                        >
-                            <ListItemButton onClick={() => setRoomId(room.id)}>
+                {rooms && rooms?.length > 0 &&
+                    <List sx={{
+                        mr: { xs: 1, sm: 3 },
+                        minWidth: { xs: '150px', sm: '200px', md: '250px' },
+                    }}>
+                        <ListItem key={null} disablePadding>
+                            <ListItemButton onClick={() => setRoomId(null)}>
                                 <ListItemText
-                                    primary={room.name}
-                                    primaryTypographyProps={{
-                                        sx: {
-                                            fontSize: { xs: '12px', sm: '16px' },
-                                            color: roomId === room.id
-                                                ? theme.palette.customColors.pink.light
-                                                : 'inherit',
-                                        }
+                                    primary="Alle Räume"
+                                    sx={{
+                                        color: roomId == null ?
+                                            theme.palette.customColors.pink.light :
+                                            'inherit',
                                     }}
                                 />
                             </ListItemButton>
                         </ListItem>
-                    ))}
-                </List>
+                        {rooms && rooms.map((room) => (
+                            <ListItem
+                                key={room.id}
+                                disablePadding
+                                sx={{
+                                    ml: 2,
+                                }}
+                            >
+                                <ListItemButton onClick={() => setRoomId(room.id)}>
+                                    <ListItemText
+                                        primary={room.name}
+                                        primaryTypographyProps={{
+                                            sx: {
+                                                fontSize: { xs: '12px', sm: '16px' },
+                                                color: roomId === room.id
+                                                    ? theme.palette.customColors.pink.light
+                                                    : 'inherit',
+                                            }
+                                        }}
+                                    />
+                                </ListItemButton>
+                            </ListItem>
+                        ))}
+                    </List>}
 
                 {/* Right Content (Rooms Grid or Room Form) */}
-                {roomId !== null ? (
+                {roomId !== null &&
+                    partnerUser !== null &&
+                    partnerUser.companyId !== null ? (
                     <RoomForm
                         roomId={roomId}
                         locationId={locationId}
+                        companyId={partnerUser.companyId}
                         roomCreated={(id: number) => {
-                            setRoomId(id);
-                            fetchRoomsFromApi();
+                            fetchRoomsFromApi(id);
                         }}
                         roomUpdated={fetchRoomsFromApi}
                         roomDeleted={fetchRoomsFromApi}
@@ -124,9 +147,14 @@ const PartnerPage: NextPageWithLayout = () => {
                 ) : (
                     rooms && <RoomGrid
                         rooms={rooms}
+                        addButton={true}
                         selectHandler={setRoomId}
                         roomsChanged={fetchRoomsFromApi}
-                        sx={{ height: '100%' }}
+                        sx={{
+                            width: '100%',
+                            height: '100%',
+                            justifyContent: rooms.length == 0 ? 'center' : 'inherit'
+                        }}
                     />
                 )}
             </Box>

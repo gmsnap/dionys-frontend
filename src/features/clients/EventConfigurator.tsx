@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { Box, SxProps, Theme, Typography, Button } from '@mui/material';
 import useStore, { createDefaultEventConfigurationModel } from '@/stores/eventStore';
 import { formatEventCategory } from '@/utils/formatEventCategories';
-import { EventConfigurationModel } from '@/models/EventConfigurationModel';
 import Rooms from './Rooms';
 import RoomConfigurator from './RoomConfigurator';
 

@@ -2,11 +2,19 @@ import { ReactElement, useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import type { NextPageWithLayout } from '@/types/page'
 import { Box, CircularProgress, Typography } from '@mui/material'
-import EventConfigurator from '@/features/clients/EventConfigurator'
 import { fetchLocationByCode } from '@/services/locationService'
+import EventConfigurator2 from '@/features/clients/EventConfigurator2'
+import useStore from '@/stores/eventStore'
 
 const Configurator: NextPageWithLayout = () => {
     const router = useRouter();
+
+    const {
+        location,
+        setLocation,
+        eventConfiguration,
+        setEventConfiguration
+    } = useStore();
 
     const [locationId, setLocationId] = useState<number | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -23,6 +31,7 @@ const Configurator: NextPageWithLayout = () => {
                         await fetchLocationByCode(code, setIsLoading, setError);
                     if (location) {
                         setLocationId(location.id);
+                        setLocation(location);
                         return;
                     }
                     setLocationId(null);
@@ -68,7 +77,7 @@ const Configurator: NextPageWithLayout = () => {
 
     return (
         locationId &&
-        <EventConfigurator locationId={locationId} sx={{ height: '100%' }} />
+        <EventConfigurator2 locationId={locationId} sx={{ height: '100%' }} />
     );
 }
 

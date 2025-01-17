@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Select, MenuItem, SelectChangeEvent } from '@mui/material';
+import { Box, Select, MenuItem, SelectChangeEvent, Typography } from '@mui/material';
 
 interface Location {
     id: number;
@@ -22,7 +22,20 @@ const LocationsDropDown: React.FC<LocationSelectorProps> = ({
     };
 
     return (
-        <Box>
+        <Box
+            sx={{
+                display: 'flex',
+                flexDirection: 'row',
+                alignItems: 'center',
+            }}
+        >
+            <Typography
+                sx={{
+                    display: 'inline-block',
+                    whiteSpace: 'nowrap',
+                    mr: 1,
+                }}
+            >Location / Venue: </Typography>
             {partnerLocations && partnerLocations.length > 0 && (
                 <Select
                     value={locationId || ''}

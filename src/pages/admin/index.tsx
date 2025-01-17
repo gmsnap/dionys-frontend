@@ -1,18 +1,22 @@
 import { ReactElement, useEffect, useState } from 'react';
 import AdminLayout from '../../layouts/AdminLayout';
 import type { NextPageWithLayout } from '../../types/page';
-import { Box, Typography } from '@mui/material';
-import { SignUp } from '@/components/SignUp';
+import { Box, CircularProgress, List, ListItem, ListItemIcon, ListItemText, Typography } from '@mui/material';
 import { PartnerUserModel } from '@/models/PartnerUserModel';
-import { fetchCompanies, fetchCompanyById, fetchPartners } from '@/services/partnerService';
+import { fetchCompanies, fetchPartners } from '@/services/partnerService';
 import { PartnerCompanyModel } from '@/models/PartnerCompanyModel';
+import { Building, UserRound } from 'lucide-react';
+import theme from '@/theme';
 
 const AdminHome: NextPageWithLayout = () => {
     const [partners, setPartners] = useState<PartnerUserModel[] | null>(null);
     const [companies, setCompanies] = useState<PartnerCompanyModel[] | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        const fetchAllPartners = async () => {
+        setIsLoading(true);
+
+        const fetchAllPartnersAndCompanies = async () => {
             const response = await fetchPartners(null, null);
             if (!response || !response.response.ok) {
                 console.log(
@@ -21,21 +25,20 @@ const AdminHome: NextPageWithLayout = () => {
                 return;
             }
             setPartners(response.result);
-        }
 
-        const fetchAllCompanies = async () => {
-            const response = await fetchCompanies(null, null);
-            if (!response || !response.response.ok) {
+            const companies = await fetchCompanies(null, null);
+            if (!companies || !companies.response.ok) {
                 console.log(
-                    `Error ${response?.response.status}: ${response?.response.statusText}`
+                    `Error ${companies?.response.status}: ${companies?.response.statusText}`
                 );
                 return;
             }
-            setCompanies(response.result);
+            setCompanies(companies.result);
+
+            setIsLoading(false);
         }
 
-        fetchAllPartners();
-        fetchAllCompanies();
+        fetchAllPartnersAndCompanies();
     }, []);
 
     return (
@@ -57,42 +60,88 @@ const AdminHome: NextPageWithLayout = () => {
                     mt: 12,
                 }}
             >
-                {partners && (
-                    <Box sx={{ mb: 4, }}>
-                        <Typography variant='h6'>Partner-Users ({partners.length})</Typography>
-                        {
-                            partners.map((partner, index) => (
-                                <Typography key={index}>
-                                    {partner.givenName} {partner.familyName},{' '}
-                                    {partner.email},{' '}
-                                    {partner.companyId}
-                                </Typography>
-                            ))
-                        }
+                {isLoading ? (
+                    <Box sx={{ maxWidth: 600, mx: "auto", mt: 4, p: 2, textAlign: "center" }}>
+                        <CircularProgress color="secondary" />
+                        <Typography variant="h5" sx={{ mt: 2 }}>
+                            Loading Partners and Companies...
+                        </Typography>
                     </Box>
+                ) : (
+                    <>
+                        {partners && companies && (
+                            <Box sx={{ mb: 4 }}>
+                                <Typography variant="h6">Partner-Users ({partners.length})</Typography>
+                                <List>
+                                    {partners.map((partner, index) => {
+                                        const company = companies.find(
+                                            (c) => c.id === partner.companyId
+                                        );
+                                        return (
+                                            <ListItem
+                                                key={index}
+                                                disablePadding
+                                                sx={{
+                                                    ml: 2,
+                                                }}
+                                            >
+                                                <ListItemIcon>
+                                                    <UserRound />
+                                                </ListItemIcon>
+                                                <ListItemText
+                                                    primary={
+                                                        `${partner.givenName} ${partner.familyName}${company ? ` (${company.companyName})` : ''}`
+                                                    }
+                                                    primaryTypographyProps={{
+                                                        sx: {
+                                                            fontSize: { xs: '12px', sm: '16px' },
+                                                        },
+                                                    }}
+                                                    secondary={partner.email}
+                                                />
+                                            </ListItem>
+                                        );
+                                    })}
+                                </List>
+                            </Box>
+                        )}
+
+                        {companies && (
+                            <Box>
+                                <Typography variant="h6"
+                                >Companies ({companies.length})
+                                </Typography>
+
+                                <List>
+                                    {companies.map((c, i) => (
+                                        <ListItem
+                                            key={i}
+                                            disablePadding
+                                            sx={{
+                                                ml: 2,
+                                            }}
+                                        >
+                                            <ListItemIcon>
+                                                <Building />
+                                            </ListItemIcon>
+                                            <ListItemText
+                                                primary={`${c.companyName}`}
+                                                primaryTypographyProps={{
+                                                    sx: {
+                                                        fontSize: { xs: '12px', sm: '16px' },
+                                                    }
+                                                }}
+                                                secondary={`${c.companyRegistrationNumber} \u2022 ${c.companyTaxId} \u2022 ${c.contactEmail}`}
+                                            />
+                                        </ListItem>
+                                    ))}
+                                </List>
+
+                            </Box>
+                        )}
+                    </>
                 )}
 
-                {companies && (
-                    <Box>
-                        <Typography variant="h6">Companies ({companies.length})</Typography>
-                        {companies.map((c, i) =>
-                            c.companyName ? (
-                                <Typography key={i}>
-                                    {c.id},{' '}
-                                    {c.companyName},{' '}
-                                    {c.companyRegistrationNumber},{' '}
-                                    {c.companyTaxId},{' '}
-                                    {c.contactEmail}
-                                </Typography>
-                            ) : (
-                                <Typography key={i}>
-                                    {c.id},{' '}
-                                    [incomplete]
-                                </Typography>
-                            )
-                        )}
-                    </Box>
-                )}
             </Box>
             <Box
                 sx={{
@@ -112,7 +161,7 @@ const AdminHome: NextPageWithLayout = () => {
                     alt="Login Image"
                 />
             </Box>
-        </Box>
+        </Box >
     );
 };
 

@@ -17,8 +17,9 @@ import {
     FormHelperText,
     Tooltip,
     IconButton,
+    Link,
 } from "@mui/material";
-import { ClipboardCheck, Save } from "lucide-react";
+import { ClipboardCheck, Save, SquareArrowOutUpRight } from "lucide-react";
 import { CreateLocationResponse } from "@/types/geolocation";
 import { EventCategories } from "@/constants/EventCategories";
 import useStore from '@/stores/partnerStore';
@@ -30,6 +31,7 @@ import { formatEventCategoriesSync } from "@/utils/formatEventCategories";
 import ImmutableItemList from "./ImmutableItemList";
 import { Clipboard } from 'lucide-react';
 import { useAuthContext } from "@/auth/AuthContext";
+import theme from "@/theme";
 
 // Validation schema
 const locationValidationSchema = yup.object().shape({
@@ -519,7 +521,7 @@ const LocationForm = ({ locationId, locationCreated }: LocationFormProps) => {
             {idCode && domain &&
                 (<Box
                     sx={{
-                        mt: 4,
+                        mt: 5,
                         mb: 4,
                     }}
                 >
@@ -527,16 +529,33 @@ const LocationForm = ({ locationId, locationCreated }: LocationFormProps) => {
                         variant="h5"
                         sx={{
                             color: 'primary.main',
-                            lineHeight: 2,
-                        }}>Embed Code
+                            mb: 1,
+                        }}>
+                        Einbettung dieser Location
                     </Typography>
+
+                    <Link
+                        href={`https://dionys-embed-test.s3.eu-west-1.amazonaws.com/index.html?code=${idCode}`}
+                        target="_blank"
+                        variant="body2"
+                        sx={{
+                            fontSize: '14px',
+                            color: theme.palette.customColors.pink.dark,
+                        }}
+                    > {'Vorschau der Einbettung '}
+                        <SquareArrowOutUpRight
+                            size={16}
+                            color={theme.palette.customColors.pink.dark} />
+                    </Link>
+
                     <Typography variant="body2"
                         sx={{
                             color: 'primary.main',
-                            lineHeight: 2,
+                            mt: 2,
                         }}>
-
-                        Copy and paste the following code into your website to embed the configurator:
+                        Um Ihren Kunden die Möglichkeit zu bieten,
+                        eine Angebotsanfrage für diese Location über Ihre Website zu stellen,
+                        kopieren und fügen Sie den folgenden Code in Ihre Website ein:
                     </Typography>
                     <Box sx={{ position: 'relative', display: 'inline-block' }}>
                         <Tooltip title={copied ? 'Copied!' : 'Copy'}>

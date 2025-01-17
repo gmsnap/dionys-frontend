@@ -6,7 +6,11 @@ import {
     Typography,
     Button,
     TextField,
-    InputAdornment
+    InputAdornment,
+    FormControl,
+    InputLabel,
+    Select,
+    MenuItem
 } from '@mui/material';
 import { createEmptyRoomModel, RoomModel } from '@/models/RoomModel';
 import * as yup from 'yup';
@@ -17,6 +21,7 @@ import ImageUploadForm from '@/features/partners/ImageUploadForm';
 import DeleteButton from '@/components/DeleteButton';
 import EventCategoriesField from '@/features/partners/EventCategoriesField';
 import { useAuthContext } from '@/auth/AuthContext';
+import { fetchLocationsByCompanyId } from '@/services/locationService';
 
 // Validation schema
 const roomValidationSchema = yup.object().shape({
@@ -70,14 +75,16 @@ const labelWidth = 4;
 interface RoomFormProps {
     roomId: number;
     locationId: number | null;
+    companyId: number;
     roomCreated?: (id: number) => void;
     roomUpdated?: (id: number) => void;
     roomDeleted?: (id: number) => void;
 }
 
-const RoomForm = ({ 
+const RoomForm = ({
     roomId,
     locationId,
+    companyId,
     roomCreated,
     roomUpdated,
     roomDeleted
@@ -98,12 +105,14 @@ const RoomForm = ({
         watch,
         formState: { errors },
     } = useForm({
-        defaultValues: createEmptyRoomModel(1),
+        defaultValues: createEmptyRoomModel(0),
         resolver: yupResolver(roomValidationSchema),
     });
 
     const watchedModel = watch() as RoomModel;
     const [images, setImages] = useState<string[]>(watchedModel.images || []);
+
+    const [locations, setLocations] = useState<{ id: number; title: string }[]>([]);
 
     const handleImageUpload = async (image: string) => {
         if (!roomId) {
@@ -164,6 +173,23 @@ const RoomForm = ({
     };
 
     useEffect(() => {
+        // Fetch all locations
+        const loadLocations = async () => {
+            try {
+                const locationsData = await fetchLocationsByCompanyId(
+                    companyId,
+                    setLoading,
+                    setError);
+                setLocations(locationsData);
+            } catch (error) {
+                console.error('Error fetching locations', error);
+            }
+        };
+
+        loadLocations();
+    }, []);
+
+    useEffect(() => {
         if (watchedModel.images) {
             setImages(watchedModel.images);
         }
@@ -185,6 +211,7 @@ const RoomForm = ({
         const fetchRoomData = async () => {
             try {
                 setLoading(true);
+                setError(null);
                 const response = await fetch(`${roomsBaseUrl}/${roomId}`, {
                     headers: {
                         Authorization: `Bearer ${authUser.idToken}`,
@@ -213,7 +240,7 @@ const RoomForm = ({
                 // Set locationId in the form
                 setValue("locationId", locationId);
             } else {
-                setError('Ungültige Location-ID');
+                //setError('Ungültige Location-ID');
             }
 
             setLoading(false);
@@ -447,6 +474,41 @@ const RoomForm = ({
                                         />
                                     )}
                                 />
+                            </Grid2>
+                        </Grid2>
+
+                        <Grid2 size={{ sm: controlWidth }}>
+                            <Grid2 container alignItems="top">
+                                <Grid2 size={{ xs: labelWidth }}>
+                                    <Typography variant="label">Location</Typography>
+                                </Grid2>
+                                <Grid2 size={{ xs: 12, sm: 4 }}>
+                                    <Controller
+                                        name="locationId"
+                                        control={control}
+                                        render={({ field }) => (
+                                            <FormControl fullWidth error={!!errors.locationId}>
+                                                <Select
+                                                    {...field}
+                                                    labelId="location-select-label"
+                                                    id="location-select"
+                                                    label="Wählen Sie eine Location"
+                                                    value={field.value || ''}
+                                                    onChange={(e) => field.onChange(Number(e.target.value))}
+                                                >
+                                                    {locations.map((loc) => (
+                                                        <MenuItem key={loc.id} value={loc.id}>
+                                                            {loc.title}
+                                                        </MenuItem>
+                                                    ))}
+                                                </Select>
+                                                <Typography variant="caption" color="error">
+                                                    {errors.locationId?.message}
+                                                </Typography>
+                                            </FormControl>
+                                        )}
+                                    />
+                                </Grid2>
                             </Grid2>
                         </Grid2>
 

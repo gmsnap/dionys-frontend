@@ -32,17 +32,16 @@ const useStore = create<StoreState>()(
 
 export default useStore;
 
-export const createDefaultEventConfigurationModel = (locationId: number): EventConfigurationModel => {
-    return {
-        locationId: locationId,
-        roomId: 0,
-        room: null,
-        occasion: null,
-        persons: 50,
-        roomConfigurationId: 0,
-        rooms: null
-    };
-}
+export const createDefaultEventConfigurationModel = (locationId: number): EventConfigurationModel => ({
+    locationId: locationId,
+    roomId: null,
+    room: null,
+    occasion: null,
+    persons: 0,
+    date: Date.now(),
+    roomConfigurationId: null,
+    rooms: null,
+});
 
 export const createDefaultFilters = (): EventConfigurationFilters => {
     return {

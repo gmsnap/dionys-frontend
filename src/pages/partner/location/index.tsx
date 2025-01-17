@@ -17,15 +17,40 @@ const PartnerPage: NextPageWithLayout = () => {
         setIsLoggedIn(!!partnerUser);
     }, [partnerUser]);
 
+    if (!isLoggedIn) {
+        return (
+            <Typography variant="h6" textAlign="center">
+                Please log in to create a location.
+            </Typography>
+        );
+    }
+
+    if ((!partnerLocations || partnerLocations.length == 0) &&
+        locationId !== 0) {
+        return (
+            <Box sx={{
+                width: '100%',
+                mt: 10,
+            }}>
+                <Typography variant="h5" textAlign="center">
+                    Erstellen Sie Ihre  erste Location:
+                </Typography>
+                <LocationGrid
+                    selectHandler={setLocationId}
+                    sx={{ width: '100%', justifyContent: 'center' }} />
+            </Box>
+        );
+    }
+
     return (
         <Box>
-            {isLoggedIn ? (
-                <Box sx={{
-                    display: 'flex',
-                    flexDirection: 'row',
-                    justifyContent: 'left',
-                    alignItems: 'top'
-                }}>
+            <Box sx={{
+                display: 'flex',
+                flexDirection: 'row',
+                justifyContent: 'left',
+                alignItems: 'top'
+            }}>
+                {partnerLocations && partnerLocations?.length > 0 &&
                     <List sx={{
                         mr: { xs: 1, sm: 3 },
                         minWidth: { xs: '150px', sm: '200px', md: '250px' },
@@ -42,7 +67,7 @@ const PartnerPage: NextPageWithLayout = () => {
                                 />
                             </ListItemButton>
                         </ListItem>
-                        {partnerLocations && partnerLocations.map((location) => (
+                        {partnerLocations.map((location) => (
                             <ListItem
                                 key={location.id}
                                 disablePadding
@@ -65,21 +90,19 @@ const PartnerPage: NextPageWithLayout = () => {
                                 </ListItemButton>
                             </ListItem>
                         ))}
-                    </List>
-                    {locationId !== null ? (
-                        <CreateLocationForm
-                            locationId={locationId}
-                            locationCreated={setLocationId}
-                        />
-                    ) : (
-                        <LocationGrid selectHandler={setLocationId} />
-                    )}
-                </Box>
-            ) : (
-                <Typography variant="h6" textAlign="center">
-                    Please log in to create a location.
-                </Typography>
-            )}
+                    </List>}
+
+                {locationId !== null ? (
+                    <CreateLocationForm
+                        locationId={locationId}
+                        locationCreated={setLocationId}
+                    />
+                ) : (
+                    <LocationGrid
+                        selectHandler={setLocationId}
+                        sx={{ width: '100%', }} />
+                )}
+            </Box>
         </Box>
     );
 };

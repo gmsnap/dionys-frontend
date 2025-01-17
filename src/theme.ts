@@ -20,6 +20,7 @@ const customColors = {
     },
     textBackround: {
         halfdark: '#F5F5F5',
+        darker: '#E5E5E5',
     },
     gradient: {
         pink: 'linear-gradient(90deg, #DE33C4 0%, #781C6A 100%)',
