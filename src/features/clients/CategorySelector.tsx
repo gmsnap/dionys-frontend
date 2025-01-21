@@ -1,24 +1,31 @@
-import React, { useEffect, useState } from 'react';
-import { Box, SxProps, Theme } from '@mui/material';
+import React, { useEffect, useRef, useState } from 'react';
+import { Box, SxProps, Theme, Typography } from '@mui/material';
 import useStore from '@/stores/eventStore';
 import { AvailableEventCategories, EventCategories } from '@/constants/EventCategories';
 import router from 'next/router';
 import { formatEventCategoriesSync } from '@/utils/formatEventCategories';
+import { Frown } from 'lucide-react';
+import theme from '@/theme';
 
 interface CategorySelectorProps {
     stepCompleted: () => void,
     sx?: SxProps<Theme>;
 }
 
-const eventCategories: { name: EventCategories; image: string }[] =
-    AvailableEventCategories.map((category) => ({
-        name: category as EventCategories,
-        image: `/category-${category}.jpg`
-    }));
+interface CategoryItemProps {
+    name: string;
+    image: string;
+}
 
-const CategorySelector = ({ stepCompleted, sx }: CategorySelectorProps) => {
-    const { eventConfiguration, setEventConfiguration } = useStore();
+const CategorySelector = ({
+    stepCompleted,
+    sx
+}: CategorySelectorProps) => {
+    const { eventConfiguration, location, setEventConfiguration } = useStore();
     const [visible, setVisible] = useState(false);
+    const [eventCategories, setEventCategories] = useState<CategoryItemProps[] | null>(null);
+    const [isNarrow, setIsNarrow] = useState(true); // To toggle layout based on width
+    const containerRef = useRef<HTMLDivElement | null>(null); // Ref for parent container
 
     const handleSelectOccasion = (category: EventCategories): void => {
         if (eventConfiguration) {
@@ -27,73 +34,119 @@ const CategorySelector = ({ stepCompleted, sx }: CategorySelectorProps) => {
                 occasion: category,
             });
         }
-
         stepCompleted?.();
     };
 
     useEffect(() => {
-        setVisible(true); // Trigger fade-in by setting opacity to 1
+        if (!eventCategories) {
+            return;
+        }
+        setVisible(true);
+    }, [eventCategories]);
+
+    useEffect(() => {
+        if (!location?.eventCategories) {
+            return;
+        }
+        const cat = location.eventCategories.map((category) => ({
+            name: category as EventCategories,
+            image: `/category-${category}.jpg`
+        }));
+        setEventCategories(cat);
+    }, [location]);
+
+    useEffect(() => {
+        const resizeObserver = new ResizeObserver((entries) => {
+            for (const entry of entries) {
+                // Toggle `isNarrow` based on the container's width
+                setIsNarrow(entry.contentRect.width < 600); // Layout threshold
+            }
+        });
+
+        if (containerRef.current) {
+            resizeObserver.observe(containerRef.current);
+        }
+
+        return () => {
+            resizeObserver.disconnect();
+        };
     }, []);
 
     return (
         <Box
+            ref={containerRef} // Attach ref to track width changes
             sx={{
                 display: 'flex',
-                flexDirection: { xs: 'column', sm: 'row' }, // Vertical on small, horizontal on larger screens
-                gap: 2, // Spacing between items
+                flexDirection: isNarrow ? 'column' : 'row', // Layout adjusts based on observed width
+                gap: 2,
                 height: '100%',
-                overflowY: { xs: 'auto', sm: 'hidden' }, // Enable scrolling for vertical layout
+                overflowY: isNarrow ? 'auto' : 'hidden',
                 ...sx,
             }}
         >
-            {eventCategories.map((category, index) => (
+            {eventCategories && eventCategories.length > 0 ? (
+                eventCategories.map((category, index) => (
+                    <Box
+                        key={index}
+                        sx={{
+                            flex: isNarrow ? '0 0 auto' : 1,
+                            minWidth: isNarrow ? '100%' : '20%',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            position: 'relative',
+                        }}
+                    >
+                        {/* Category Image */}
+                        <Box
+                            component="img"
+                            draggable={false}
+                            src={category.image}
+                            alt={category.name}
+                            sx={{
+                                width: '100%',
+                                height: '250px',
+                                objectFit: 'cover',
+                                borderRadius: '8px',
+                                pointerEvents: 'none',
+                            }}
+                        />
+                        {/* Text Overlay */}
+                        <Box
+                            onClick={() => handleSelectOccasion(category.name as EventCategories)}
+                            sx={{
+                                position: 'absolute',
+                                top: '50%',
+                                left: '50%',
+                                transform: 'translate(-50%, -50%)',
+                                color: 'white',
+                                fontSize: '16px',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                                padding: '16px 32px',
+                                borderRadius: '4px',
+                                textAlign: 'center',
+                            }}
+                        >
+                            {formatEventCategoriesSync([category.name as EventCategories])}
+                        </Box>
+                    </Box>
+                ))
+            ) : (
                 <Box
-                    key={index}
                     sx={{
-                        flex: { xs: '0 0 auto', sm: 1 }, // Allow scrollable on small screens; evenly distribute on large screens
-                        minWidth: { xs: '100%', sm: '20%' }, // Full width for small screens; flexible for larger
                         display: 'flex',
                         flexDirection: 'column',
                         alignItems: 'center',
-                        position: 'relative',
                     }}
                 >
-                    {/* Category Image */}
-                    <Box
-                        component="img"
-                        draggable={false}
-                        src={category.image}
-                        alt={category.name}
-                        sx={{
-                            width: '100%',
-                            height: '250px',
-                            objectFit: 'cover',
-                            borderRadius: '8px',
-                            pointerEvents: 'none',
-                        }}
-                    />
-                    {/* Text Overlay */}
-                    <Box
-                        onClick={() => handleSelectOccasion(category.name)}
-                        sx={{
-                            position: 'absolute',
-                            top: '50%',
-                            left: '50%',
-                            transform: 'translate(-50%, -50%)',
-                            color: 'white',
-                            fontSize: '16px',
-                            fontWeight: 600,
-                            cursor: 'pointer',
-                            backgroundColor: 'rgba(0, 0, 0, 0.6)',
-                            padding: '16px 32px',
-                            borderRadius: '4px',
-                            textAlign: 'center',
-                        }}
-                    >
-                        {formatEventCategoriesSync([category.name as EventCategories])}
-                    </Box>
+                    <Typography variant="h3" sx={{ mt: 8, mb: 2 }}>
+                        Keine Event-Typen verfügbar
+                    </Typography>
+                    <Frown size={32} color={theme.palette.customColors.pink.dark} />
                 </Box>
-            ))}
+            )}
         </Box>
     );
 };

@@ -10,9 +10,7 @@ const Configurator: NextPageWithLayout = () => {
     const router = useRouter();
 
     const {
-        location,
         setLocation,
-        eventConfiguration,
         setEventConfiguration
     } = useStore();
 
@@ -22,6 +20,9 @@ const Configurator: NextPageWithLayout = () => {
 
     useEffect(() => {
         if (router.isReady) {
+            // Reset configuration
+            setEventConfiguration(null);
+
             const code = router.query.code as string;
             if (!code) {
                 setLocationId(null);
@@ -31,7 +32,7 @@ const Configurator: NextPageWithLayout = () => {
                         await fetchLocationByCode(code, setIsLoading, setError);
                     if (location) {
                         setLocationId(location.id);
-                        setLocation(location);
+                        setLocation(location); 
                         return;
                     }
                     setLocationId(null);

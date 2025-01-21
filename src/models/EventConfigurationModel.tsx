@@ -35,7 +35,18 @@ export const EventConfValidationSchema = yup.object().shape({
     date: yup
         .number()
         .nullable()
-        .required('Datum ist erforderlich'),
+        .required('Datum ist erforderlich')
+        .typeError('Das Datum muss ein gültiger Zeitstempel sein')
+        .test(
+            'is-future-date',
+            'Das Datum muss in der Zukunft liegen',
+            (value) => {
+                if (value == null) return true;
+                const today = new Date().setHours(0, 0, 0, 0);
+                const inputDate = new Date(value).setHours(0, 0, 0, 0);
+                return inputDate > today;
+            }
+        ),
     roomConfigurationId: yup
         .number()
         .nullable(),

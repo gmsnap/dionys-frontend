@@ -7,13 +7,20 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { EventCategories } from '@/constants/EventCategories';
 import DateField from './DateField';
 import { EventConfigurationModel, EventConfValidationSchema } from '@/models/EventConfigurationModel';
+import TimeField from './TimeField';
+import dayjs from 'dayjs';
+import ProposalBackButton from './ProposalBackButton';
 
 interface EventConfiguratorStepProps {
+    previousStep: () => void,
     stepCompleted: () => void,
     sx?: SxProps<Theme>;
 }
 
-const GeneralSelector = ({ stepCompleted, sx }: EventConfiguratorStepProps) => {
+const GeneralSelector = ({
+    previousStep,
+    stepCompleted,
+    sx }: EventConfiguratorStepProps) => {
     const { location, eventConfiguration, setEventConfiguration } = useStore();
 
     const {
@@ -28,7 +35,28 @@ const GeneralSelector = ({ stepCompleted, sx }: EventConfiguratorStepProps) => {
         resolver: yupResolver<any>(EventConfValidationSchema),
     });
 
-    const onSubmit = async (data: any) => {
+    const combineDateAndTime = (date: number, time: number) => {
+        const dateObj = dayjs(date); // Dayjs object for date
+        const timeObj = dayjs(time); // Dayjs object for time
+
+        // Combine date and time parts
+        return dateObj
+            .hour(timeObj.hour())
+            .minute(timeObj.minute())
+            .second(0)
+            .millisecond(0)
+            .valueOf(); // Return combined timestamp
+    };
+
+    const onSubmit = async (data: EventConfigurationModel) => {
+        if (eventConfiguration) {
+            const selectedDate = new Date(data.date || 0);
+            setEventConfiguration({
+                ...eventConfiguration,
+                ...data,
+                date: selectedDate.getTime(), // Ensure final timestamp is correct
+            });
+        }
         stepCompleted?.();
     };
 
@@ -54,103 +82,118 @@ const GeneralSelector = ({ stepCompleted, sx }: EventConfiguratorStepProps) => {
     const labelWidth = 4;
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)}>
-            <Box sx={{
-                display: "flex",
-                flexDirection: "column",
-                gap: 2,
-            }}>
-                {/* Title */}
-                <Grid2 size={{ sm: controlWidth }}>
-                    <Grid2 container alignItems="top">
-                        <Grid2 size={{ sm: labelWidth }}>
-                            <Typography variant="label">Anzahl Teilnehmer</Typography>
-                        </Grid2>
-                        <Grid2 size={{ xs: 12, sm: 4 }}>
-                            <Controller
-                                name="persons"
-                                control={control}
-                                render={({ field }) => (
-                                    <TextField
-                                        {...field}
-                                        fullWidth
-                                        variant="outlined"
-                                        error={!!errors.persons}
-                                        helperText={errors.persons?.message}
-                                    />
-                                )}
-                            />
-                        </Grid2>
-                    </Grid2>
-                </Grid2>
-
-                {/* Date */}
-                <Grid2 size={{ sm: controlWidth }}>
-                    <DateField control={control} errors={errors} labelWidth={2} />
-                </Grid2>
-
-                {/* Event Category */}
-                <Grid2 size={{ sm: controlWidth }}>
-                    <Grid2 container alignItems="top">
-                        <Grid2 size={{ sm: labelWidth }}>
-                            <Typography variant="label">Event Type</Typography>
-                        </Grid2>
-                        <Grid2 size={{ xs: 12, sm: 4 }}>
-                            <Controller
-                                name="occasion"
-                                control={control}
-                                render={({ field }) => (
-                                    <TextField
-                                        {...field}
-                                        fullWidth
-                                        variant="outlined"
-                                        error={!!errors.occasion}
-                                        helperText={errors.occasion?.message}
-                                        // Display the translated text
-                                        value={field.value
-                                            ? formatEventCategoriesSync([field.value as EventCategories])
-                                            : ''}
-                                        // Maintain the original field value
-                                        onChange={(event) => {
-                                            const value = event.target.value;
-                                            field.onChange(value); // Store the raw field value
-                                        }}
-                                        // Disable editing if this is a read-only display field
-                                        slotProps={{
-                                            input: {
-                                                readOnly: true,
-                                            },
-                                        }}
-                                    />
-                                )}
-                            />
+        <Box sx={{
+            width: '100%',
+        }}>
+            <form onSubmit={handleSubmit(onSubmit)}>
+                <Box sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 2,
+                }}>
+                    {/* Title */}
+                    <Grid2 size={{ sm: controlWidth }}>
+                        <Grid2 container alignItems="top">
+                            <Grid2 size={{ sm: labelWidth }}>
+                                <Typography variant="label">Anzahl Teilnehmer</Typography>
+                            </Grid2>
+                            <Grid2 size={{ xs: 12, sm: 4 }}>
+                                <Controller
+                                    name="persons"
+                                    control={control}
+                                    render={({ field }) => (
+                                        <TextField
+                                            {...field}
+                                            fullWidth
+                                            variant="outlined"
+                                            error={!!errors.persons}
+                                            helperText={errors.persons?.message}
+                                        />
+                                    )}
+                                />
+                            </Grid2>
                         </Grid2>
                     </Grid2>
-                </Grid2>
 
-                {/* Submit */}
-                <Grid2
-                    size={{ xs: controlWidth }}
-                    display={'flex'}
-                    gap={2}
-                    sx={{ xs: 12, mt: 2 }}
-                >
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        type="submit"
+                    {/* Date */}
+                    <Grid2 size={{ sm: controlWidth }}>
+                        <DateField control={control} errors={errors} labelWidth={labelWidth} />
+                    </Grid2>
+
+                    {/* Time */}
+                    <Grid2 size={{ sm: controlWidth }}>
+                        <TimeField control={control} errors={errors} labelWidth={labelWidth} />
+                    </Grid2>
+
+                    {/* Event Category */}
+                    <Grid2 size={{ sm: controlWidth }}>
+                        <Grid2 container alignItems="top">
+                            <Grid2 size={{ sm: labelWidth }}>
+                                <Typography variant="label">Event Type</Typography>
+                            </Grid2>
+                            <Grid2 size={{ xs: 12, sm: 4 }}>
+                                <Controller
+                                    name="occasion"
+                                    control={control}
+                                    render={({ field }) => (
+                                        <TextField
+                                            {...field}
+                                            fullWidth
+                                            variant="outlined"
+                                            error={!!errors.occasion}
+                                            helperText={errors.occasion?.message}
+                                            // Display the translated text
+                                            value={field.value
+                                                ? formatEventCategoriesSync([field.value as EventCategories])
+                                                : ''}
+                                            // Maintain the original field value
+                                            onChange={(event) => {
+                                                const value = event.target.value;
+                                                field.onChange(value); // Store the raw field value
+                                            }}
+                                            // Disable editing if this is a read-only display field
+                                            slotProps={{
+                                                input: {
+                                                    readOnly: true,
+                                                },
+                                            }}
+                                        />
+                                    )}
+                                />
+                            </Grid2>
+                        </Grid2>
+                    </Grid2>
+
+                    {/* Submit */}
+                    <Grid2
+                        size={{ xs: controlWidth }}
+                        display={'flex'}
+                        gap={2}
                         sx={{
-                            width: '100%',
+                            xs: 12,
                             mt: 2,
-                            mb: 2,
+                            pt: 1,
+                            pr: 2,
+                            pb: 1,
+                            pl: 2,
                         }}
                     >
-                        Weiter
-                    </Button>
-                </Grid2>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            type="submit"
+                            sx={{
+                                width: '100%',
+                            }}
+                        >
+                            Weiter
+                        </Button>
+                    </Grid2>
 
-            </Box>
-        </form >
+                </Box>
+            </form>
+            <ProposalBackButton previousStep={previousStep} />
+        </Box>
     );
 }
 

@@ -4,18 +4,32 @@ import useStore, { createDefaultEventConfigurationModel } from '@/stores/eventSt
 import theme from '@/theme';
 import CategorySelector from './CategorySelector';
 import GeneralSelector from './GeneralSelector';
+import VenueSelector from './VenueSelector';
+import CateringSelector from './CateringSelector';
+import PackageSelector from './PackageSelector';
+import PersonalDataSelector from './PersonalDataSelector';
+import ProposalSummary from './ProposalSummary';
 
 interface EventConfiguratorProps {
     locationId: number;
     sx?: SxProps<Theme>;
 }
 
+/* 
+ * Proposal Generator Component
+*/
 const EventConfigurator2 = ({ locationId, sx, }: EventConfiguratorProps) => {
     const { location, eventConfiguration, setEventConfiguration } = useStore();
     const [selectedIndex, setSelectedIndex] = useState(0);
 
     const handleNavClick = (index: number) => {
-        setSelectedIndex(index);
+        if (index <= selectedIndex) {
+            setSelectedIndex(index);
+        }
+    };
+
+    const prevStep = () => {
+        setSelectedIndex(selectedIndex - 1);
     };
 
     const nextStep = () => {
@@ -29,12 +43,40 @@ const EventConfigurator2 = ({ locationId, sx, }: EventConfiguratorProps) => {
         },
         {
             label: 'Allgemeines', id: 'general',
-            control: <GeneralSelector stepCompleted={nextStep} />
+            control: <GeneralSelector
+                previousStep={prevStep}
+                stepCompleted={nextStep} />
         },
-        { label: 'Venue', id: 'venue', control: <Typography>Venue</Typography> },
-        { label: 'Catering', id: 'catering', control: <Typography>Catering</Typography> },
-        { label: 'Packages', id: 'packages', control: <Typography>Packages</Typography> },
-        { label: 'Summary', id: 'summary', control: <Typography>Summary</Typography> },
+        {
+            label: 'Venue', id: 'venue',
+            control: <VenueSelector
+                previousStep={prevStep}
+                stepCompleted={nextStep} />
+        },
+        {
+            label: 'Catering', id: 'catering',
+            control: <CateringSelector
+                previousStep={prevStep}
+                stepCompleted={nextStep} />
+        },
+        {
+            label: 'Packages', id: 'packages',
+            control: <PackageSelector
+                previousStep={prevStep}
+                stepCompleted={nextStep} />
+        },
+        {
+            label: 'PersonalData', id: 'summary',
+            control: <PersonalDataSelector
+                previousStep={prevStep}
+                stepCompleted={nextStep} />
+        },
+        {
+            label: 'Summary', id: 'summary',
+            control: <ProposalSummary
+                previousStep={prevStep}
+                proposalSent={prevStep} />
+        },
     ];
 
     useEffect(() => {
@@ -84,11 +126,17 @@ const EventConfigurator2 = ({ locationId, sx, }: EventConfiguratorProps) => {
                     alignItems: 'center',
                     textAlign: 'center',
                     gap: 1,
-                    pt: 2, pr: 8, pb: 2, pl: 8,
+                    pt: 2, pr: 8, pb: 0, pl: 8,
                 }}
             >
-                <Typography variant='h4'>Create my event</Typography>
-                <Typography variant='body1'>Select your event and receive a proposal in 2 minutes</Typography>
+                <Typography variant='h4' sx={{ fontSize: '26px', fontWeight: 700 }}>
+                    {selectedIndex == navItems.length - 1
+                        ? 'Your Summary'
+                        : 'Create my event'}
+                </Typography>
+                <Typography variant='body1' sx={{ fontSize: '12px' }}>
+                    Select your event and receive a proposal in 2 minutes
+                </Typography>
             </Box>
 
             {/* Navigation Bar */}
@@ -135,10 +183,13 @@ const EventConfigurator2 = ({ locationId, sx, }: EventConfiguratorProps) => {
                 sx={{
                     display: 'flex',
                     justifyContent: 'center',
-                    alignItems: 'center',
+                    alignItems: 'top',
+                    width: { xs: '100%', sm: '80%', md: '500px' },
                     height: 'calc(100% - 200px)',
                     border: '1px solid #ddd',
                     overflow: 'auto',
+                    margin: '0 auto',
+                    pt: 4,
                 }}
             >
                 {navItems[selectedIndex].control}

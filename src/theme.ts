@@ -266,6 +266,25 @@ const theme = createTheme({
                 },
             },
         },
+        MuiSwitch: {
+            styleOverrides: {
+                switchBase: {
+                    '&.Mui-checked': {
+                        // Ensure the thumb stays white when active
+                        color: '#fff',
+                        // Pink bar when checked
+                        '& + .MuiSwitch-track': {
+                            opacity: 1,
+                            backgroundColor: customColors.pink.dark,
+                        },
+                    },
+                },
+                track: {
+                    // Default gray track when unchecked
+                    backgroundColor: '#AAAAAA',
+                },
+            },
+        },
     },
 });
 

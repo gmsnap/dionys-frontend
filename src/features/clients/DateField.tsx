@@ -26,11 +26,18 @@ const DateField: React.FC<DateFieldProps> = ({ control, errors, labelWidth }) =>
                         render={({ field: { onChange, value, ...restField } }) => (
                             <DatePicker
                                 {...restField}
-                                value={value ? dayjs(new Date(value)) : null}
+                                value={value ? dayjs(value) : null} // Convert timestamp to dayjs
                                 format="D.M.YYYY"
+                                onChange={(newValue) => {
+                                    // Update with the timestamp in milliseconds
+                                    if (newValue) {
+                                        onChange(newValue.valueOf()); // Use valueOf() to get timestamp
+                                    } else {
+                                        onChange(null); // Handle null case
+                                    }
+                                }}
                                 slotProps={{
                                     textField: {
-                                        fullWidth: true,
                                         variant: "outlined",
                                         error: !!errors.date,
                                         helperText: errors.date?.message,

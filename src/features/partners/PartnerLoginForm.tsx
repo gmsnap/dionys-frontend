@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Alert, Box, Button, Link, TextField, Typography } from "@mui/material";
+import { Alert, Box, Button, CircularProgress, Link, TextField, Typography } from "@mui/material";
 import useStore from '@/stores/partnerStore';
 import { useAuthContext } from '@/auth/AuthContext';
 import ConfirmSignup from "../admins/ConfirmSignup";
@@ -95,6 +95,7 @@ const PartnerLoginForm: React.FC = ({ }) => {
                 }
             }
 
+            setIsLoading(true);
             fetchUserData();
             return;
         }
@@ -109,7 +110,28 @@ const PartnerLoginForm: React.FC = ({ }) => {
                     <Typography variant="h3">
                         {authUser.givenName} {authUser.familyName}
                     </Typography>
-                    <Typography variant="h5">{partnerUser?.company?.companyName ?? "-"}</Typography>
+                    <Typography variant="h5">{partnerUser?.company?.companyName ?? ""}</Typography>
+                    {!(partnerUser?.company?.companyName) && (
+                        <>
+                            {
+                                isLoading ? (
+                                    <Box sx={{ width: '100%' }}>
+                                        <CircularProgress size={16} color="secondary" />
+                                    </Box>
+                                ) : (
+                                    <Typography variant="body2" sx={{
+                                        fontSize: '16px',
+                                        fontWeight: 700,
+                                        color: theme.palette.customColors.pink.dark,
+                                        mt: 2,
+                                        mb: 2,
+                                    }}>
+                                        Bitte vervollständigen Sie das Profil Ihres Unternehmens.
+                                    </Typography>
+                                )
+                            }
+                        </>
+                    )}
                     <Button
                         variant="contained"
                         color="primary"
