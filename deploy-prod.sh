@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # Variables
-BUCKET_NAME="dionys-frontend-ppl"
-DISTRIBUTION_ID="E2MWRU0094HI44"
+BUCKET_NAME="dionys-frontend-prod"
+DISTRIBUTION_ID="E2K02Z3E8B4HCJ"
 BUILD_FOLDER="out"
-AWS_PROFILE="digital-events-ppl-dev-frontend"
+AWS_PROFILE="dionys-prod-full"
 
 # Run the build command
 echo "Running npm build..."

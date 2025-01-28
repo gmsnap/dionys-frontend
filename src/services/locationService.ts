@@ -1,5 +1,5 @@
 
-import { useAuthContext } from '@/auth/AuthContext';
+import { LocationModel } from '@/models/LocationModel';
 import useStore from '@/stores/partnerStore';
 import { makeAuthHeader } from '@/utils/apiHelper';
 import { useEffect } from 'react';
@@ -9,6 +9,7 @@ export const allLocationsUrl = `${locationsBaseUrl}?include=eventCategories`;
 
 export const fetchLocationById = async (
     id: number,
+    withBillingAddress: boolean,
     setIsLoading: ((loading: boolean) => void) | null,
     setError: ((error: string | null) => void) | null,
     idToken?: string
@@ -18,8 +19,14 @@ export const fetchLocationById = async (
             setIsLoading(true);
         }
 
+        let url = `${locationsBaseUrl}/${id}?include=eventCategories`;
+
+        if (withBillingAddress) {
+            url += `,billingAddress`;
+        }
+
         const response = await fetch(
-            `${locationsBaseUrl}/${id}?include=eventCategories`,
+            url,
             makeAuthHeader(idToken)
         );
 
@@ -55,7 +62,7 @@ export const fetchLocationsByCompanyId = async (
         }
         const response =
             includeCategories ?
-                await fetch(`${locationsBaseUrl}/company/${companyId}?include=eventCategories`) :
+                await fetch(`${locationsBaseUrl}/company/${companyId}?include=eventCategories,rooms`) :
                 await fetch(`${locationsBaseUrl}/company/${companyId}`);
         if (!response.ok) {
             throw new Error(`Error: ${response.status} ${response.statusText}`);
@@ -192,4 +199,14 @@ export const handleDeleteLocation = async (
     } catch (error) {
         console.error('Error deleting location:', error);
     }
+};
+
+export const getAggregatedRoomPrices = (location: LocationModel) => {
+    if (!location.rooms || location.rooms.length === 0) {
+        return 0;
+    }
+
+    return location.rooms.reduce((minPrice, room) => {
+        return room.price < minPrice ? room.price : minPrice;
+    }, Number.MAX_VALUE);
 };

@@ -36,7 +36,10 @@ const PartnerSettings: React.FC = () => {
 
     return (
         <PartnerContentLayout title={"Allgemeine Einstellungen"}>
-            <Box display="flex" height="100%">
+            <Box sx={{
+                display: 'flex',
+                flexDirection: 'row',
+            }}>
                 {/* Left Menu */}
                 <List
                     sx={{
@@ -74,8 +77,10 @@ const PartnerSettings: React.FC = () => {
                 <Box
                     flex="1"
                     sx={{
-                        mt: 4,
+                        mt: 2,
                         ml: 8,
+                        maxHeight: 'calc(100vh - 400px)',
+                        overflowY: 'auto', // Enable vertical scrolling
                     }}
                 >
                     {content[selectedItem]}

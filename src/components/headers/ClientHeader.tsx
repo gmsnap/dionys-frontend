@@ -41,7 +41,7 @@ const Header: FC<HeaderProps> = ({ transparentHeader = false }) => {
     const handleConfiguratorClick = (locationId: number | null) => {
         /*if (locationId) {
             if (eventConfiguration?.occasion) {
-                router.push(`/configurator/${locationId}`);
+                router.push(`/configurator/?id=${locationId}`);
                 return;
             }
         }*/

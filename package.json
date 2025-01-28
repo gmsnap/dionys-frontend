@@ -3,8 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "clean": "rm -rf .next",
     "dev": "next dev",
-    "build": "NODE_ENV=production next build",
+    "build": "NODE_ENV=production npm run clean && next build",
+    "build-dev": "NODE_ENV=development npm run clean && next build",
     "start": "next start",
     "lint": "next lint"
   },

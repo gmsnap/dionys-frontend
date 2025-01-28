@@ -1,37 +1,38 @@
 import React, { } from 'react';
 import { Box, SxProps, Theme, Grid2, Button } from '@mui/material';
 import GridItem from '@/components/GridItem';
-import { formatPrice } from '@/utils/formatPrice';
+import { formatPrice, translatePrice } from '@/utils/formatPrice';
 import { Pencil, User, X } from 'lucide-react';
 import GridAddItem from '@/components/GridAddItem';
-import { RoomModel } from '@/models/RoomModel';
-import { handleDeleteRoom } from '@/services/roomService';
+import { EventPackageModel } from '@/models/EventPackageModel';
+import { PriceTypes } from '@/constants/PriceTypes';
+import { handleDeleteEventPackage } from '@/services/eventPackageService';
 
-interface RoomGridProps {
+interface EventPackageGridProps {
     sx?: SxProps<Theme>;
-    rooms: RoomModel[];
+    eventPackages: EventPackageModel[];
     addButton: boolean;
     selectHandler?: (id: number) => void;
-    roomsChanged?: () => void;
+    eventPackagesChanged?: () => void;
 }
 
-const RoomGrid = ({ sx, rooms, addButton = true, selectHandler, roomsChanged }: RoomGridProps) => {
+const EventPackageGrid = ({ sx, eventPackages, addButton = true, selectHandler, eventPackagesChanged }: EventPackageGridProps) => {
     return (
         <Grid2 container spacing={5} alignItems="stretch" sx={{ ...sx }}>
-            {rooms.map((room) => (
-                <Grid2 key={room.id} size={{ xs: 12, sm: 6, md: 4, lg: 4, xl: 3 }}>
+            {eventPackages.map((p) => (
+                <Grid2 key={p.id} size={{ xs: 12, sm: 6, md: 4, lg: 4, xl: 3 }}>
                     <GridItem
-                        id={room.id}
-                        image={room.images[0]}
-                        title={room.name}
-                        priceTag={`${formatPrice(room.price)} / Tag`}
+                        id={p.id}
+                        image={p.images[0]}
+                        title={p.title}
+                        priceTag={`${formatPrice(p.price)} ${translatePrice(p.priceType as PriceTypes)}`}
                         listItems={[{
                             icon: <User />,
-                            label: `${room.minPersons}-${room.maxPersons}`
+                            label: `${p.minPersons}-${p.maxPersons}`
                         }]}
                         buttons={[
                             <Button
-                                key={`${room.id}-1`}
+                                key={`${p.id}-1`}
                                 variant="outlined"
                                 color="primary"
                                 sx={{
@@ -49,7 +50,7 @@ const RoomGrid = ({ sx, rooms, addButton = true, selectHandler, roomsChanged }: 
                                     },
                                     lineHeight: 0,
                                 }}
-                                onClick={() => { selectHandler?.(room.id); }}
+                                onClick={() => { selectHandler?.(p.id); }}
                             >
                                 Edit
                                 <Box
@@ -59,7 +60,7 @@ const RoomGrid = ({ sx, rooms, addButton = true, selectHandler, roomsChanged }: 
                                 </Box>
                             </Button>,
                             <Button
-                                key={`${room.id}-2`}
+                                key={`${p.id}-2`}
                                 variant="outlined"
                                 sx={{
                                     flex: 1,
@@ -79,7 +80,7 @@ const RoomGrid = ({ sx, rooms, addButton = true, selectHandler, roomsChanged }: 
                                     lineHeight: 0,
                                 }}
                                 onClick={
-                                    () => handleDeleteRoom(room.id, () => roomsChanged?.())
+                                    () => handleDeleteEventPackage(p.id, () => eventPackagesChanged?.())
                                 }
                             >
                                 Delete
@@ -105,4 +106,4 @@ const RoomGrid = ({ sx, rooms, addButton = true, selectHandler, roomsChanged }: 
     );
 };
 
-export default RoomGrid;
+export default EventPackageGrid;

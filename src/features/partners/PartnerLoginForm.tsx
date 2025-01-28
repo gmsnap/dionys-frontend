@@ -7,16 +7,20 @@ import { useAuthContext } from '@/auth/AuthContext';
 import ConfirmSignup from "../admins/ConfirmSignup";
 import { useSetLocationByCurrentPartner } from "@/services/locationService";
 import theme from "@/theme";
+import { useHeaderContext } from "@/components/headers/PartnerHeaderContext";
 
 const baseUrl = process.env.NEXT_PUBLIC_API_URL;
 
 const PartnerLoginForm: React.FC = ({ }) => {
     const { authUser, login, logout } = useAuthContext();
+    const { setIsOverlayOpen } = useHeaderContext();
+
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [confirmForm, setConfirmForm] = useState(false);
     const [error, setError] = useState("");
+
     const { partnerUser, setPartnerUser } = useStore();
 
     useSetLocationByCurrentPartner();
@@ -104,14 +108,14 @@ const PartnerLoginForm: React.FC = ({ }) => {
     }, [authUser]);
 
     return (
-        <Box sx={{ textAlign: "center", p: 4 }}>
+        <Box sx={{ textAlign: "center", p: { xs: 2, md: 4 } }}>
             {authUser ? (
                 <>
                     <Typography variant="h3">
                         {authUser.givenName} {authUser.familyName}
                     </Typography>
                     <Typography variant="h5">{partnerUser?.company?.companyName ?? ""}</Typography>
-                    {!(partnerUser?.company?.companyName) && (
+                    {!(partnerUser?.company?.companyName && partnerUser?.company?.address?.streetAddress) && (
                         <>
                             {
                                 isLoading ? (
@@ -120,13 +124,28 @@ const PartnerLoginForm: React.FC = ({ }) => {
                                     </Box>
                                 ) : (
                                     <Typography variant="body2" sx={{
+                                        display: 'flex',
+                                        flexDirection: { xs: 'column', sm: 'row' },
+                                        justifyContent: 'center',
                                         fontSize: '16px',
                                         fontWeight: 700,
+                                        overflow: 'hidden',
+                                        whiteSpace: 'nowrap',
                                         color: theme.palette.customColors.pink.dark,
                                         mt: 2,
                                         mb: 2,
                                     }}>
-                                        Bitte vervollständigen Sie das Profil Ihres Unternehmens.
+                                        Bitte vervollständigen Sie das&nbsp;
+                                        <Link
+                                            component="button"
+                                            onClick={() => setIsOverlayOpen(true)}
+                                            sx={{
+                                                fontWeight: 'bold',
+                                                color: theme.palette.customColors.pink.dark
+                                            }}
+                                        >
+                                            {' '}Profil Ihres Unternehmens.
+                                        </Link>
                                     </Typography>
                                 )
                             }

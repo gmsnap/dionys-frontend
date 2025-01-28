@@ -237,8 +237,26 @@ const theme = createTheme({
                             paddingBottom: 8,
                         },
                     },
+                    // Slim scrollbar styling for multiline inputs
+                    '& .MuiInputBase-multiline': {
+                        '&::-webkit-scrollbar': {
+                            width: '6px', // Slim scrollbar width
+                        },
+                        '&::-webkit-scrollbar-track': {
+                            backgroundColor: '#f5f5f5', // Scrollbar track color
+                        },
+                        '&::-webkit-scrollbar-thumb': {
+                            backgroundColor: '#888', // Scrollbar thumb color
+                            borderRadius: '4px', // Rounded scrollbar
+                        },
+                        '&::-webkit-scrollbar-thumb:hover': {
+                            backgroundColor: '#555', // Hover effect on scrollbar
+                        },
+                        scrollbarWidth: 'thin', // Firefox slim scrollbar
+                        scrollbarColor: '#888 #f5f5f5', // Firefox thumb and track colors
+                    },
                 },
-            },
+            }, 
         },
         MuiSelect: {
             styleOverrides: {

@@ -8,88 +8,45 @@ import {
     TextField,
     InputAdornment,
     FormControl,
-    InputLabel,
     Select,
     MenuItem
 } from '@mui/material';
-import { createEmptyRoomModel, RoomModel } from '@/models/RoomModel';
-import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Save } from 'lucide-react';
-import { roomsBaseUrl, handleDeleteRoom } from '@/services/roomService';
 import ImageUploadForm from '@/features/partners/ImageUploadForm';
 import DeleteButton from '@/components/DeleteButton';
 import EventCategoriesField from '@/features/partners/EventCategoriesField';
 import { useAuthContext } from '@/auth/AuthContext';
 import { fetchLocationsByCompanyId } from '@/services/locationService';
+import {
+    createEmptyEventPackageModel,
+    EventPackageModel,
+    EventPackageValidationSchema
+} from '@/models/EventPackageModel';
+import { handleDeleteEventPackage, partnerPackagesBaseUrl } from '@/services/eventPackageService';
 import PriceInput from '@/components/PriceInput';
-
-// Validation schema
-const roomValidationSchema = yup.object().shape({
-    locationId: yup
-        .number()
-        .required('Location ist erforderlich')
-        .positive('Wählen Sie eine gültige Location aus'),
-    name: yup
-        .string()
-        .required('Bezeichnung ist erforderlich')
-        .min(1, 'Bezeichnung muss mindestens 1 Zeichen lang sein'),
-    description: yup
-        .string(),
-    size: yup
-        .number()
-        .typeError('Quadratmeter muss eine Zahl sein')
-        .positive('Quadratmeter müssen positiv sein')
-        .required('Quadratmeter sind erforderlich'),
-    price: yup
-        .number()
-        .typeError('Preis / Tag muss eine Zahl sein')
-        .positive('Preis / Tag muss positiv sein')
-        .required('Preis / Tag ist erforderlich'),
-    minPersons: yup
-        .number()
-        .typeError('Mindestpersonenanzahl muss eine Zahl sein')
-        .positive('Mindestpersonenanzahl muss positiv sein')
-        .max(yup.ref('maxPersons'), 'Mindestpersonenanzahl muss kleiner als Maximalpersonenanzahl sein')
-        .required('Mindestpersonenanzahl ist erforderlich'),
-    maxPersons: yup
-        .number()
-        .typeError('Maximalpersonenanzahl muss eine Zahl sein')
-        .positive('Maximalpersonenanzahl muss positiv sein')
-        .min(yup.ref('minPersons'), 'Maximalpersonenanzahl muss größer als Mindestpersonenanzahl sein')
-        .required('Maximalpersonenanzahl ist erforderlich'),
-    images: yup.array().of(yup.string()),
-    eventCategories: yup
-        .array()
-        .nullable()
-        .of(yup.string())
-        .test(
-            'eventCategories-not-empty',
-            'Mindestens eine Kategorie notwendig',
-            (value) => value != null && value.length > 0
-        ),
-});
+import PriceTypeField from './PriceTypeField';
 
 const controlWidth = 7;
 const labelWidth = 4;
 
-interface RoomFormProps {
-    roomId: number;
+interface FormProps {
+    packageId: number;
     locationId: number | null;
     companyId: number;
-    roomCreated?: (id: number) => void;
-    roomUpdated?: (id: number) => void;
-    roomDeleted?: (id: number) => void;
+    created?: (id: number) => void;
+    updated?: (id: number) => void;
+    deleted?: (id: number) => void;
 }
 
-const RoomForm = ({
-    roomId,
+const EventPackageForm = ({
+    packageId,
     locationId,
     companyId,
-    roomCreated,
-    roomUpdated,
-    roomDeleted
-}: RoomFormProps) => {
+    created,
+    updated,
+    deleted
+}: FormProps) => {
     const { authUser } = useAuthContext();
 
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -106,25 +63,25 @@ const RoomForm = ({
         watch,
         formState: { errors },
     } = useForm({
-        defaultValues: createEmptyRoomModel(0),
-        resolver: yupResolver(roomValidationSchema),
+        defaultValues: createEmptyEventPackageModel(0),
+        resolver: yupResolver(EventPackageValidationSchema),
     });
 
-    const watchedModel = watch() as RoomModel;
+    const watchedModel = watch() as EventPackageModel;
     const [images, setImages] = useState<string[]>(watchedModel.images || []);
 
     const [locations, setLocations] = useState<{ id: number; title: string }[]>([]);
 
     const handleImageUpload = async (image: string) => {
-        if (!roomId) {
-            console.error("Room ID is not defined");
+        if (!packageId) {
+            console.error("Event Package ID is not defined");
             return;
         }
-        // Add the new image to the room model
+        // Add the new image to the model
         try {
             // Call API to get presigned URL and upload the file
             const response = await fetch(
-                `${roomsBaseUrl}/${roomId}/images`,
+                `${partnerPackagesBaseUrl}/${packageId}/images`,
                 {
                     method: "POST",
                     body: JSON.stringify({ image }),
@@ -137,7 +94,7 @@ const RoomForm = ({
                 // Update local state with the new image
                 setImages((prevImages) => [...prevImages, image]);
                 setValue('images', [...images, image]); // Update form model
-                roomUpdated?.(roomId);
+                updated?.(packageId);
             }
         } catch (error) {
             console.error("Image upload failed", error);
@@ -145,15 +102,15 @@ const RoomForm = ({
     };
 
     const handleImageDelete = async (image: string) => {
-        if (!roomId) {
-            console.error("Room ID is not defined");
+        if (!packageId) {
+            console.error("Event Package ID is not defined");
             return;
         }
 
         try {
             // Call API to get presigned URL and upload the file
             const response = await fetch(
-                `${roomsBaseUrl}/${roomId}/images`,
+                `${partnerPackagesBaseUrl}/${packageId}/images`,
                 {
                     method: "DELETE",
                     body: JSON.stringify({ image }),
@@ -166,7 +123,7 @@ const RoomForm = ({
                 // Update local state to remove the deleted image
                 setImages((prevImages) => prevImages.filter((img) => img !== image));
                 setValue('images', images.filter((img) => img !== image)); // Update form model
-                roomUpdated?.(roomId);
+                updated?.(packageId);
             }
         } catch (error) {
             console.error("Image delete failed", error);
@@ -204,25 +161,25 @@ const RoomForm = ({
             return;
         }
 
-        if (roomId === null) {
-            setError('Ungültige Raum-ID');
+        if (packageId === null) {
+            setError('Ungültige Paket-ID');
             return;
         }
 
-        const fetchRoomData = async () => {
+        const fetchData = async () => {
             try {
                 setLoading(true);
                 setError(null);
-                const response = await fetch(`${roomsBaseUrl}/${roomId}`, {
+                const response = await fetch(`${partnerPackagesBaseUrl}/${packageId}?include=rooms`, {
                     headers: {
                         Authorization: `Bearer ${authUser.idToken}`,
                     },
                 });
                 if (!response.ok) {
-                    throw new Error(`Failed to fetch room with id ${roomId}`);
+                    throw new Error(`Failed to fetch event package with id ${packageId}`);
                 }
-                const roomData = await response.json();
-                reset(roomData);
+                const data = await response.json();
+                reset(data);
             } catch (err) {
                 if (err instanceof Error) {
                     setError(err.message);
@@ -234,8 +191,8 @@ const RoomForm = ({
             }
         };
 
-        if (roomId > 0) {
-            fetchRoomData();
+        if (packageId > 0) {
+            fetchData();
         } else {
             if (locationId && locationId > 0) {
                 // Set locationId in the form
@@ -246,7 +203,7 @@ const RoomForm = ({
 
             setLoading(false);
         }
-    }, [roomId]);
+    }, [packageId]);
 
     const onSubmit = async (data: any) => {
         setIsSubmitting(true);
@@ -255,10 +212,10 @@ const RoomForm = ({
         setResponseMessage("");
 
         try {
-            const isEdit = roomId && roomId > 0;
+            const isEdit = packageId && packageId > 0;
             const url = isEdit
-                ? `${roomsBaseUrl}/${roomId}`
-                : `${roomsBaseUrl}`;
+                ? `${partnerPackagesBaseUrl}/${packageId}`
+                : `${partnerPackagesBaseUrl}`;
 
             const method = isEdit ? "PUT" : "POST";
 
@@ -272,38 +229,34 @@ const RoomForm = ({
             });
 
             if (!response.ok) {
-                setError("Fehler beim Speichern des Raums.");
+                setError("Fehler beim Speichern des Paketes.");
                 return;
             }
 
             if (isEdit) {
                 setSuccess(true);
-                setResponseMessage("Raum gespeichert!");
-                roomUpdated?.(roomId);
+                setResponseMessage("Paket gespeichert!");
+                updated?.(packageId);
                 return;
             }
 
             const responseData = await response.json();
-            const newId = responseData?.room?.id;
+            const newId = responseData?.model?.id;
             if (newId) {
                 setSuccess(true);
-                setResponseMessage("Raum gespeichert!");
-                roomCreated?.(newId);
+                setResponseMessage("Paket gespeichert!");
+                created?.(newId);
                 return;
             }
 
             setSuccess(false);
-            setError("Fehler beim Speichern des Raums.");
+            setError("Fehler beim Speichern des Paketes.");
         } catch (error) {
-            setError("Fehler beim Speichern des Raums.");
+            setError("Fehler beim Speichern des Paketes.");
         } finally {
             setIsSubmitting(false);
         }
     };
-
-    const roomTitle = watch('name') ?
-        `Räume: ${watch('name')}` :
-        'Räume: Raum hinzufügen';
 
     return (
         <Box sx={{ height: "100vh", }}>
@@ -331,15 +284,15 @@ const RoomForm = ({
                                 </Grid2>
                                 <Grid2 size={{ xs: 12, sm: 4 }}>
                                     <Controller
-                                        name="name"
+                                        name="title"
                                         control={control}
                                         render={({ field }) => (
                                             <TextField
                                                 {...field}
                                                 fullWidth
                                                 variant="outlined"
-                                                error={!!errors.name}
-                                                helperText={errors.name?.message}
+                                                error={!!errors.title}
+                                                helperText={errors.title?.message}
                                             />
                                         )}
                                     />
@@ -373,35 +326,11 @@ const RoomForm = ({
                             </Grid2>
                         </Grid2>
 
-                        {/* Size */}
-                        <Grid2 size={{ sm: controlWidth }}>
-                            <Grid2 container alignItems="top">
-                                <Grid2 size={{ xs: labelWidth }}>
-                                    <Typography variant="label">Quadratmeter</Typography>
-                                </Grid2>
-                                <Grid2 size={{ xs: 12, sm: 4 }}>
-                                    <Controller
-                                        name="size"
-                                        control={control}
-                                        render={({ field }) => (
-                                            <TextField
-                                                {...field}
-                                                fullWidth
-                                                variant="outlined"
-                                                error={!!errors.size}
-                                                helperText={errors.size?.message}
-                                            />
-                                        )}
-                                    />
-                                </Grid2>
-                            </Grid2>
-                        </Grid2>
-
                         {/* Price */}
                         <Grid2 size={{ sm: controlWidth }}>
                             <Grid2 container alignItems="top">
                                 <Grid2 size={{ xs: labelWidth }}>
-                                    <Typography variant="label">Preis / Tag</Typography>
+                                    <Typography variant="label">Preis</Typography>
                                 </Grid2>
                                 <Grid2 size={{ xs: 12, sm: 4 }}>
                                     <PriceInput
@@ -412,6 +341,22 @@ const RoomForm = ({
                             </Grid2>
                         </Grid2>
 
+                        {/* Price Type */}
+                        <Grid2 size={{ sm: controlWidth }}>
+                            <Grid2 container alignItems="top">
+                                <Grid2 size={{ xs: labelWidth }}>
+                                    <Typography variant="label">Preisbezug</Typography>
+                                </Grid2>
+                                <Grid2 size={{ xs: 12, sm: 4 }}>
+                                    <PriceTypeField
+                                        control={control}
+                                        errors={errors}
+                                    />
+                                </Grid2>
+                            </Grid2>
+                        </Grid2>
+
+                        {/* Min Persons */}
                         <Grid2
                             container
                             size={{ xs: 12, sm: controlWidth }}
@@ -554,11 +499,11 @@ const RoomForm = ({
                                 </Box>
                             </Button>
 
-                            {roomId > 0 &&
+                            {packageId > 0 &&
                                 <DeleteButton
                                     isDisabled={isSubmitting}
-                                    onDelete={() => handleDeleteRoom(roomId,
-                                        () => roomDeleted?.(roomId))}
+                                    onDelete={() => handleDeleteEventPackage(packageId,
+                                        () => deleted?.(packageId))}
                                 />
                             }
                         </Grid2>
@@ -578,7 +523,7 @@ const RoomForm = ({
                         )}
                     </Box>
                 </form>
-                {roomId > 0 &&
+                {packageId > 0 &&
                     <>
                         <Typography variant="h5"
                             sx={{ mt: 5, mb: 2, color: 'primary.main' }}>
@@ -594,4 +539,4 @@ const RoomForm = ({
     );
 };
 
-export default RoomForm;
+export default EventPackageForm;

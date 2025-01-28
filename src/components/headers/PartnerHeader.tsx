@@ -19,23 +19,25 @@ import MenuItem from '../MenuItem';
 import PartnerSettings from '@/features/partners/PartnerSettings';
 import { useAuthContext } from '@/auth/AuthContext';
 import CircleInitials from '../CircleInitials';
+import { useHeaderContext } from './PartnerHeaderContext';
 
 const Header: FC = () => {
     const theme = useTheme();
     const pathname = usePathname();
     const { authUser, logout, authLoading } = useAuthContext();
+    const { isOverlayOpen, setIsOverlayOpen } = useHeaderContext();
 
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [userPanelAnchorEl, setUserPanelAnchorEl] = useState<null | HTMLElement>(null);
-    const [isOverlayOpen, setIsOverlayOpen] = useState(false);
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
     const menuItems = [
         { label: 'Events', link: '/partner/events' },
-        { label: 'Location', link: '/partner/location' },
+        { label: 'Locations', link: '/partner/location' },
         { label: 'Räume', link: '/partner/rooms' },
+        { label: 'Pakete', link: '/partner/packages' },
         { label: 'Equipment', link: '/partner/equipment' },
-        { label: 'Personal', link: '/partner/personnel' },
+        //{ label: 'Personal', link: '/partner/personnel' },
         { label: 'Catering', link: '/partner/catering' },
     ];
 

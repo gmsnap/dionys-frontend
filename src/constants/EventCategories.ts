@@ -1,12 +1,8 @@
 export type EventCategories =
-    "lunch" |
     "business" |
-    "meeting" |
-    "conference";
+    "social";
 
 export const AvailableEventCategories = [
-    "lunch",
     "business",
-    "meeting",
-    "conference",
+    "social",
 ];

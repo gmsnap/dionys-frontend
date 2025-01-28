@@ -23,7 +23,7 @@ const Home: NextPageWithLayout = () => {
             m: 2,
           }}
         >
-          Locations finden<ArrowRight />
+          Booker<ArrowRight />
         </Button>
 
         <Button
@@ -37,7 +37,7 @@ const Home: NextPageWithLayout = () => {
             m: 2,
           }}
         >
-          Partner-Login <ArrowRight />
+          Partner<ArrowRight />
         </Button>
 
         <Button
@@ -51,7 +51,7 @@ const Home: NextPageWithLayout = () => {
             m: 2,
           }}
         >
-          Dionys-Admin <ArrowRight />
+          Admin<ArrowRight />
         </Button>
       </Box>
     </Box>

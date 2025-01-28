@@ -11,7 +11,16 @@ const CustomChip = styled((props: CustomChipProps) => {
     const { customDeleteIcon, ...chipProps } = props;
     return <Chip {...chipProps} deleteIcon={customDeleteIcon || <Minus />} />;
 })(({ theme }) => ({
-    borderRadius: '8px', // rounded corners
+    backgroundColor: theme.palette.customColors.textBackround.halfdark,
+    textAlign: 'left',
+    justifyContent: 'flex-start',
+    fontSize: '16px',
+    fontFamily: "'Gugi', sans-serif",
+    minHeight: "38px",
+    borderRadius: '8px',
+    padding: '0 3px',
+    color: theme.palette.customColors.text.input,
+
     '& .MuiChip-deleteIcon': {
         position: 'absolute',
         margin: 0,
@@ -26,13 +35,6 @@ const CustomChip = styled((props: CustomChipProps) => {
             backgroundColor: 'purple',
         },
     },
-    paddingRight: '16px', // center text
-    backgroundColor: theme.palette.customColors.textBackround.halfdark,
-    textAlign: 'left',
-    justifyContent: 'flex-start',
-    fontSize: '16px',
-    fontFamily: "'Gugi', sans-serif",
-    color: theme.palette.customColors.text.input,
 }));
 
 export default CustomChip;

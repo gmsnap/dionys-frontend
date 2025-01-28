@@ -18,6 +18,8 @@ import {
     Tooltip,
     IconButton,
     Link,
+    FormControlLabel,
+    Switch,
 } from "@mui/material";
 import { ClipboardCheck, Save, SquareArrowOutUpRight } from "lucide-react";
 import { CreateLocationResponse } from "@/types/geolocation";
@@ -32,6 +34,7 @@ import ImmutableItemList from "./ImmutableItemList";
 import { Clipboard } from 'lucide-react';
 import { useAuthContext } from "@/auth/AuthContext";
 import theme from "@/theme";
+import BillingAddressFields from "./BillingAddressFields2";
 
 // Validation schema
 const locationValidationSchema = yup.object().shape({
@@ -75,11 +78,12 @@ const locationValidationSchema = yup.object().shape({
                 return false;
             }
         ),
-    price: yup
+    billingAddressId: yup
         .number()
-        .typeError('Preis / Tag muss eine Zahl sein')
-        .positive('Preis / Tag muss positiv sein')
-        .required('Preis / Tag ist erforderlich'),
+        .nullable(),
+    billingAddress: yup
+        .mixed()
+        .nullable(),
 });
 
 interface LocationFormProps {
@@ -95,6 +99,7 @@ const LocationForm = ({ locationId, locationCreated }: LocationFormProps) => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [isEdit, setIsEdit] = useState(false);
+    const [billingToggle, setBillingToggle] = useState(true);
     const [eventCategories, setEventCategories] = useState<string[]>([]);
     const [idCode, setIdCode] = useState<string | null>(null);
     const [domain, setDomain] = useState<string | null>(null);
@@ -108,79 +113,20 @@ const LocationForm = ({ locationId, locationCreated }: LocationFormProps) => {
         resolver: yupResolver(locationValidationSchema),
     });
 
-    const { control, handleSubmit, reset, formState: { errors } } = methods;
+    const { control, handleSubmit, reset, formState: { errors }, getValues } = methods;
 
-    // Fetch location data
-    useEffect(() => {
-        if (!authUser) {
-            setError('Keine Berechtigung. Bitte melden Sie sich an.');
-            return;
+    const handleToggle = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const toggleState = e.target.checked;
+        setBillingToggle(toggleState);
+
+        if (toggleState) {
+            reset({
+                ...getValues(), // Preserve all existing form data
+                billingAddressId: null,
+                billingAddress: { id: 0, city: "", streetAddress: "", postalCode: "", country: "" },
+            });
         }
-
-        const companyId = partnerUser?.companyId;
-
-        setResponseMessage('');
-
-        if (!companyId) {
-            // No user found; reset form to create mode
-            reset(createEmptyLocationModel(0));
-            setIsEdit(false);
-            setIsLoading(false);
-            setError('Company not found');
-            return;
-        }
-
-        setError(null);
-
-        // Create new location when locationId is 0
-        if (locationId == 0) {
-            // Switch to create mode
-            setIsEdit(false);
-            reset(createEmptyLocationModel(companyId));
-            setIsLoading(false);
-            return;
-        }
-
-        if (!(partnerLocations?.some(location => location.id === locationId))) {
-            setError('Location not found');
-            return;
-        }
-
-        const fetchLocationData = async (locationId: number) => {
-            try {
-                setIsLoading(true);
-
-                // Fetch Locations
-                const locationData =
-                    await fetchLocationById(
-                        locationId,
-                        setIsLoading,
-                        setError,
-                        authUser.idToken
-                    );
-
-                if (!locationData) {
-                    return;
-                }
-
-                reset(locationData);
-                setIsEdit(true);
-                setEventCategories(locationData.eventCategories || []);
-                setIdCode(locationData.idCode);
-            } catch (err) {
-                console.error(err);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
-        fetchLocationData(locationId);
-
-    }, [locationId]);
-
-    useEffect(() => {
-        setDomain(window.location.hostname);
-    }, []);
+    };
 
     const onSubmit = async (data: any) => {
         setIsSubmitting(true);
@@ -189,6 +135,8 @@ const LocationForm = ({ locationId, locationCreated }: LocationFormProps) => {
             const payload = {
                 ...data,
                 image: data.image ? data.image.name : undefined,
+                billingAddressId: billingToggle ? null : data.billingAddressId,
+                billingAddress: billingToggle ? null : data.billingAddress,
             };
 
             const url = isEdit
@@ -260,6 +208,90 @@ const LocationForm = ({ locationId, locationCreated }: LocationFormProps) => {
             });
         }
     };
+
+    // Fetch location data
+    useEffect(() => {
+        if (!authUser) {
+            setError('Keine Berechtigung. Bitte melden Sie sich an.');
+            return;
+        }
+
+        const companyId = partnerUser?.companyId;
+
+        setResponseMessage('');
+
+        if (!companyId) {
+            // No user found; reset form to create mode
+            reset(createEmptyLocationModel(0));
+            setIsEdit(false);
+            setIsLoading(false);
+            setError('Company not found');
+            return;
+        }
+
+        setError(null);
+
+        // Create new location when locationId is 0
+        if (locationId == 0) {
+            // Switch to create mode
+            setIsEdit(false);
+            const emptyModel = createEmptyLocationModel(companyId);
+            if (partnerUser?.company?.address) {
+                emptyModel.city = partnerUser?.company.address.city ?? "";
+                emptyModel.streetAddress = partnerUser?.company.address.streetAddress ?? "";
+                emptyModel.postalCode = partnerUser?.company.address.postalCode ?? "";
+                emptyModel.billingAddress = { id: 0, city: "", streetAddress: "", postalCode: "", country: "" };
+            }
+            reset(emptyModel);
+            setIsLoading(false);
+            return;
+        }
+
+        if (!(partnerLocations?.some(location => location.id === locationId))) {
+            setError('Location not found');
+            return;
+        }
+
+        const fetchLocationData = async (locationId: number) => {
+            try {
+                setIsLoading(true);
+
+                // Fetch Locations
+                const locationData =
+                    await fetchLocationById(
+                        locationId,
+                        true,
+                        setIsLoading,
+                        setError,
+                        authUser.idToken
+                    );
+
+                if (!locationData) {
+                    return;
+                }
+                if (!locationData.billingAddress) {
+                    locationData.billingAddress = { id: 0, city: "", streetAddress: "", postalCode: "", country: "" };
+                }
+
+                reset(locationData);
+                setIsEdit(true);
+                setEventCategories(locationData.eventCategories || []);
+                setIdCode(locationData.idCode);
+                setBillingToggle(locationData.billingAddressId === null);
+            } catch (err) {
+                console.error(err);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchLocationData(locationId);
+
+    }, [locationId]);
+
+    useEffect(() => {
+        setDomain(window.location.hostname);
+    }, []);
 
     if (isLoading) {
         return (
@@ -426,33 +458,26 @@ const LocationForm = ({ locationId, locationCreated }: LocationFormProps) => {
                             </Grid2>
                         </Grid2>
 
-                        {/* Price */}
-                        <Grid2 size={{ xs: 12, sm: controlWidth }}>
-                            <Grid2 container alignItems="top">
-                                <Grid2 size={{ xs: 12, sm: 4 }} >
-                                    <Typography variant="label">Preis / Tag</Typography>
-                                </Grid2>
-                                <Grid2 size={{ xs: 12, sm: 8 }}>
-                                    <Controller
-                                        name="price"
-                                        control={control}
-                                        render={({ field }) => (
-                                            <TextField
-                                                {...field}
-                                                fullWidth
-                                                variant="outlined"
-                                                error={!!errors.price}
-                                                helperText={errors.price?.message}
-                                            />
-                                        )}
-                                    />
-                                </Grid2>
-                            </Grid2>
-                        </Grid2>
-
                         <Grid2 size={{ xs: 12, sm: controlWidth }} mt={2} mb={2}>
                             <ImageUploadField name="image" />
                         </Grid2>
+
+                        {/* Billing Address */}
+                        <Typography variant="h5" sx={{ mt: 3, mb: 1, color: "primary.main" }}>
+                            Rechnungsadresse
+                        </Typography>
+
+                        {/* Billing Address Toggle */}
+                        <Grid2 size={{ xs: 12 }}>
+                            <FormControlLabel
+                                control={<Switch checked={billingToggle} onChange={handleToggle} />}
+                                label="entspricht Unternehmensadresse"
+                            />
+                        </Grid2>
+
+                        {/* Billing Address Fields */}
+                        {!billingToggle &&
+                            <BillingAddressFields formData={getValues()} />}
 
                         {/* Submit */}
                         <Grid2 size={{ xs: 12 }}>
@@ -464,6 +489,7 @@ const LocationForm = ({ locationId, locationCreated }: LocationFormProps) => {
                                 sx={{
                                     lineHeight: 0,
                                     outline: '3px solid transparent',
+                                    mt: 4,
                                     mb: 1,
                                     '&:hover': {
                                         outline: '3px solid #00000033',
@@ -535,7 +561,7 @@ const LocationForm = ({ locationId, locationCreated }: LocationFormProps) => {
                     </Typography>
 
                     <Link
-                        href={`https://dionys-embed-test.s3.eu-west-1.amazonaws.com/index.html?code=${idCode}`}
+                        href={`https://dionys.ai/embed-preview/index.html?code=${idCode}`}
                         target="_blank"
                         variant="body2"
                         sx={{
@@ -591,10 +617,6 @@ const LocationForm = ({ locationId, locationCreated }: LocationFormProps) => {
                     </Box>
                 </Box>
                 )}
-
-            {/*<Button onClick={() => console.log("Current Form Values: ", methods.getValues())}>
-                Log Form Values
-            </Button>*/}
 
             {responseMessage && (
                 <Grid2 size={{ xs: 12, sm: controlWidth }}>

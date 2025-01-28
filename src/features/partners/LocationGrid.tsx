@@ -8,6 +8,7 @@ import { LocationModel } from '@/models/LocationModel';
 import { formatEventCategoriesSync } from '@/utils/formatEventCategories';
 import {
     fetchLocationsByCompanyId,
+    getAggregatedRoomPrices,
     handleDeleteLocation,
     storePartnerLocations
 } from '@/services/locationService';
@@ -86,7 +87,7 @@ const LocationGrid = ({ sx, selectHandler }: LocationGridProps) => {
                         id={location.id}
                         image={location.image as string}
                         title={location.title}
-                        priceTag={`Ab ${formatPrice(location.price)} / Tag`}
+                        priceTag={`Ab ${formatPrice(getAggregatedRoomPrices(location))} / Tag`}
                         listItems={[
                             { icon: <MapPin />, label: location.area },
                             { icon: <User />, label: '10-50' },

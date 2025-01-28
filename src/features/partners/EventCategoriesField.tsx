@@ -48,7 +48,7 @@ const EventCategoriesField: React.FC<ImageUploadFieldProps> = ({ control, errors
                         }}
                         slotProps={{
                             select: {
-                                renderValue: () => <Box>Anlass hinzufügen</Box>,
+                                renderValue: () => <Box>Kategorie hinzufügen</Box>,
                                 displayEmpty: true,
                             },
                         }}

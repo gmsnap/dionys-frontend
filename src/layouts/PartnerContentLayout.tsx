@@ -1,5 +1,4 @@
 import React, { ReactNode } from 'react';
-import Header from '../components/headers/PartnerHeader';
 import { Box, Typography, useTheme } from '@mui/material';
 
 interface PartnerContentLayoutProps {
@@ -49,7 +48,8 @@ const PartnerContentLayout: React.FC<PartnerContentLayoutProps> = ({
             <Box
                 sx={{
                     // Ensure content starts below the non-transparent header
-                    marginTop: `${theme.layout.headerHeight}px`,
+                    //marginTop: `${theme.layout.headerHeight}px`,
+                    marginTop: 10,
                     ml: 4,
                     mr: 4,
                 }}

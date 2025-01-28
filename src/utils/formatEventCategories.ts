@@ -21,15 +21,13 @@ export const formatEventCategoriesSync = (categories: EventCategories[]): string
         return "-";
     }
     const staticTranslations = {
-        "lunch": "Business Lunch",
-        "business": "Corporate Event",
-        "meeting": "Meeting",
-        "conference": "Konferenz"
+        "business": "Business",
+        "social": "Social",
     };
 
-    const translated = categories.map((category) => {
-        return staticTranslations[category];
-    });
+    const translated = categories
+        .map((category) => staticTranslations[category])
+        .filter((translation) => translation);
 
-    return translated.join(", ");
+    return translated.length > 0 ? translated.join(", ") : "-";
 };

@@ -1,66 +1,65 @@
 import { ReactElement, useEffect, useState } from 'react';
 import PartnerLayout from '@/layouts/PartnerLayout';
+import useStore from '@/stores/partnerStore';
 import type { NextPageWithLayout } from '@/types/page';
 import { Box, List, ListItem, ListItemButton, ListItemText, Typography } from '@mui/material';
 import PartnerContentLayout from '@/layouts/PartnerContentLayout';
-import RoomGrid from '@/features/partners/RoomGrid';
-import useStore from '@/stores/partnerStore';
 import LocationsDropDown from '@/features/partners/LocationsDropDown';
+import { EventPackageModel } from '@/models/EventPackageModel';
+import { fetchEventPackages, fetchEventPackagesByCompany } from '@/services/eventPackageService';
 import theme from '@/theme';
-import { RoomModel } from '@/models/RoomModel';
-import { fetchLocationWithRooms } from '@/services/locationService';
-import { fetchRoomsByCompany } from '@/services/roomService';
-import RoomForm from '@/features/partners/RoomForm';
+import EventPackageForm from '@/features/partners/EventPackageForm';
+import EventPackageGrid from '@/features/partners/EventPackageGrid';
 
 const PartnerPage: NextPageWithLayout = () => {
     const { partnerUser, partnerLocations } = useStore();
     const [locationId, setLocationId] = useState<number | null>(null);
-    const [roomId, setRoomId] = useState<number | null>(null);
-    const [rooms, setRooms] = useState<RoomModel[] | null>(null);
+    const [packageId, setPackageId] = useState<number | null>(null);
+    const [packages, setPackages] = useState<EventPackageModel[] | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
 
-    const fetchRoomsFromApi = async (selectRoom: number | null | undefined = undefined) => {
+    const fetchPackagesFromApi = async (selected: number | null | undefined = undefined) => {
         const companyId = partnerUser?.companyId;
         if (!companyId) {
             return;
         }
 
-        const rooms = locationId ?
-            (await fetchLocationWithRooms(
+        const packages = locationId ?
+            (await fetchEventPackages(
                 locationId,
                 setIsLoading,
                 setError
-            ))?.rooms :
-            await fetchRoomsByCompany(
+            )) :
+            await fetchEventPackagesByCompany(
                 companyId,
                 setIsLoading,
                 setError
             );
 
-        if (!rooms) {
-            setRooms([]);
-            setRoomId(null);
-            setError("Error fetching rooms");
+        if (!packages) {
+            setPackages([]);
+            setPackageId(null);
+            setError("Error fetching Event Packages");
             return;
         }
 
         // Set rooms to state
-        setRooms(rooms);
+        setPackages(packages);
         setError(null);
-        if (selectRoom !== undefined) {
-            setRoomId(selectRoom);
+        if (selected !== undefined) {
+            setPackageId(selected);
         }
     };
 
     useEffect(() => {
-        setRoomId(null);
-        fetchRoomsFromApi();
+        setPackageId(null);
+        fetchPackagesFromApi();
     }, [partnerUser, locationId]);
 
     if (!partnerLocations || partnerLocations.length == 0) {
         return (
-            <PartnerContentLayout title='Räume'>
+            <PartnerContentLayout title='Pakete'>
                 <Box sx={{
                     width: '100%',
                     mt: 10,
@@ -74,7 +73,7 @@ const PartnerPage: NextPageWithLayout = () => {
     }
 
     return (
-        <PartnerContentLayout title='Räume' controls={
+        <PartnerContentLayout title='Pakete' controls={
             <LocationsDropDown
                 partnerLocations={partnerLocations}
                 locationId={locationId}
@@ -89,38 +88,38 @@ const PartnerPage: NextPageWithLayout = () => {
             }}>
 
                 {/* Left Menu (rooms selector) */}
-                {rooms && rooms?.length > 0 &&
+                {packages && packages?.length > 0 &&
                     <List sx={{
                         mr: { xs: 1, sm: 3 },
                         minWidth: { xs: '150px', sm: '200px', md: '250px' },
                     }}>
                         <ListItem key={null} disablePadding>
-                            <ListItemButton onClick={() => setRoomId(null)}>
+                            <ListItemButton onClick={() => setPackageId(null)}>
                                 <ListItemText
-                                    primary="Alle Räume"
+                                    primary="Alle Pakete"
                                     sx={{
-                                        color: roomId == null ?
+                                        color: packageId == null ?
                                             theme.palette.customColors.pink.light :
                                             'inherit',
                                     }}
                                 />
                             </ListItemButton>
                         </ListItem>
-                        {rooms && rooms.map((room) => (
+                        {packages && packages.map((p) => (
                             <ListItem
-                                key={room.id}
+                                key={p.id}
                                 disablePadding
                                 sx={{
                                     ml: 2,
                                 }}
                             >
-                                <ListItemButton onClick={() => setRoomId(room.id)}>
+                                <ListItemButton onClick={() => setPackageId(p.id)}>
                                     <ListItemText
-                                        primary={room.name}
+                                        primary={p.title}
                                         primaryTypographyProps={{
                                             sx: {
                                                 fontSize: { xs: '12px', sm: '16px' },
-                                                color: roomId === room.id
+                                                color: packageId === p.id
                                                     ? theme.palette.customColors.pink.light
                                                     : 'inherit',
                                             }
@@ -131,30 +130,30 @@ const PartnerPage: NextPageWithLayout = () => {
                         ))}
                     </List>}
 
-                {/* Right Content (Rooms Grid or Room Form) */}
-                {roomId !== null &&
+                {/* Right Content (Packages Grid or Packages Form) */}
+                {packageId !== null &&
                     partnerUser !== null &&
                     partnerUser.companyId !== null ? (
-                    <RoomForm
-                        roomId={roomId}
+                    <EventPackageForm
+                        packageId={packageId}
                         locationId={locationId}
                         companyId={partnerUser.companyId}
-                        roomCreated={(id: number) => {
-                            fetchRoomsFromApi(id);
+                        created={(id: number) => {
+                            fetchPackagesFromApi(id);
                         }}
-                        roomUpdated={fetchRoomsFromApi}
-                        roomDeleted={() => fetchRoomsFromApi(null)}
+                        updated={fetchPackagesFromApi}
+                        deleted={() => fetchPackagesFromApi(null)}
                     />
                 ) : (
-                    rooms && <RoomGrid
-                        rooms={rooms}
+                    packages && <EventPackageGrid
+                        eventPackages={packages}
                         addButton={true}
-                        selectHandler={setRoomId}
-                        roomsChanged={fetchRoomsFromApi}
+                        selectHandler={setPackageId}
+                        eventPackagesChanged={fetchPackagesFromApi}
                         sx={{
                             width: '100%',
                             height: '100%',
-                            justifyContent: rooms.length == 0 ? 'center' : 'inherit'
+                            justifyContent: packages.length == 0 ? 'center' : 'inherit'
                         }}
                     />
                 )}
