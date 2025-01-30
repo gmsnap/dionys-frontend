@@ -84,19 +84,30 @@ const PartnerPage: NextPageWithLayout = () => {
                 display: 'flex',
                 flexDirection: 'row',
                 justifyContent: 'left',
-                alignItems: 'top'
+                alignItems: 'top',
             }}>
 
-                {/* Left Menu (rooms selector) */}
+                {/* Left Menu (packages selector) */}
                 {packages && packages?.length > 0 &&
                     <List sx={{
                         mr: { xs: 1, sm: 3 },
-                        minWidth: { xs: '150px', sm: '200px', md: '250px' },
+                        minWidth: { xs: '100px', sm: '200px', md: '250px' },
                     }}>
                         <ListItem key={null} disablePadding>
-                            <ListItemButton onClick={() => setPackageId(null)}>
+                            <ListItemButton
+                                onClick={() => setPackageId(null)}
+                                sx={{
+                                    pt: { xs: 0, sm: 'inherit' },
+                                    pb: { xs: 0, sm: 'inherit' },
+                                }}
+                            >
                                 <ListItemText
                                     primary="Alle Pakete"
+                                    primaryTypographyProps={{
+                                        sx: {
+                                            fontSize: { xs: '12px', sm: 'unset' },
+                                        }
+                                    }}
                                     sx={{
                                         color: packageId == null ?
                                             theme.palette.customColors.pink.light :
@@ -110,10 +121,16 @@ const PartnerPage: NextPageWithLayout = () => {
                                 key={p.id}
                                 disablePadding
                                 sx={{
-                                    ml: 2,
+                                    ml: { xs: 0, sm: 2 },
                                 }}
                             >
-                                <ListItemButton onClick={() => setPackageId(p.id)}>
+                                <ListItemButton
+                                    onClick={() => setPackageId(p.id)}
+                                    sx={{
+                                        pt: { xs: 0, sm: 'unset' },
+                                        pb: { xs: 0, sm: 'unset' },
+                                    }}
+                                >
                                     <ListItemText
                                         primary={p.title}
                                         primaryTypographyProps={{

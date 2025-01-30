@@ -8,6 +8,7 @@ import ConfirmSignup from "../admins/ConfirmSignup";
 import { useSetLocationByCurrentPartner } from "@/services/locationService";
 import theme from "@/theme";
 import { useHeaderContext } from "@/components/headers/PartnerHeaderContext";
+import router from "next/router";
 
 const baseUrl = process.env.NEXT_PUBLIC_API_URL;
 
@@ -87,6 +88,7 @@ const PartnerLoginForm: React.FC = ({ }) => {
 
                     const result = await response.json();
                     setPartnerUser(result);
+                    router.push("/partner/events")
                 } catch (err) {
                     if (err instanceof Error) {
                         setError(err.message);

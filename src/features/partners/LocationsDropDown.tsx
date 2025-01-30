@@ -25,7 +25,7 @@ const LocationsDropDown: React.FC<LocationSelectorProps> = ({
         <Box
             sx={{
                 display: 'flex',
-                flexDirection: 'row',
+                flexDirection: { xs: 'column', sm: 'row' },
                 alignItems: 'center',
             }}
         >
@@ -33,9 +33,9 @@ const LocationsDropDown: React.FC<LocationSelectorProps> = ({
                 sx={{
                     display: 'inline-block',
                     whiteSpace: 'nowrap',
-                    mr: 1,
+                    mr: { xs: 0, sm: 1 },
                 }}
-            >Location / Venue: </Typography>
+            >Location / Venue:</Typography>
             {partnerLocations && partnerLocations.length > 0 && (
                 <Select
                     value={locationId || ''}

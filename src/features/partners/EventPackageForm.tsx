@@ -9,7 +9,9 @@ import {
     InputAdornment,
     FormControl,
     Select,
-    MenuItem
+    MenuItem,
+    InputLabel,
+    FormHelperText
 } from '@mui/material';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Save } from 'lucide-react';
@@ -26,8 +28,10 @@ import {
 import { handleDeleteEventPackage, partnerPackagesBaseUrl } from '@/services/eventPackageService';
 import PriceInput from '@/components/PriceInput';
 import PriceTypeField from './PriceTypeField';
+import { AvailablePackageCategories, PackageCategories } from '@/constants/PackageCategories';
+import { formatPackageCategory } from '@/utils/formatPackageCategories';
 
-const controlWidth = 7;
+const controlWidth = 12;
 const labelWidth = 4;
 
 interface FormProps {
@@ -270,105 +274,118 @@ const EventPackageForm = ({
                 height: "100%",
             }}>
                 <form onSubmit={handleSubmit(onSubmit)}>
-                    <Box sx={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: 2,
-                    }}>
+                    <Grid2 container rowSpacing={2}>
 
                         {/* Title */}
-                        <Grid2 size={{ sm: controlWidth }}>
-                            <Grid2 container alignItems="top">
-                                <Grid2 size={{ sm: labelWidth }}>
-                                    <Typography variant="label">Bezeichnung</Typography>
-                                </Grid2>
-                                <Grid2 size={{ xs: 12, sm: 4 }}>
-                                    <Controller
-                                        name="title"
-                                        control={control}
-                                        render={({ field }) => (
-                                            <TextField
-                                                {...field}
-                                                fullWidth
-                                                variant="outlined"
-                                                error={!!errors.title}
-                                                helperText={errors.title?.message}
-                                            />
-                                        )}
-                                    />
-                                </Grid2>
+                        <Grid2 container alignItems="top" rowSpacing={0} sx={{ width: '100%' }}>
+                            <Grid2 size={{ xs: 12, sm: labelWidth }}>
+                                <Typography variant="label">Bezeichnung</Typography>
+                            </Grid2>
+                            <Grid2 size={{ xs: 12, sm: 8, md: 6 }}>
+                                <Controller
+                                    name="title"
+                                    control={control}
+                                    render={({ field }) => (
+                                        <TextField
+                                            {...field}
+                                            fullWidth
+                                            variant="outlined"
+                                            error={!!errors.title}
+                                            helperText={errors.title?.message}
+                                        />
+                                    )}
+                                />
                             </Grid2>
                         </Grid2>
 
                         {/* Description */}
-                        <Grid2 size={{ sm: controlWidth }}>
-                            <Grid2 container alignItems="top">
-                                <Grid2 size={{ xs: labelWidth }}>
-                                    <Typography variant="label">Beschreibung</Typography>
-                                </Grid2>
-                                <Grid2 size={{ xs: 12, sm: 4 }}>
-                                    <Controller
-                                        name="description"
-                                        control={control}
-                                        render={({ field }) => (
-                                            <TextField
+                        <Grid2 container alignItems="top" rowSpacing={0} sx={{ width: '100%' }}>
+                            <Grid2 size={{ xs: labelWidth }}>
+                                <Typography variant="label">Beschreibung</Typography>
+                            </Grid2>
+                            <Grid2 size={{ xs: 12, sm: 8, md: 6 }}>
+                                <Controller
+                                    name="description"
+                                    control={control}
+                                    render={({ field }) => (
+                                        <TextField
+                                            {...field}
+                                            fullWidth
+                                            variant="outlined"
+                                            error={!!errors.description}
+                                            helperText={errors.description?.message}
+                                            multiline
+                                            rows={3}
+                                        />
+                                    )}
+                                />
+                            </Grid2>
+                        </Grid2>
+
+                        {/* Package Category */}
+                        <Grid2 container alignItems="top" rowSpacing={0} sx={{ width: '100%' }}>
+                            <Grid2 size={{ xs: 12, sm: labelWidth }}>
+                                <Typography variant="label">Paket-Kategorie</Typography>
+                            </Grid2>
+                            <Grid2 size={{ xs: 12, sm: 8, md: 6 }}>
+                                <Controller
+                                    name="packageCategory"
+                                    control={control}
+                                    render={({ field }) => (
+                                        <FormControl fullWidth variant="outlined" error={!!errors.packageCategory}>
+                                            <Select
                                                 {...field}
-                                                fullWidth
-                                                variant="outlined"
-                                                error={!!errors.description}
-                                                helperText={errors.description?.message}
-                                                multiline
-                                                rows={3}
-                                            />
-                                        )}
-                                    />
-                                </Grid2>
+                                                label="Paket-Kategorie"
+                                                onChange={(e) => field.onChange(e.target.value)}
+                                            >
+                                                {AvailablePackageCategories.map((value) => (
+                                                    <MenuItem key={value} value={value}>
+                                                        {formatPackageCategory(value as PackageCategories)}
+                                                    </MenuItem>
+                                                ))}
+                                            </Select>
+                                            <FormHelperText>{errors.packageCategory?.message}</FormHelperText>
+                                        </FormControl>
+                                    )}
+                                />
                             </Grid2>
                         </Grid2>
 
                         {/* Price */}
-                        <Grid2 size={{ sm: controlWidth }}>
-                            <Grid2 container alignItems="top">
-                                <Grid2 size={{ xs: labelWidth }}>
-                                    <Typography variant="label">Preis</Typography>
-                                </Grid2>
-                                <Grid2 size={{ xs: 12, sm: 4 }}>
-                                    <PriceInput
-                                        control={control}
-                                        errors={errors}
-                                    />
-                                </Grid2>
+                        <Grid2 container alignItems="top" rowSpacing={0} sx={{ width: '100%' }}>
+                            <Grid2 size={{ xs: labelWidth }}>
+                                <Typography variant="label">Preis</Typography>
+                            </Grid2>
+                            <Grid2 size={{ xs: 12, sm: 8, md: 6 }}>
+                                <PriceInput
+                                    control={control}
+                                    errors={errors}
+                                />
                             </Grid2>
                         </Grid2>
 
                         {/* Price Type */}
-                        <Grid2 size={{ sm: controlWidth }}>
-                            <Grid2 container alignItems="top">
-                                <Grid2 size={{ xs: labelWidth }}>
-                                    <Typography variant="label">Preisbezug</Typography>
-                                </Grid2>
-                                <Grid2 size={{ xs: 12, sm: 4 }}>
-                                    <PriceTypeField
-                                        control={control}
-                                        errors={errors}
-                                    />
-                                </Grid2>
+                        <Grid2 container alignItems="top" rowSpacing={0} sx={{ width: '100%' }}>
+                            <Grid2 size={{ xs: 12, sm: labelWidth }}>
+                                <Typography variant="label">Preisbezug</Typography>
+                            </Grid2>
+                            <Grid2 size={{ xs: 12, sm: 8, md: 6 }}>
+                                <PriceTypeField
+                                    control={control}
+                                    errors={errors}
+                                />
                             </Grid2>
                         </Grid2>
 
-                        {/* Min Persons */}
-                        <Grid2
-                            container
-                            size={{ xs: 12, sm: controlWidth }}
-                            spacing={0}
-                            alignItems="top">
+                        {/* Persons */}
+                        <Grid2 container alignItems="top" rowSpacing={0} sx={{ width: '100%' }}>
                             {/* Label */}
                             <Grid2 size={{ xs: 12, sm: labelWidth }}>
                                 <Typography variant="label">Personenanzahl</Typography>
                             </Grid2>
 
                             {/* Min Persons */}
-                            <Grid2 size={{ xs: 6, sm: 0.5 * labelWidth }}>
+                            <Grid2 size={{ xs: 6, sm: 4, md: 3 }}>
                                 <Controller
                                     name="minPersons"
                                     control={control}
@@ -392,7 +409,7 @@ const EventPackageForm = ({
                             </Grid2>
 
                             {/* Max Persons */}
-                            <Grid2 size={{ xs: 6, sm: 0.5 * labelWidth }} sx={{ ml: 0 }}>
+                            <Grid2 size={{ xs: 6, sm: 4, md: 3 }} sx={{ ml: 0 }}>
                                 <Controller
                                     name="maxPersons"
                                     control={control}
@@ -416,53 +433,49 @@ const EventPackageForm = ({
                             </Grid2>
                         </Grid2>
 
-                        <Grid2 size={{ sm: controlWidth }}>
-                            <Grid2 container alignItems="top">
-                                <Grid2 size={{ xs: labelWidth }}>
-                                    <Typography variant="label">Location</Typography>
-                                </Grid2>
-                                <Grid2 size={{ xs: 12, sm: 4 }}>
-                                    <Controller
-                                        name="locationId"
-                                        control={control}
-                                        render={({ field }) => (
-                                            <FormControl fullWidth error={!!errors.locationId}>
-                                                <Select
-                                                    {...field}
-                                                    labelId="location-select-label"
-                                                    id="location-select"
-                                                    label="Wählen Sie eine Location"
-                                                    value={field.value || ''}
-                                                    onChange={(e) => field.onChange(Number(e.target.value))}
-                                                >
-                                                    {locations.map((loc) => (
-                                                        <MenuItem key={loc.id} value={loc.id}>
-                                                            {loc.title}
-                                                        </MenuItem>
-                                                    ))}
-                                                </Select>
-                                                <Typography variant="caption" color="error">
-                                                    {errors.locationId?.message}
-                                                </Typography>
-                                            </FormControl>
-                                        )}
-                                    />
-                                </Grid2>
+                        <Grid2 container alignItems="top" rowSpacing={0} sx={{ width: '100%' }}>
+                            <Grid2 size={{ xs: 12, sm: labelWidth }}>
+                                <Typography variant="label">Location</Typography>
+                            </Grid2>
+                            <Grid2 size={{ xs: 12, sm: 8, md: 6 }}>
+                                <Controller
+                                    name="locationId"
+                                    control={control}
+                                    render={({ field }) => (
+                                        <FormControl fullWidth error={!!errors.locationId}>
+                                            <Select
+                                                {...field}
+                                                labelId="location-select-label"
+                                                id="location-select"
+                                                label="Wählen Sie eine Location"
+                                                value={field.value || ''}
+                                                onChange={(e) => field.onChange(Number(e.target.value))}
+                                            >
+                                                {locations.map((loc) => (
+                                                    <MenuItem key={loc.id} value={loc.id}>
+                                                        {loc.title}
+                                                    </MenuItem>
+                                                ))}
+                                            </Select>
+                                            <Typography variant="caption" color="error">
+                                                {errors.locationId?.message}
+                                            </Typography>
+                                        </FormControl>
+                                    )}
+                                />
                             </Grid2>
                         </Grid2>
 
                         {/* Categories */}
-                        <Grid2 size={{ sm: controlWidth }}>
-                            <Grid2 container alignItems="top">
-                                <Grid2 size={{ xs: labelWidth }}>
-                                    <Typography variant="label">Kategorien</Typography>
-                                </Grid2>
-                                <Grid2 size={{ xs: 12, sm: 4 }}>
-                                    <EventCategoriesField
-                                        control={control}
-                                        errors={errors}
-                                    />
-                                </Grid2>
+                        <Grid2 container alignItems="top" rowSpacing={0} sx={{ width: '100%' }}>
+                            <Grid2 size={{ xs: 12, sm: labelWidth }}>
+                                <Typography variant="label">Kategorien</Typography>
+                            </Grid2>
+                            <Grid2 size={{ xs: 12, sm: 8, md: 6 }}>
+                                <EventCategoriesField
+                                    control={control}
+                                    errors={errors}
+                                />
                             </Grid2>
                         </Grid2>
 
@@ -521,7 +534,7 @@ const EventPackageForm = ({
                                 </Typography>
                             </Grid2>
                         )}
-                    </Box>
+                    </Grid2>
                 </form>
                 {packageId > 0 &&
                     <>

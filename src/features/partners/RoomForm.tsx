@@ -23,6 +23,7 @@ import EventCategoriesField from '@/features/partners/EventCategoriesField';
 import { useAuthContext } from '@/auth/AuthContext';
 import { fetchLocationsByCompanyId } from '@/services/locationService';
 import PriceInput from '@/components/PriceInput';
+import PriceTypeField from './PriceTypeField';
 
 // Validation schema
 const roomValidationSchema = yup.object().shape({
@@ -46,6 +47,10 @@ const roomValidationSchema = yup.object().shape({
         .typeError('Preis / Tag muss eine Zahl sein')
         .positive('Preis / Tag muss positiv sein')
         .required('Preis / Tag ist erforderlich'),
+    priceType: yup
+        .string()
+        .required('Preis-Typ ist erforderlich')
+        .min(1, 'Preis-Typ muss ein gültiger Wert sein'),
     minPersons: yup
         .number()
         .typeError('Mindestpersonenanzahl muss eine Zahl sein')
@@ -405,6 +410,21 @@ const RoomForm = ({
                                 </Grid2>
                                 <Grid2 size={{ xs: 12, sm: 4 }}>
                                     <PriceInput
+                                        control={control}
+                                        errors={errors}
+                                    />
+                                </Grid2>
+                            </Grid2>
+                        </Grid2>
+
+                        {/* Price Type */}
+                        <Grid2 size={{ sm: controlWidth }}>
+                            <Grid2 container alignItems="top">
+                                <Grid2 size={{ xs: labelWidth }}>
+                                    <Typography variant="label">Preisbezug</Typography>
+                                </Grid2>
+                                <Grid2 size={{ xs: 12, sm: 4 }}>
+                                    <PriceTypeField
                                         control={control}
                                         errors={errors}
                                     />

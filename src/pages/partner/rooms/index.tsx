@@ -92,12 +92,22 @@ const PartnerPage: NextPageWithLayout = () => {
                 {rooms && rooms?.length > 0 &&
                     <List sx={{
                         mr: { xs: 1, sm: 3 },
-                        minWidth: { xs: '150px', sm: '200px', md: '250px' },
+                        minWidth: { xs: '100px', sm: '200px', md: '250px' },
                     }}>
                         <ListItem key={null} disablePadding>
-                            <ListItemButton onClick={() => setRoomId(null)}>
+                            <ListItemButton onClick={() => setRoomId(null)}
+                                sx={{
+                                    pt: { xs: 0, sm: 'inherit' },
+                                    pb: { xs: 0, sm: 'inherit' },
+                                }}
+                            >
                                 <ListItemText
                                     primary="Alle Räume"
+                                    primaryTypographyProps={{
+                                        sx: {
+                                            fontSize: { xs: '12px', sm: 'unset' },
+                                        }
+                                    }}
                                     sx={{
                                         color: roomId == null ?
                                             theme.palette.customColors.pink.light :
@@ -111,10 +121,16 @@ const PartnerPage: NextPageWithLayout = () => {
                                 key={room.id}
                                 disablePadding
                                 sx={{
-                                    ml: 2,
+                                    ml: { xs: 0, sm: 2 },
                                 }}
                             >
-                                <ListItemButton onClick={() => setRoomId(room.id)}>
+                                <ListItemButton
+                                    onClick={() => setRoomId(room.id)}
+                                    sx={{
+                                        pt: { xs: 0, sm: 'unset' },
+                                        pb: { xs: 0, sm: 'unset' },
+                                    }}
+                                >
                                     <ListItemText
                                         primary={room.name}
                                         primaryTypographyProps={{

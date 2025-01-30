@@ -8,6 +8,7 @@ interface GridItemProps {
     isSelected?: boolean;
     selectRequested?: (id: number) => void;
     title: string;
+    subTitle: string;
     information?: string;
 }
 
@@ -17,6 +18,7 @@ const GridItem: React.FC<GridItemProps> = ({
     isSelected,
     selectRequested,
     title,
+    subTitle,
     information,
 }) => {
     const [showInformation, setShowInformation] = useState(false);
@@ -74,9 +76,10 @@ const GridItem: React.FC<GridItemProps> = ({
                             overflow: 'hidden',
                             textOverflow: 'ellipsis',
                             mt: 2,
+                            opacity: 0.75,
                         }}
                     >
-                        {title}
+                        {title}<br />{subTitle}
                     </Typography>
                 </Box>
 

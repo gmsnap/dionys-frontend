@@ -23,11 +23,11 @@ const PartnerPage: NextPageWithLayout = () => {
 
     return (
         <Box>
-            <Typography variant='h6' sx={{ mt: 0, mb: 2 }}>
+            <Typography variant='h6' sx={{ mt: 0, mb: 2, pl: 2, pr: 2, }}>
                 Willkommen, {partnerUser.givenName} {partnerUser.familyName}!
             </Typography>
-            <Typography variant='body1'>
-                Noch keine Events erstellt ...
+            <Typography variant='body1' sx={{ pl: 2, pr: 2, }}>
+                Noch keine Event-Anfragen ...
             </Typography>
         </Box>
     );
@@ -37,7 +37,7 @@ const PartnerPage: NextPageWithLayout = () => {
 PartnerPage.getLayout = function getLayout(page: ReactElement) {
     return (
         <PartnerLayout>
-            <PartnerContentLayout title='Overview'>
+            <PartnerContentLayout title='Events'>
                 {page}
             </PartnerContentLayout>
         </PartnerLayout>

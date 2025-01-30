@@ -5,6 +5,7 @@ export interface RoomModel {
     description: string;
     size: number;
     price: number;
+    priceType: string;
     minPersons: number;
     maxPersons: number;
     images: string[];
@@ -19,6 +20,7 @@ export const createEmptyRoomModel = (locationId: number): RoomModel => ({
     description: '',
     size: 0,
     price: 0,
+    priceType: 'day',
     minPersons: 0,
     maxPersons: 0,
     images: [],

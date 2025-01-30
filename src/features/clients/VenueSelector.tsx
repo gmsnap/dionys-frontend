@@ -1,10 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { Box, Button, SxProps, Theme, Typography } from '@mui/material';
+import React, { useState } from 'react';
+import { Box, SxProps, Theme } from '@mui/material';
 import useStore from '@/stores/eventStore';
-import { AvailableEventCategories, EventCategories } from '@/constants/EventCategories';
-import router from 'next/router';
-import { formatEventCategoriesSync } from '@/utils/formatEventCategories';
-import theme from '@/theme';
 import RoomsAccordionGrid from './RoomsAccordionGrid';
 import ProposalBackButton from './ProposalBackButton';
 import ProposalNextButton from './ProposalNextButton';
@@ -36,9 +32,8 @@ const VenueSelector = ({
             {location?.rooms && (
                 <Box
                     sx={{
-                        flex: 1, // Allow this section to take up available space
-                        overflowY: 'auto', // Enable scrolling for content
-                        paddingBottom: '64px', // Add space to prevent content from being blocked by button
+                        flex: 1, 
+                        paddingBottom: '64px',
                     }}
                 >
                     <RoomsAccordionGrid />
@@ -46,9 +41,9 @@ const VenueSelector = ({
             )}
             <Box sx={{
                 backgroundColor: 'white',
-                width: '100%', // Full width
+                width: '100%',
                 position: 'sticky', // Fixes the button at the bottom
-                bottom: 0, // Sticks to the bottom of the container
+                bottom: 0,
                 zIndex: 2, // Ensures button remains above scrolling content
             }}>
                 <ProposalNextButton

@@ -95,7 +95,9 @@ const CategorySelector = ({
                             flexDirection: 'column',
                             alignItems: 'center',
                             position: 'relative',
+                            cursor: 'pointer',
                         }}
+                        onClick={() => handleSelectOccasion(category.name as EventCategories)}
                     >
                         {/* Category Image */}
                         <Box
@@ -107,30 +109,24 @@ const CategorySelector = ({
                                 width: '100%',
                                 height: '250px',
                                 objectFit: 'cover',
-                                borderRadius: '8px',
                                 pointerEvents: 'none',
                             }}
                         />
                         {/* Text Overlay */}
-                        <Box
-                            onClick={() => handleSelectOccasion(category.name as EventCategories)}
+                        <Typography
+                            variant="h6"
                             sx={{
                                 position: 'absolute',
                                 top: '50%',
                                 left: '50%',
                                 transform: 'translate(-50%, -50%)',
+                                fontFamily: "'Nunito', sans-serif",
+                                opacity: 0.75,
                                 color: 'white',
-                                fontSize: '16px',
-                                fontWeight: 600,
-                                cursor: 'pointer',
-                                backgroundColor: 'rgba(0, 0, 0, 0.6)',
-                                padding: '16px 32px',
-                                borderRadius: '4px',
-                                textAlign: 'center',
                             }}
                         >
                             {formatEventCategoriesSync([category.name as EventCategories])}
-                        </Box>
+                        </Typography>
                     </Box>
                 ))
             ) : (

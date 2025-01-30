@@ -35,3 +35,17 @@ export const translatePrice = (value: PriceTypes): string => {
 
   return staticTranslations[value];
 };
+
+export const formatPriceWithType = (price: number, priceType: PriceTypes): string => {
+  if (!priceType || priceType.length === 0) {
+    return formatPrice(price);
+  }
+
+  // Ensure priceType exists in staticTranslations
+  const translation = staticTranslations[priceType];
+  if (!translation) {
+    return formatPrice(price);
+  }
+
+  return `${formatPrice(price)} ${translation}`;
+};

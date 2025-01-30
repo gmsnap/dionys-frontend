@@ -184,12 +184,23 @@ const EventConfigurator2 = ({ locationId, sx, }: EventConfiguratorProps) => {
                     display: 'flex',
                     justifyContent: 'center',
                     alignItems: 'top',
-                    width: { xs: '100%', sm: '80%', md: '500px' },
+                    width: { xs: '100%' },
+                    maxWidth: '400px',
                     height: 'calc(100% - 200px)',
-                    border: '1px solid #ddd',
                     overflow: 'auto',
+                    scrollbarColor: '#888 transparent',
+                    scrollbarWidth: 'thin', // For Firefox
+                    '&::-webkit-scrollbar': {
+                        width: '6px', // Slim scrollbar
+                    },
+                    '&::-webkit-scrollbar-thumb': {
+                        backgroundColor: 'rgba(0, 0, 0, 0.3)',
+                        borderRadius: '4px',
+                    },
+                    '&::-webkit-scrollbar-thumb:hover': {
+                        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                    },
                     margin: '0 auto',
-                    pt: 4,
                 }}
             >
                 {navItems[selectedIndex].control}

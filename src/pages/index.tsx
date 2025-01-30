@@ -3,14 +3,33 @@ import Layout from '../layouts/ClientLayout';
 import type { NextPageWithLayout } from '../types/page';
 import { Box, Button, Typography } from '@mui/material';
 import { ArrowRight } from 'lucide-react';
+import theme from '@/theme';
 
 const Home: NextPageWithLayout = () => {
 
   return (
     <Box pt={3} className="gradient-background" sx={{ height: '100vh' }}>
-      <Typography variant="h2" textAlign="center" sx={{ mt: 4 }}>Home (tbd)</Typography>
 
-      <Box textAlign={'center'} mt={10} display={'flex'} flexDirection={'column'}>
+      <Box sx={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '200px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: theme.palette.customColors.pink.dark,
+      }}>
+        <Typography variant="h1" sx={{
+          color: 'white',
+          textAlign: 'center',
+        }}>
+          Finden Sie die besten Event-Locations
+        </Typography>
+      </Box>
+
+      <Box textAlign={'center'} mt={'200px'} display={'flex'} flexDirection={'column'}>
 
         <Button
           href='/locations'
@@ -23,7 +42,7 @@ const Home: NextPageWithLayout = () => {
             m: 2,
           }}
         >
-          Booker<ArrowRight />
+          Location finden<ArrowRight />
         </Button>
 
         <Button
@@ -37,21 +56,7 @@ const Home: NextPageWithLayout = () => {
             m: 2,
           }}
         >
-          Partner<ArrowRight />
-        </Button>
-
-        <Button
-          href='/admin'
-          sx={{
-            color: 'secondary.main',
-            fontFamily: "'Gugi', sans-serif",
-            fontSize: '20px',
-            fontWeight: 400,
-            letterSpacing: '-0.07em',
-            m: 2,
-          }}
-        >
-          Admin<ArrowRight />
+          Location Login<ArrowRight />
         </Button>
       </Box>
     </Box>

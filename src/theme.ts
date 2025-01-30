@@ -61,6 +61,13 @@ const theme = createTheme({
         headerHeight: 90,
     },
     typography: {
+        h1: {
+            fontFamily: "'Roboto', sans-serif",
+            fontSize: '38px',
+            fontWeight: 600,
+            color: 'white',
+            letterSpacing: 'normal',
+        },
         h2: {
             fontFamily: "'Gugi', sans-serif",
             color: customColors.purple,
@@ -256,7 +263,7 @@ const theme = createTheme({
                         scrollbarColor: '#888 #f5f5f5', // Firefox thumb and track colors
                     },
                 },
-            }, 
+            },
         },
         MuiSelect: {
             styleOverrides: {

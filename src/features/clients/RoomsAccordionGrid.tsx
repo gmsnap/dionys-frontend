@@ -3,6 +3,8 @@ import { Button, Grid2, SxProps, Theme } from '@mui/material';
 import { RoomModel } from '@/models/RoomModel';
 import AccordionGridItem from '@/components/AccordionGridItem';
 import useStore from '@/stores/eventStore';
+import { formatPrice, formatPriceWithType } from '@/utils/formatPrice';
+import { formatRoomSize } from '@/utils/formatSizes';
 
 interface VenueSelectorProps {
     sx?: SxProps<Theme>;
@@ -31,6 +33,7 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
                             isSelected={eventConfiguration?.roomId === room.id}
                             selectRequested={(id) => setRoomId(id)}
                             title={room.name}
+                            subTitle={`${formatRoomSize(room.size)}, ${formatPrice(room.price)}`}
                             information={room.description}
                         />
                     </Grid2>

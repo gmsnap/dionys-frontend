@@ -561,7 +561,7 @@ const LocationForm = ({ locationId, locationCreated }: LocationFormProps) => {
                     </Typography>
 
                     <Link
-                        href={`https://dionys.ai/embed-preview/index.html?code=${idCode}`}
+                        href={`${process.env.NEXT_PUBLIC_EMBED_PREVIEW_URL}/index.html?code=${idCode}`}
                         target="_blank"
                         variant="body2"
                         sx={{

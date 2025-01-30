@@ -50,15 +50,28 @@ const PartnerPage: NextPageWithLayout = () => {
                 justifyContent: 'left',
                 alignItems: 'top'
             }}>
+
+                {/* Left Menu (locations selector) */}
                 {partnerLocations && partnerLocations?.length > 0 &&
                     <List sx={{
                         mr: { xs: 1, sm: 3 },
-                        minWidth: { xs: '150px', sm: '200px', md: '250px' },
+                        minWidth: { xs: '100px', sm: '200px', md: '250px' },
                     }}>
                         <ListItem key={null} disablePadding>
-                            <ListItemButton onClick={() => setLocationId(null)}>
+                            <ListItemButton
+                                onClick={() => setLocationId(null)}
+                                sx={{
+                                    pt: { xs: 0, sm: 'inherit' },
+                                    pb: { xs: 0, sm: 'inherit' },
+                                }}
+                            >
                                 <ListItemText
-                                    primary="Locations / Venues"
+                                    primary="Alle Locations"
+                                    primaryTypographyProps={{
+                                        sx: {
+                                            fontSize: { xs: '12px', sm: 'unset' },
+                                        }
+                                    }}
                                     sx={{
                                         color: locationId == null ?
                                             theme.palette.customColors.pink.light :
@@ -67,15 +80,22 @@ const PartnerPage: NextPageWithLayout = () => {
                                 />
                             </ListItemButton>
                         </ListItem>
+
                         {partnerLocations.map((location) => (
                             <ListItem
                                 key={location.id}
                                 disablePadding
                                 sx={{
-                                    ml: 2,
+                                    ml: { xs: 0, sm: 2 },
                                 }}
                             >
-                                <ListItemButton onClick={() => setLocationId(location.id)}>
+                                <ListItemButton
+                                    onClick={() => setLocationId(location.id)}
+                                    sx={{
+                                        pt: { xs: 0, sm: 'unset' },
+                                        pb: { xs: 0, sm: 'unset' },
+                                    }}
+                                >
                                     <ListItemText
                                         primary={location.title}
                                         primaryTypographyProps={{
@@ -90,7 +110,8 @@ const PartnerPage: NextPageWithLayout = () => {
                                 </ListItemButton>
                             </ListItem>
                         ))}
-                    </List>}
+                    </List>
+                }
 
                 {locationId !== null ? (
                     <CreateLocationForm
