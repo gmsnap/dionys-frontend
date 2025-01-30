@@ -1,6 +1,7 @@
 import { EventCategories } from "@/constants/EventCategories";
 import { RoomModel } from "./RoomModel";
 import { AddressModel } from "./AddressModel";
+import { EventPackageModel } from "./EventPackageModel";
 
 export interface GeoLocation {
     lat: number;
@@ -22,6 +23,7 @@ export interface LocationModel {
     eventCategories: EventCategories[];
     rooms: RoomModel[] | null;
     billingAddress: AddressModel | null;
+    eventPackages: EventPackageModel[] | null;
 }
 
 export const createEmptyLocationModel = (companyId: number): LocationModel => ({
@@ -42,4 +44,5 @@ export const createEmptyLocationModel = (companyId: number): LocationModel => ({
     eventCategories: [],
     rooms: [],
     billingAddress: null,
+    eventPackages: null,
 });

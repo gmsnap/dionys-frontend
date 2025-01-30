@@ -53,12 +53,12 @@ const EventConfigurator2 = ({ locationId, sx, }: EventConfiguratorProps) => {
                 previousStep={prevStep}
                 stepCompleted={nextStep} />
         },
-        {
+        /*{
             label: 'Catering', id: 'catering',
             control: <CateringSelector
                 previousStep={prevStep}
                 stepCompleted={nextStep} />
-        },
+         },*/
         {
             label: 'Packages', id: 'packages',
             control: <PackageSelector

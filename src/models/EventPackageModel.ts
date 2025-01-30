@@ -1,14 +1,15 @@
 import * as yup from 'yup';
-import { AvailablePackageCategories } from "@/constants/PackageCategories";
+import { AvailablePackageCategories, PackageCategories } from "@/constants/PackageCategories";
+import { PriceTypes } from '@/constants/PriceTypes';
 
 export interface EventPackageModel {
     id: number;
     locationId: number;
     title: string;
     description: string;
-    packageCategory: string;
+    packageCategory: PackageCategories;
     price: number;
-    priceType: string;
+    priceType: PriceTypes;
     minPersons: number;
     maxPersons: number;
     images: string[];
@@ -20,7 +21,7 @@ export const createEmptyEventPackageModel = (locationId: number): EventPackageMo
     locationId: locationId,
     title: '',
     description: '',
-    packageCategory: AvailablePackageCategories[0],
+    packageCategory: AvailablePackageCategories[0] as PackageCategories,
     price: 0,
     priceType: 'person',
     minPersons: 0,

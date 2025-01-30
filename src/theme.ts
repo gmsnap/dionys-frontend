@@ -25,6 +25,13 @@ const customColors = {
     gradient: {
         pink: 'linear-gradient(90deg, #DE33C4 0%, #781C6A 100%)',
     },
+    embedded: {
+        text: {
+            primary: '#000000',
+            secondary: '#535353',
+            tertiary: '#606060', 
+        },
+    },
 } as const;
 
 // Declare custom theme properties
@@ -307,6 +314,36 @@ const theme = createTheme({
                 track: {
                     // Default gray track when unchecked
                     backgroundColor: '#AAAAAA',
+                },
+            },
+        },
+        MuiAutocomplete: {
+            styleOverrides: {
+                root: {
+                    '& .MuiOutlinedInput-root': {
+                        fontFamily: "'Nunito', sans-serif",
+                        fontWeight: 400,
+                        fontSize: '16px',
+                        letterSpacing: '-0.07em',
+                        color: '#6F6F6F',
+                        backgroundColor: '#f5f5f5',
+                        borderRadius: '8px',
+                        paddingTop: 0,
+                        paddingBottom: 0,
+                        '& fieldset': {
+                            border: 'none',
+                        },
+                        '&:hover fieldset': {
+                            border: 'none',
+                        },
+                        '&.Mui-focused fieldset': {
+                            border: 'none',
+                        },
+                        '& .MuiInputBase-input': {
+                            paddingTop: 8,
+                            paddingBottom: 8,
+                        },
+                    },
                 },
             },
         },

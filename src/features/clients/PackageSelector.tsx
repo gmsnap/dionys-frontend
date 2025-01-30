@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Box, Button, SxProps, Theme, Typography } from '@mui/material';
+import { Box, SxProps, Theme } from '@mui/material';
 import useStore from '@/stores/eventStore';
 import ProposalBackButton from './ProposalBackButton';
 import ProposalNextButton from './ProposalNextButton';
+import PackagesAccordeonGrid from './PackagesAccordeonGrid';
 
 interface SelectorProps {
     previousStep: () => void,
@@ -26,9 +27,16 @@ const PackageSelector = ({
         <Box sx={{
             width: '100%',
         }}>
-            <Typography variant="h3" sx={{ mt: 2, mb: 2, textAlign: 'center' }}>
-                Packages (WIP)
-            </Typography>
+            {location?.rooms && (
+                <Box
+                    sx={{
+                        flex: 1,
+                        paddingBottom: '64px',
+                    }}
+                >
+                    <PackagesAccordeonGrid />
+                </Box>
+            )}
             <Box sx={{
                 backgroundColor: 'white',
                 width: '100%', // Full width

@@ -1,16 +1,20 @@
 import * as yup from 'yup';
 import { EventCategories } from "@/constants/EventCategories";
 import { RoomModel } from "./RoomModel";
+import { EventPackageModel } from './EventPackageModel';
 
 export interface EventConfigurationModel {
     locationId: number;
     roomId: number | null;
     room: RoomModel | null;
+    packageId: number | null;
+    package: EventPackageModel | null;
     occasion: EventCategories | null;
     persons: number;
     date: number | null;
     roomConfigurationId: number | null;
     rooms: RoomModel[] | null;
+    packages: EventPackageModel[] | null;
 }
 
 export const EventConfValidationSchema = yup.object().shape({
@@ -51,6 +55,10 @@ export const EventConfValidationSchema = yup.object().shape({
         .number()
         .nullable(),
     rooms: yup
+        .array()
+        .of(yup.object())
+        .nullable(),
+    packages: yup
         .array()
         .of(yup.object())
         .nullable(),

@@ -1,12 +1,14 @@
 import React from "react";
 import { Controller } from "react-hook-form";
 import { TextField, Grid2, Typography } from "@mui/material";
+import CityField from "./CityField";
 
 interface BillingAddressFieldsProps {
     formData: any;
+    errors: any;
 }
 
-const BillingAddressFields = ({ formData }: BillingAddressFieldsProps) => {
+const BillingAddressFields = ({ formData, errors }: BillingAddressFieldsProps) => {
     const fields = [
         { name: "billingAddress.city", label: "Stadt", value: formData.billingAddress?.city || "" },
         { name: "billingAddress.streetAddress", label: "Straße", value: formData.billingAddress?.streetAddress || "" },
@@ -17,25 +19,36 @@ const BillingAddressFields = ({ formData }: BillingAddressFieldsProps) => {
     return (
         <>
             {fields.map((field, index) => (
-                <Grid2 key={index} size={{ xs: 12, sm: 10 }} container alignItems="top" spacing={2}>
-                    <Grid2 size={{ xs: 12, sm: 4 }}>
-                        <Typography variant="label">{field.label}</Typography>
-                    </Grid2>
-                    <Grid2 size={{ xs: 12, sm: 8 }}>
-                        <Controller
-                            name={field.name}
-                            defaultValue={field.value}
-                            render={({ field: controllerField, fieldState: { error } }) => (
-                                <TextField
-                                    {...controllerField}
-                                    fullWidth
-                                    variant="outlined"
-                                    error={!!error}
-                                    helperText={error?.message}
+                <Grid2 key={index}
+                    size={{ xs: 12, sm: 10 }}
+                    container
+                    alignItems="top"
+                    spacing={2}
+                >
+                    {index == 0 ? (
+                        <CityField fieldName={field.name} errorObject={errors.billingAddress?.city} />
+                    ) : (
+                        <>
+                            <Grid2 size={{ xs: 12, sm: 4 }}>
+                                <Typography variant="label">{field.label}</Typography>
+                            </Grid2>
+                            <Grid2 size={{ xs: 12, sm: 8 }}>
+                                <Controller
+                                    name={field.name}
+                                    defaultValue={field.value}
+                                    render={({ field: controllerField, fieldState: { error } }) => (
+                                        <TextField
+                                            {...controllerField}
+                                            fullWidth
+                                            variant="outlined"
+                                            error={!!error}
+                                            helperText={error?.message}
+                                        />
+                                    )}
                                 />
-                            )}
-                        />
-                    </Grid2>
+                            </Grid2>
+                        </>
+                    )}
                 </Grid2>
             ))}
         </>

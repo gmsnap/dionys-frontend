@@ -39,11 +39,16 @@ export const createDefaultEventConfigurationModel = (locationId: number): EventC
 
     return {
         locationId: locationId,
-        roomId: null, room: null,
-        occasion: null, persons: 0,
+        roomId: null,
+        room: null,
+        packageId: null,
+        package: null,
+        occasion: null,
+        persons: 0,
         date: now.getTime(),
         roomConfigurationId: null,
         rooms: null,
+        packages: null,
     };
 };
 

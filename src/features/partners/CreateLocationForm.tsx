@@ -10,11 +10,7 @@ import {
     TextField,
     Typography,
     CircularProgress,
-    MenuItem,
     Grid2,
-    FormControl,
-    Select,
-    FormHelperText,
     Tooltip,
     IconButton,
     Link,
@@ -26,7 +22,6 @@ import { CreateLocationResponse } from "@/types/geolocation";
 import { EventCategories } from "@/constants/EventCategories";
 import useStore from '@/stores/partnerStore';
 import { createEmptyLocationModel } from "@/models/LocationModel";
-import City, { AvailableCities } from "@/models/City";
 import ImageUploadField from "./ImageUploadField";
 import { fetchLocationById, storePartnerLocations } from "@/services/locationService";
 import { formatEventCategoriesSync } from "@/utils/formatEventCategories";
@@ -35,6 +30,7 @@ import { Clipboard } from 'lucide-react';
 import { useAuthContext } from "@/auth/AuthContext";
 import theme from "@/theme";
 import BillingAddressFields from "./BillingAddressFields2";
+import CityField from "./CityField";
 
 // Validation schema
 const locationValidationSchema = yup.object().shape({
@@ -82,8 +78,34 @@ const locationValidationSchema = yup.object().shape({
         .number()
         .nullable(),
     billingAddress: yup
-        .mixed()
-        .nullable(),
+        .object()
+        .nullable()
+        .shape({
+            city: yup
+                .string()
+                .required('B Stadt ist erforderlich')
+                .min(1, 'Stadt muss mindestens 1 Zeichen lang sein'),
+            streetAddress: yup
+                .string()
+                .required('Anschrift ist erforderlich')
+                .min(1, 'Anschrift muss mindestens 1 Zeichen lang sein'),
+            postalCode: yup
+                .string()
+                .required('Postleitzahl ist erforderlich')
+                .min(1, 'Postleitzahl muss mindestens 1 Zeichen lang sein'),
+            country: yup
+                .string()
+                .required('Land ist erforderlich')
+                .min(1, 'Land muss mindestens 1 Zeichen lang sein'),
+        })
+        .test(
+            'is-valid-billing-address',
+            'Ungültige Rechnungsadresse',
+            value => {
+                if (value === null) return true; // Allow null
+                return Object.values(value).every(field => field !== null && field !== undefined);
+            }
+        ),
 });
 
 interface LocationFormProps {
@@ -110,7 +132,7 @@ const LocationForm = ({ locationId, locationCreated }: LocationFormProps) => {
 
     const methods = useForm({
         defaultValues: createEmptyLocationModel(0),
-        resolver: yupResolver(locationValidationSchema),
+        resolver: yupResolver(locationValidationSchema) as any,
     });
 
     const { control, handleSubmit, reset, formState: { errors }, getValues } = methods;
@@ -123,7 +145,7 @@ const LocationForm = ({ locationId, locationCreated }: LocationFormProps) => {
             reset({
                 ...getValues(), // Preserve all existing form data
                 billingAddressId: null,
-                billingAddress: { id: 0, city: "", streetAddress: "", postalCode: "", country: "" },
+                billingAddress: null,
             });
         }
     };
@@ -240,7 +262,7 @@ const LocationForm = ({ locationId, locationCreated }: LocationFormProps) => {
                 emptyModel.city = partnerUser?.company.address.city ?? "";
                 emptyModel.streetAddress = partnerUser?.company.address.streetAddress ?? "";
                 emptyModel.postalCode = partnerUser?.company.address.postalCode ?? "";
-                emptyModel.billingAddress = { id: 0, city: "", streetAddress: "", postalCode: "", country: "" };
+                emptyModel.billingAddress = null;
             }
             reset(emptyModel);
             setIsLoading(false);
@@ -270,7 +292,7 @@ const LocationForm = ({ locationId, locationCreated }: LocationFormProps) => {
                     return;
                 }
                 if (!locationData.billingAddress) {
-                    locationData.billingAddress = { id: 0, city: "", streetAddress: "", postalCode: "", country: "" };
+                    locationData.billingAddress = null;
                 }
 
                 reset(locationData);
@@ -356,33 +378,7 @@ const LocationForm = ({ locationId, locationCreated }: LocationFormProps) => {
                         {/* City */}
                         <Grid2 size={{ xs: 12, sm: controlWidth }}>
                             <Grid2 container alignItems="top">
-                                <Grid2 size={{ xs: 12, sm: 4 }}>
-                                    <Typography variant="label">Stadt</Typography>
-                                </Grid2>
-                                <Grid2 size={{ xs: 12, sm: 8 }}>
-                                    <Controller
-                                        name="city"
-                                        control={control}
-                                        render={({ field }) => (
-                                            <FormControl fullWidth error={!!errors.city}>
-                                                <Select
-                                                    {...field}
-                                                    variant="outlined"
-                                                >
-                                                    {AvailableCities.map((city: City) => (
-                                                        <MenuItem key={city.value} value={city.value}>
-                                                            {city.label}
-                                                        </MenuItem>
-                                                    ))}
-                                                </Select>
-                                                {errors.city &&
-                                                    <FormHelperText>
-                                                        {errors.city.message as string}
-                                                    </FormHelperText>}
-                                            </FormControl>
-                                        )}
-                                    />
-                                </Grid2>
+                                <CityField fieldName={"city"} errorObject={errors.city} />
                             </Grid2>
                         </Grid2>
 
@@ -477,7 +473,7 @@ const LocationForm = ({ locationId, locationCreated }: LocationFormProps) => {
 
                         {/* Billing Address Fields */}
                         {!billingToggle &&
-                            <BillingAddressFields formData={getValues()} />}
+                            <BillingAddressFields formData={getValues()} errors={errors} />}
 
                         {/* Submit */}
                         <Grid2 size={{ xs: 12 }}>
@@ -512,6 +508,14 @@ const LocationForm = ({ locationId, locationCreated }: LocationFormProps) => {
                     </Grid2>
                 </form>
             </FormProvider>
+
+            {responseMessage && (
+                <Grid2 size={{ xs: 12, sm: controlWidth }}>
+                    <Typography variant="body2" color="success">
+                        {responseMessage}
+                    </Typography>
+                </Grid2>
+            )}
 
             {/* Display Event Categories */}
             {eventCategories.length > 0 && (
@@ -617,14 +621,6 @@ const LocationForm = ({ locationId, locationCreated }: LocationFormProps) => {
                     </Box>
                 </Box>
                 )}
-
-            {responseMessage && (
-                <Grid2 size={{ xs: 12, sm: controlWidth }}>
-                    <Typography variant="body2" color="success">
-                        {responseMessage}
-                    </Typography>
-                </Grid2>
-            )}
         </Box >
     );
 };

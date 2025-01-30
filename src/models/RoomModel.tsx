@@ -1,3 +1,5 @@
+import { PriceTypes } from "@/constants/PriceTypes";
+
 export interface RoomModel {
     id: number;
     locationId: number;
@@ -5,7 +7,7 @@ export interface RoomModel {
     description: string;
     size: number;
     price: number;
-    priceType: string;
+    priceType: PriceTypes;
     minPersons: number;
     maxPersons: number;
     images: string[];

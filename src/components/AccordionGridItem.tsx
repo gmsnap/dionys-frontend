@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import { Box, Button, Typography } from '@mui/material';
-import { boolean } from 'yup';
+
+interface InfoItem {
+    icon: React.ReactNode;
+    label: string;
+}
 
 interface GridItemProps {
     id: number;
@@ -10,6 +14,7 @@ interface GridItemProps {
     title: string;
     subTitle: string;
     information?: string;
+    infoItems?: InfoItem[];
 }
 
 const GridItem: React.FC<GridItemProps> = ({
@@ -20,6 +25,7 @@ const GridItem: React.FC<GridItemProps> = ({
     title,
     subTitle,
     information,
+    infoItems,
 }) => {
     const [showInformation, setShowInformation] = useState(false);
 
@@ -72,7 +78,7 @@ const GridItem: React.FC<GridItemProps> = ({
                         variant="h6"
                         sx={{
                             fontFamily: "'Nunito', sans-serif",
-                            whiteSpace: 'nowrap',
+                            whiteSpace: 'normal',
                             overflow: 'hidden',
                             textOverflow: 'ellipsis',
                             mt: 2,
@@ -122,7 +128,15 @@ const GridItem: React.FC<GridItemProps> = ({
 
             {/* Description section (if needed outside the image) */}
             {showInformation && <Box sx={{ mt: 2, ml: 2, mr: 2, mb: 2 }}>
-                <Typography variant="body2">{information}</Typography>
+                {infoItems && infoItems.map((item, index) => (
+                    <Box key={index} sx={{ display: 'flex', alignItems: 'flex-start', gap: 2, mb: 1 }}>
+                        <Box sx={{ flexShrink: 0, flexBasis: 'auto', display: 'flex', alignItems: 'center' }}>
+                            {item.icon}
+                        </Box>
+                        <Typography variant='subtitle2' sx={{ lineHeight: '24px' }}>{item.label}</Typography>
+                    </Box>
+                ))}
+                <Typography variant="body2" sx={{ mt: 4 }}>{information}</Typography>
             </Box>}
         </Box>
     );
