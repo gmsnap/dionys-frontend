@@ -29,7 +29,7 @@ const customColors = {
         text: {
             primary: '#000000',
             secondary: '#535353',
-            tertiary: '#606060', 
+            tertiary: '#606060',
         },
     },
 } as const;
@@ -152,7 +152,7 @@ const theme = createTheme({
         MuiButton: {
             styleOverrides: {
                 root: {
-                    borderRadius: 16,
+                    borderRadius: 0,
                     fontFamily: "'Gugi', sans-serif",
                     fontSize: 12,
                     fontWeight: 400,
@@ -178,13 +178,12 @@ const theme = createTheme({
                 },
                 containedPrimary: {
                     fontFamily: "'Arial', sans-serif",
-                    fontSize: 10,
+                    fontSize: 12,
                     fontWeight: 700,
-                    textTransform: 'uppercase',
                     letterSpacing: '-0.05em',
                     color: '#FFFFFF',
-                    backgroundColor: customColors.pink.dark,
-                    borderRadius: 6,
+                    backgroundColor: customColors.pink.main,
+                    borderRadius: 0,
                 },
             },
         },
@@ -236,7 +235,7 @@ const theme = createTheme({
                         letterSpacing: '-0.07em',
                         color: '#6F6F6F',
                         backgroundColor: '#f5f5f5',
-                        borderRadius: '8px',
+                        borderRadius: '0px',
                         '& fieldset': {
                             border: 'none',
                         },
@@ -281,7 +280,7 @@ const theme = createTheme({
                     letterSpacing: '-0.07em',
                     color: '#6F6F6F',
                     backgroundColor: '#f5f5f5',
-                    borderRadius: '8px',
+                    borderRadius: '0px',
                     '& .MuiOutlinedInput-notchedOutline': {
                         border: 'none',
                     },
@@ -327,7 +326,7 @@ const theme = createTheme({
                         letterSpacing: '-0.07em',
                         color: '#6F6F6F',
                         backgroundColor: '#f5f5f5',
-                        borderRadius: '8px',
+                        borderRadius: '0px',
                         paddingTop: 0,
                         paddingBottom: 0,
                         '& fieldset': {

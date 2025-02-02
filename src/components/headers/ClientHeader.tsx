@@ -135,7 +135,7 @@ const Header: FC<HeaderProps> = ({ transparentHeader = false }) => {
                 </Typography>
 
                 <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-                    <GradientButton
+                    {/*<GradientButton
                         sx={{
                             fontSize: {
                                 xs: '10px',
@@ -146,7 +146,7 @@ const Header: FC<HeaderProps> = ({ transparentHeader = false }) => {
                         onClick={() => handleConfiguratorClick(eventConfiguration?.locationId ?? null)}
                     >
                         Konfigurator
-                    </GradientButton>
+                    </GradientButton>*/}
                     {isMobile ? (
                         <>
                             <IconButton

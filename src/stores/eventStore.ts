@@ -37,18 +37,28 @@ export const createDefaultEventConfigurationModel = (locationId: number): EventC
     // tomorrow
     now.setDate(now.getDate() + 1);
 
+    // Create a new Date object for endDate and add 2 hours
+    const endDate = new Date(now.getTime());
+    endDate.setHours(endDate.getHours() + 2);
+
     return {
+        id: 0,
         locationId: locationId,
         roomId: null,
         room: null,
-        packageId: null,
+        packageIds: null,
         package: null,
-        occasion: null,
+        eventCategory: null,
         persons: 0,
         date: now.getTime(),
+        endDate: endDate.getTime(),
         roomConfigurationId: null,
+        bookerId: null,
+        location: null,
         rooms: null,
         packages: null,
+        booker: null,
+        notes: null,
     };
 };
 

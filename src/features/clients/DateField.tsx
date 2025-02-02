@@ -15,11 +15,11 @@ interface DateFieldProps {
 const DateField: React.FC<DateFieldProps> = ({ control, errors, labelWidth }) => {
     return (
         <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={'de'}>
-            <Grid2 container alignItems="top">
+            <>
                 <Grid2 size={{ sm: labelWidth }}>
                     <Typography variant="label">Datum</Typography>
                 </Grid2>
-                <Grid2 size={{ xs: 12, sm: 4 }}>
+                <Grid2 size={{ xs: 12, sm: 8, md: 6 }}>
                     <Controller
                         name="date"
                         control={control}
@@ -47,7 +47,7 @@ const DateField: React.FC<DateFieldProps> = ({ control, errors, labelWidth }) =>
                         )}
                     />
                 </Grid2>
-            </Grid2>
+            </>
         </LocalizationProvider>
     );
 };

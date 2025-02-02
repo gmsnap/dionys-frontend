@@ -1,26 +1,24 @@
-import React, { useEffect, useState } from 'react';
-import { Box, Grid2, SxProps, TextField, Theme, Typography } from '@mui/material';
+import React, { useEffect } from 'react';
+import { Box, Grid2, TextField, Typography } from '@mui/material';
 import useStore from '@/stores/eventStore';
 import ProposalBackButton from './ProposalBackButton';
 import ProposalNextButton from './ProposalNextButton';
 import { Controller, useForm } from 'react-hook-form';
 import {
-    BookingUserModel,
-    BookingUserValidationSchema,
-    createEmptyBookingUserModel
-} from '@/models/BookingUserModel';
+    BookingCompanyModel,
+    BookingCompanyModelValidationSchema,
+    createEmptyBookingCompanyModel
+} from '@/models/BookingCompanyModel';
 import { yupResolver } from '@hookform/resolvers/yup';
 
 const labelWidth = 4;
+
 interface SelectorProps {
     previousStep: () => void,
     stepCompleted: () => void,
-    sx?: SxProps<Theme>;
 }
 
-const PersonalDataSelector = ({
-    previousStep,
-    stepCompleted }: SelectorProps) => {
+const CompanyDataSelector = ({ previousStep, stepCompleted }: SelectorProps) => {
     const { eventConfiguration, setEventConfiguration } = useStore();
 
     const {
@@ -29,42 +27,36 @@ const PersonalDataSelector = ({
         reset,
         trigger,
         formState: { errors },
-    } = useForm({
-        defaultValues: eventConfiguration?.booker || createEmptyBookingUserModel(),
-        resolver: yupResolver(BookingUserValidationSchema),
+    } = useForm<BookingCompanyModel>({
+        defaultValues: eventConfiguration?.booker?.bookingCompany || createEmptyBookingCompanyModel(),
+        resolver: yupResolver(BookingCompanyModelValidationSchema) as any,
     });
 
     const tryComplete = async (): Promise<void> => {
-        const isValid = await trigger(); // Validates all fields
+        const isValid = await trigger();
         if (!isValid) return;
-
         stepCompleted?.();
     };
 
-    const onSubmit = async () => {
-    };
-
-    const handleFieldBlur = (fieldName: keyof BookingUserModel, value: string) => {
-        if (eventConfiguration) {
+    const handleFieldBlur = (fieldName: keyof BookingCompanyModel, value: string) => {
+        if (eventConfiguration?.booker) {
             setEventConfiguration({
                 ...eventConfiguration,
                 booker: {
                     ...eventConfiguration.booker,
-                    [fieldName]: value,
-                } as BookingUserModel,
+                    bookingCompany: {
+                        ...eventConfiguration.booker.bookingCompany,
+                        [fieldName]: value,
+                    } as BookingCompanyModel,
+                },
             });
         }
     };
 
     useEffect(() => {
-        if (!eventConfiguration) {
-            return;
+        if (eventConfiguration?.booker?.bookingCompany) {
+            reset(eventConfiguration.booker.bookingCompany);
         }
-
-        if (eventConfiguration.booker) {
-            reset(eventConfiguration.booker);
-        }
-
     }, [eventConfiguration]);
 
     return (
@@ -73,131 +65,110 @@ const PersonalDataSelector = ({
             ml: 7,
             mr: 7,
         }}>
-            <form onSubmit={handleSubmit(onSubmit)}>
+            <form onSubmit={handleSubmit(tryComplete)}>
                 <Grid2 container rowSpacing={2}>
 
-                    {/* Given Name */}
+                    {/* Company Name */}
                     <Grid2 container alignItems="top" rowSpacing={0} sx={{ width: '100%' }}>
                         <Grid2 size={{ xs: 12, sm: labelWidth }}>
-                            <Typography variant="label">Vorname</Typography>
+                            <Typography variant="label">Unternehmensname</Typography>
                         </Grid2>
                         <Grid2 size={{ xs: 12, sm: 8, md: 6 }}>
                             <Controller
-                                name="givenName"
+                                name="companyName"
                                 control={control}
                                 render={({ field }) => (
                                     <TextField
                                         {...field}
                                         fullWidth
                                         variant="outlined"
-                                        error={!!errors.givenName}
-                                        helperText={errors.givenName?.message}
-                                        onBlur={(e) => {
-                                            field.onBlur(); // Ensure validation is triggered
-                                            handleFieldBlur("givenName", e.target.value);
-                                        }}
+                                        error={!!errors.companyName}
+                                        helperText={errors.companyName?.message}
+                                        onBlur={(e) => handleFieldBlur("companyName", e.target.value)}
                                     />
                                 )}
                             />
                         </Grid2>
                     </Grid2>
 
-                    {/* Family Name */}
+                    {/* Contact Name */}
                     <Grid2 container alignItems="top" rowSpacing={0} sx={{ width: '100%' }}>
                         <Grid2 size={{ xs: 12, sm: labelWidth }}>
-                            <Typography variant="label">Nachname</Typography>
+                            <Typography variant="label">Kontakt-Person</Typography>
                         </Grid2>
                         <Grid2 size={{ xs: 12, sm: 8, md: 6 }}>
                             <Controller
-                                name="familyName"
+                                name="contactName"
                                 control={control}
                                 render={({ field }) => (
                                     <TextField
                                         {...field}
                                         fullWidth
                                         variant="outlined"
-                                        error={!!errors.familyName}
-                                        helperText={errors.familyName?.message}
-                                        onBlur={(e) => {
-                                            field.onBlur(); // Ensure validation is triggered
-                                            handleFieldBlur("familyName", e.target.value);
-                                        }}
+                                        error={!!errors.contactName}
+                                        helperText={errors.contactName?.message}
+                                        onBlur={(e) => handleFieldBlur("contactName", e.target.value)}
                                     />
                                 )}
                             />
                         </Grid2>
                     </Grid2>
 
-                    {/* Email */}
+                    {/* Street Address */}
                     <Grid2 container alignItems="top" rowSpacing={0} sx={{ width: '100%' }}>
                         <Grid2 size={{ xs: 12, sm: labelWidth }}>
-                            <Typography variant="label">Email</Typography>
+                            <Typography variant="label">Rechnungsanschrift</Typography>
                         </Grid2>
                         <Grid2 size={{ xs: 12, sm: 8, md: 6 }}>
                             <Controller
-                                name="email"
+                                name="streetAddress"
                                 control={control}
                                 render={({ field }) => (
                                     <TextField
                                         {...field}
                                         fullWidth
                                         variant="outlined"
-                                        error={!!errors.email}
-                                        helperText={errors.email?.message}
-                                        onBlur={(e) => {
-                                            field.onBlur(); // Ensure validation is triggered
-                                            handleFieldBlur("email", e.target.value);
-                                        }}
+                                        error={!!errors.streetAddress}
+                                        helperText={errors.streetAddress?.message}
+                                        onBlur={(e) => handleFieldBlur("streetAddress", e.target.value)}
                                     />
                                 )}
                             />
                         </Grid2>
                     </Grid2>
 
-                    {/* Phone */}
+                    {/* City */}
                     <Grid2 container alignItems="top" rowSpacing={0} sx={{ width: '100%' }}>
                         <Grid2 size={{ xs: 12, sm: labelWidth }}>
-                            <Typography variant="label">Phone</Typography>
+                            <Typography variant="label">PLZ und Stadt</Typography>
                         </Grid2>
                         <Grid2 size={{ xs: 12, sm: 8, md: 6 }}>
                             <Controller
-                                name="phoneNumber"
+                                name="city"
                                 control={control}
                                 render={({ field }) => (
                                     <TextField
                                         {...field}
                                         fullWidth
                                         variant="outlined"
-                                        error={!!errors.phoneNumber}
-                                        helperText={errors.phoneNumber?.message}
-                                        onBlur={(e) => {
-                                            field.onBlur(); // Ensure validation is triggered
-                                            handleFieldBlur("phoneNumber", e.target.value);
-                                        }}
+                                        error={!!errors.city}
+                                        helperText={errors.city?.message}
+                                        onBlur={(e) => handleFieldBlur("city", e.target.value)}
                                     />
                                 )}
                             />
                         </Grid2>
                     </Grid2>
-
                 </Grid2>
-
             </form>
 
-            <Box sx={{
-                backgroundColor: 'white',
-                width: '100%', // Full width
-                position: 'sticky', // Fixes the button at the bottom
-                bottom: 0, // Sticks to the bottom of the container
-                zIndex: 2, // Ensures button remains above scrolling content
-            }}>
-                <ProposalNextButton
-                    nextStep={tryComplete}
-                    isDisabled={!eventConfiguration?.roomId} />
+            {/* Navigation Buttons */}
+            <Box sx={{ backgroundColor: 'white', width: '100%', position: 'sticky', bottom: 0, zIndex: 2 }}>
+                <ProposalNextButton nextStep={tryComplete} isDisabled={!eventConfiguration?.roomId} />
                 <ProposalBackButton previousStep={previousStep} />
             </Box>
-        </Box >
+        </Box>
     );
 };
 
-export default PersonalDataSelector;
+export default CompanyDataSelector;

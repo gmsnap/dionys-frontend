@@ -29,7 +29,7 @@ const LocationGrid = ({ sx }: LocationGridProps) => {
     const handleConfigurationClick = (locationId: number): void => {
         if (eventConfiguration) {
             /*if (eventConfiguration.locationId === locationId) {
-                if (eventConfiguration.occasion) {
+                if (eventConfiguration.eventCategory) {
                     router.push(`/configurator/?id=${id}`);
                     return;
                 }

@@ -1,14 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { Box, SxProps, Theme, Typography, Button, Grid2, TextField } from '@mui/material';
 import useStore, { createDefaultEventConfigurationModel } from '@/stores/eventStore';
-import { formatEventCategoriesSync, formatEventCategory } from '@/utils/formatEventCategories';
+import { formatEventCategoriesSync } from '@/utils/formatEventCategories';
 import { Controller, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { EventCategories } from '@/constants/EventCategories';
 import DateField from './DateField';
 import { EventConfigurationModel, EventConfValidationSchema } from '@/models/EventConfigurationModel';
 import TimeField from './TimeField';
-import dayjs from 'dayjs';
 import ProposalBackButton from './ProposalBackButton';
 
 interface EventConfiguratorStepProps {
@@ -19,34 +18,18 @@ interface EventConfiguratorStepProps {
 
 const GeneralSelector = ({
     previousStep,
-    stepCompleted,
-    sx }: EventConfiguratorStepProps) => {
+    stepCompleted }: EventConfiguratorStepProps) => {
     const { location, eventConfiguration, setEventConfiguration } = useStore();
 
     const {
         control,
         handleSubmit,
-        setValue,
         reset,
-        watch,
         formState: { errors },
     } = useForm<EventConfigurationModel>({
         defaultValues: createDefaultEventConfigurationModel(0),
         resolver: yupResolver<any>(EventConfValidationSchema),
     });
-
-    const combineDateAndTime = (date: number, time: number) => {
-        const dateObj = dayjs(date); // Dayjs object for date
-        const timeObj = dayjs(time); // Dayjs object for time
-
-        // Combine date and time parts
-        return dateObj
-            .hour(timeObj.hour())
-            .minute(timeObj.minute())
-            .second(0)
-            .millisecond(0)
-            .valueOf(); // Return combined timestamp
-    };
 
     const onSubmit = async (data: EventConfigurationModel) => {
         if (eventConfiguration) {
@@ -84,92 +67,92 @@ const GeneralSelector = ({
     return (
         <Box sx={{
             width: '100%',
+            ml: 7,
+            mr: 7,
         }}>
             <form onSubmit={handleSubmit(onSubmit)}>
-                <Box sx={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: 2,
-                }}>
+                <Grid2 container rowSpacing={2}>
+
                     {/* Title */}
-                    <Grid2 size={{ sm: controlWidth }}>
-                        <Grid2 container alignItems="top">
-                            <Grid2 size={{ sm: labelWidth }}>
-                                <Typography variant="label">Anzahl Teilnehmer</Typography>
-                            </Grid2>
-                            <Grid2 size={{ xs: 12, sm: 4 }}>
-                                <Controller
-                                    name="persons"
-                                    control={control}
-                                    render={({ field }) => (
-                                        <TextField
-                                            {...field}
-                                            fullWidth
-                                            variant="outlined"
-                                            error={!!errors.persons}
-                                            helperText={errors.persons?.message}
-                                        />
-                                    )}
-                                />
-                            </Grid2>
+                    <Grid2 container alignItems="top" rowSpacing={0} sx={{ width: '100%' }}>
+                        <Grid2 size={{ xs: 12, sm: labelWidth }}>
+                            <Typography variant="label">Teilnehmer</Typography>
+                        </Grid2>
+                        <Grid2 size={{ xs: 12, sm: 8, md: 6 }}>
+                            <Controller
+                                name="persons"
+                                control={control}
+                                render={({ field }) => (
+                                    <TextField
+                                        {...field}
+                                        fullWidth
+                                        variant="outlined"
+                                        error={!!errors.persons}
+                                        helperText={errors.persons?.message}
+                                    />
+                                )}
+                            />
                         </Grid2>
                     </Grid2>
 
                     {/* Date */}
-                    <Grid2 size={{ sm: controlWidth }}>
+                    <Grid2 container alignItems="top" rowSpacing={0} sx={{ width: '100%' }}>
                         <DateField control={control} errors={errors} labelWidth={labelWidth} />
                     </Grid2>
 
                     {/* Time */}
-                    <Grid2 size={{ sm: controlWidth }}>
-                        <TimeField control={control} errors={errors} labelWidth={labelWidth} />
+                    <Grid2 container alignItems="top" rowSpacing={0} sx={{ width: '100%' }}>
+                        <TimeField control={control} fieldName="date" labelText="Uhrzeit (von)" labelWidth={labelWidth} />
+                    </Grid2>
+
+                    {/* End Time */}
+                    <Grid2 container alignItems="top" rowSpacing={0} sx={{ width: '100%' }}>
+                        <TimeField control={control} fieldName="endDate" labelText="Uhrzeit (bis)" labelWidth={labelWidth} />
                     </Grid2>
 
                     {/* Event Category */}
-                    <Grid2 size={{ sm: controlWidth }}>
-                        <Grid2 container alignItems="top">
-                            <Grid2 size={{ sm: labelWidth }}>
-                                <Typography variant="label">Event Type</Typography>
-                            </Grid2>
-                            <Grid2 size={{ xs: 12, sm: 4 }}>
-                                <Controller
-                                    name="occasion"
-                                    control={control}
-                                    render={({ field }) => (
-                                        <TextField
-                                            {...field}
-                                            fullWidth
-                                            variant="outlined"
-                                            error={!!errors.occasion}
-                                            helperText={errors.occasion?.message}
-                                            // Display the translated text
-                                            value={field.value
-                                                ? formatEventCategoriesSync([field.value as EventCategories])
-                                                : ''}
-                                            // Maintain the original field value
-                                            onChange={(event) => {
-                                                const value = event.target.value;
-                                                field.onChange(value); // Store the raw field value
-                                            }}
-                                            // Disable editing if this is a read-only display field
-                                            slotProps={{
-                                                input: {
-                                                    readOnly: true,
-                                                },
-                                            }}
-                                        />
-                                    )}
-                                />
-                            </Grid2>
+                    <Grid2 container alignItems="top" rowSpacing={0} sx={{ width: '100%' }}>
+                        <Grid2 size={{ xs: 12, sm: labelWidth }}>
+                            <Typography variant="label">Event Type</Typography>
+                        </Grid2>
+                        <Grid2 size={{ xs: 12, sm: 8, md: 6 }}>
+                            <Controller
+                                name="eventCategory"
+                                control={control}
+                                render={({ field }) => (
+                                    <TextField
+                                        {...field}
+                                        fullWidth
+                                        variant="outlined"
+                                        error={!!errors.eventCategory}
+                                        helperText={errors.eventCategory?.message}
+                                        // Display the translated text
+                                        value={field.value
+                                            ? formatEventCategoriesSync([field.value as EventCategories])
+                                            : ''}
+                                        // Maintain the original field value
+                                        onChange={(event) => {
+                                            const value = event.target.value;
+                                            field.onChange(value); // Store the raw field value
+                                        }}
+                                        // Disable editing if this is a read-only display field
+                                        slotProps={{
+                                            input: {
+                                                readOnly: true,
+                                            },
+                                        }}
+                                    />
+                                )}
+                            />
                         </Grid2>
                     </Grid2>
 
                     {/* Submit */}
                     <Grid2
-                        size={{ xs: controlWidth }}
                         display={'flex'}
                         gap={2}
                         sx={{
+                            width: '100%',
                             xs: 12,
                             mt: 2,
                             pt: 1,
@@ -190,7 +173,7 @@ const GeneralSelector = ({
                         </Button>
                     </Grid2>
 
-                </Box>
+                </Grid2>
             </form>
             <ProposalBackButton previousStep={previousStep} />
         </Box>

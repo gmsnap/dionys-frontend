@@ -29,7 +29,7 @@ const OccasionSelector = ({ sx }: OccasionSelectorProps) => {
         if (eventConfiguration) {
             setEventConfiguration({
                 ...eventConfiguration,
-                occasion: category,
+                eventCategory: category,
             });
 
             router.push(eventConfiguration.locationId ?

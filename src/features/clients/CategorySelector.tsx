@@ -31,7 +31,7 @@ const CategorySelector = ({
         if (eventConfiguration) {
             setEventConfiguration({
                 ...eventConfiguration,
-                occasion: category,
+                eventCategory: category,
             });
         }
         stepCompleted?.();

@@ -10,7 +10,6 @@ import {
     FormControl,
     Select,
     MenuItem,
-    InputLabel,
     FormHelperText
 } from '@mui/material';
 import { yupResolver } from '@hookform/resolvers/yup';

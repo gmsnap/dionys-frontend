@@ -1,5 +1,5 @@
 import React, { } from 'react';
-import { Grid2, SxProps, Theme } from '@mui/material';
+import { Grid2, SxProps, Theme, Typography } from '@mui/material';
 import AccordionGridItem from '@/components/AccordionGridItem';
 import useStore from '@/stores/eventStore';
 import { formatPriceWithType } from '@/utils/formatPrice';
@@ -14,16 +14,27 @@ interface Props {
 const PackagesAccordeonGrid = ({ sx }: Props) => {
     const { eventConfiguration, location, setEventConfiguration } = useStore();
 
-    const setPackageId = (packageId: number) => {
+    const togglePackage = (packageId: number) => {
         if (eventConfiguration) {
+            const currentPackageIds = eventConfiguration.packageIds || [];
+            const updatedPackageIds = currentPackageIds.includes(packageId)
+                ? currentPackageIds.filter(id => id !== packageId) // Remove if already selected
+                : [...currentPackageIds, packageId]; // Add if not selected
+
             setEventConfiguration({
                 ...eventConfiguration,
-                packageId,
+                packageIds: updatedPackageIds,
             });
         }
     };
 
     const iconColor = theme.palette.customColors.embedded.text.tertiary;
+
+    if (!(location?.eventPackages) || location?.eventPackages.length == 0) {
+        return (
+            <Typography sx={{ textAlign: 'center' }}>Keine Event-Pakete verfügbar</Typography>
+        );
+    }
 
     return (
         <Grid2 container spacing={5} sx={{ ...sx }}>
@@ -32,20 +43,20 @@ const PackagesAccordeonGrid = ({ sx }: Props) => {
                     <Grid2 key={p.id} size={{ xs: 12 }}>
                         <AccordionGridItem
                             id={p.id}
-                            image={p.images.length > 0 ? p.images[0] as string : ""}
-                            isSelected={eventConfiguration?.packageId === p.id}
-                            selectRequested={(id) => setPackageId(id)}
+                            image={p.images.length > 0 ? (p.images[0] as string) : ""}
+                            isSelected={eventConfiguration?.packageIds?.includes(p.id)}
+                            selectRequested={(id) => togglePackage(id)}
                             title={p.title}
                             subTitle={`${formatPriceWithType(p.price, p.priceType)}`}
                             information={p.description}
                             infoItems={[
                                 {
                                     icon: <Package color={iconColor} />,
-                                    label: formatPackageCategory(p.packageCategory)
+                                    label: formatPackageCategory(p.packageCategory),
                                 },
                                 {
                                     icon: <HandCoins color={iconColor} />,
-                                    label: formatPriceWithType(p.price, p.priceType)
+                                    label: formatPriceWithType(p.price, p.priceType),
                                 },
                             ]}
                         />

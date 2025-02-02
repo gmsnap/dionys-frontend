@@ -7,20 +7,21 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 
 interface TimeFieldProps {
     control: any;
-    errors: any;
+    fieldName: any;
+    labelText: string;
     labelWidth: number;
 }
 
-const TimeField: React.FC<TimeFieldProps> = ({ control, errors, labelWidth }) => {
+const TimeField: React.FC<TimeFieldProps> = ({ control, fieldName, labelText, labelWidth }) => {
     return (
         <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={'de'}>
-            <Grid2 container alignItems="top">
+            <>
                 <Grid2 size={{ sm: labelWidth }}>
-                    <Typography variant="label">Uhrzeit</Typography>
+                    <Typography variant="label">{labelText}</Typography>
                 </Grid2>
-                <Grid2 size={{ xs: 12, sm: 4 }}>
+                <Grid2 size={{ xs: 12, sm: 8, md: 6 }}>
                     <Controller
-                        name="date"
+                        name={fieldName}
                         control={control}
                         render={({ field: { onChange, value, ...restField } }) => (
                             <TimePicker
@@ -29,9 +30,12 @@ const TimeField: React.FC<TimeFieldProps> = ({ control, errors, labelWidth }) =>
                                 onChange={(newTime) => {
                                     if (newTime) {
                                         // Update only the time portion while preserving the current date
-                                        const updatedDate = new Date(value); // Preserve existing date
-                                        updatedDate.setHours(newTime.hour(), newTime.minute(), newTime.second(), 0); // Set new time
-                                        onChange(updatedDate.getTime()); // Pass the updated timestamp back
+                                        // Preserve existing date
+                                        const updatedDate = new Date(value);
+                                        // Set new time
+                                        updatedDate.setHours(newTime.hour(), newTime.minute(), newTime.second(), 0);
+                                        // Pass the updated timestamp back
+                                        onChange(updatedDate.getTime());
                                     }
                                 }}
                                 slotProps={{
@@ -43,7 +47,7 @@ const TimeField: React.FC<TimeFieldProps> = ({ control, errors, labelWidth }) =>
                         )}
                     />
                 </Grid2>
-            </Grid2>
+            </>
         </LocalizationProvider >
     );
 };

@@ -2,19 +2,27 @@ import * as yup from 'yup';
 import { EventCategories } from "@/constants/EventCategories";
 import { RoomModel } from "./RoomModel";
 import { EventPackageModel } from './EventPackageModel';
+import { BookingUserModel } from './BookingUserModel';
+import { LocationModel } from './LocationModel';
 
 export interface EventConfigurationModel {
+    id: number;
     locationId: number;
     roomId: number | null;
     room: RoomModel | null;
-    packageId: number | null;
+    packageIds: number[] | null;
     package: EventPackageModel | null;
-    occasion: EventCategories | null;
+    eventCategory: EventCategories | null;
     persons: number;
     date: number | null;
+    endDate: number | null;
     roomConfigurationId: number | null;
+    bookerId: number | null;
+    location: LocationModel | null;
     rooms: RoomModel[] | null;
     packages: EventPackageModel[] | null;
+    booker: BookingUserModel | null;
+    notes: string | null;
 }
 
 export const EventConfValidationSchema = yup.object().shape({
@@ -28,7 +36,7 @@ export const EventConfValidationSchema = yup.object().shape({
     room: yup
         .object()
         .nullable(),
-    occasion: yup
+    eventCategory: yup
         .mixed<EventCategories>()
         .nullable()
         .required('Event Type ist erforderlich'),
@@ -49,6 +57,18 @@ export const EventConfValidationSchema = yup.object().shape({
                 const today = new Date().setHours(0, 0, 0, 0);
                 const inputDate = new Date(value).setHours(0, 0, 0, 0);
                 return inputDate > today;
+            }
+        ),
+    endDate: yup
+        .number()
+        .nullable()
+        .test(
+            'is-after-start-date',
+            'Das Enddatum muss nach dem Startdatum liegen',
+            function (value) {
+                const { date } = this.parent;
+                if (!date || !value) return true;
+                return value > date;
             }
         ),
     roomConfigurationId: yup

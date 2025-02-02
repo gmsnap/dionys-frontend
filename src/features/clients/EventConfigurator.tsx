@@ -110,8 +110,8 @@ const EventConfigurator = ({ locationId, sx }: EventConfiguratorProps) => {
             setEventConfiguration(createDefaultEventConfigurationModel(locationId));
 
             const fetchFormattedCategories = async () => {
-                if (eventConfiguration?.occasion) {
-                    const result = await formatEventCategory(eventConfiguration.occasion);
+                if (eventConfiguration?.eventCategory) {
+                    const result = await formatEventCategory(eventConfiguration.eventCategory);
                     setTranslatedCategories(result);
                 }
             };
@@ -125,8 +125,8 @@ const EventConfigurator = ({ locationId, sx }: EventConfiguratorProps) => {
     // Fetch and translate categories
     useEffect(() => {
         const fetchFormattedCategories = async () => {
-            if (eventConfiguration?.occasion) {
-                const result = await formatEventCategory(eventConfiguration.occasion);
+            if (eventConfiguration?.eventCategory) {
+                const result = await formatEventCategory(eventConfiguration.eventCategory);
                 setTranslatedCategories(result);
             }
         };

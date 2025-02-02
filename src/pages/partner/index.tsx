@@ -9,23 +9,26 @@ const ClientHome: NextPageWithLayout = () => {
         <Box
             display="flex"
             flexDirection="row"
-            width="100vw"
-            height="100vh"
+            sx={{
+                width: { xs: '100%', sm: '100vw' },
+                height: { xs: '100%', sm: '100vh' },
+            }}
         >
             <Box
                 sx={{
-                    flexBasis: '50%',
+                    flexBasis: { xs: '100%', sm: '50%' },
                     height: '100%',
                     display: 'flex',
                     justifyContent: 'center',
                     alignItems: 'center',
+                    mt:{ xs: '100px', sm: 0 },
                 }}
             >
                 <PartnerLoginForm />
             </Box>
             <Box
                 sx={{
-                    flexBasis: '50%',
+                    flexBasis: { xs: '0%', sm: '50%' },
                     height: '100%',
                     overflow: 'hidden',
                 }}

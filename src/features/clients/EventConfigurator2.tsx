@@ -9,6 +9,8 @@ import CateringSelector from './CateringSelector';
 import PackageSelector from './PackageSelector';
 import PersonalDataSelector from './PersonalDataSelector';
 import ProposalSummary from './ProposalSummary';
+import CompanyDataSelector from './CompanyDataSelector';
+import ProposalThanks from './ProposalThanks';
 
 interface EventConfiguratorProps {
     locationId: number;
@@ -66,8 +68,14 @@ const EventConfigurator2 = ({ locationId, sx, }: EventConfiguratorProps) => {
                 stepCompleted={nextStep} />
         },
         {
-            label: 'PersonalData', id: 'summary',
+            label: 'PersonalData', id: 'personalData',
             control: <PersonalDataSelector
+                previousStep={prevStep}
+                stepCompleted={nextStep} />
+        },
+        {
+            label: 'CompanyData', id: 'company',
+            control: <CompanyDataSelector
                 previousStep={prevStep}
                 stepCompleted={nextStep} />
         },
@@ -75,7 +83,11 @@ const EventConfigurator2 = ({ locationId, sx, }: EventConfiguratorProps) => {
             label: 'Summary', id: 'summary',
             control: <ProposalSummary
                 previousStep={prevStep}
-                proposalSent={prevStep} />
+                proposalSent={nextStep} />
+        },
+        {
+            label: 'Thanks', id: 'thanks',
+            control: <ProposalThanks />
         },
     ];
 
