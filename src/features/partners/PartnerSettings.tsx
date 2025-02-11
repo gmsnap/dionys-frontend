@@ -56,18 +56,26 @@ const PartnerSettings: React.FC = () => {
                                 selected={selectedItem === index}
                                 onClick={() => setSelectedItem(index)}
                                 sx={{
-                                    borderRadius: '4px',
                                     color: selectedItem === index
-                                        ? theme.palette.customColors.pink.light
-                                        : 'primary',
+                                        ? theme.palette.customColors.blue.main
+                                        : theme.palette.customColors.text.tertiary,
                                     backgroundColor: 'transparent !important',
                                     "&:hover": {
-                                        color: theme.palette.customColors.pink.light,
+                                        color: theme.palette.customColors.blue.main,
                                     },
                                     cursor: "pointer",
                                 }}
                             >
-                                <ListItemText primary={item} />
+                                <ListItemText
+                                    primary={item}
+                                    primaryTypographyProps={{
+                                        sx: {
+                                            fontWeight: selectedItem === index
+                                                ? 800
+                                                : 100,
+                                        }
+                                    }}
+                                />
                             </ListItemButton>
                         </ListItem>
                     ))}

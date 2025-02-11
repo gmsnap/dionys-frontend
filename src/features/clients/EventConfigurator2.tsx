@@ -180,8 +180,8 @@ const EventConfigurator2 = ({ locationId, sx, }: EventConfiguratorProps) => {
                                 width: '100%',
                                 height: '3px',
                                 backgroundColor: index <= selectedIndex
-                                    ? theme.palette.customColors.pink.light
-                                    : theme.palette.customColors.text.input,
+                                    ? theme.palette.customColors.blue.main
+                                    : theme.palette.customColors.text.inactive,
                             }}
                         >
 

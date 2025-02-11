@@ -180,7 +180,7 @@ const EventConfigurator = ({ locationId, sx }: EventConfiguratorProps) => {
                             value = translatedCategories;
                             break;
                         case 1:
-                            value = eventConfiguration ? eventConfiguration.persons.toString() : '';
+                            value = eventConfiguration?.persons ? eventConfiguration.persons.toString() : '';
                             break;
                         case 2:
                             value = eventConfiguration && eventConfiguration.room ?

@@ -1,3 +1,4 @@
+import theme from '@/theme';
 import { AppBar, Toolbar, Typography, Box, Button } from '@mui/material';
 import router from 'next/router';
 import { FC } from 'react';
@@ -14,7 +15,7 @@ const Header: FC = () => {
                     sx={{
                         fontFamily: "'Gugi', sans-serif",
                         fontSize: '40px',
-                        background: 'linear-gradient(90deg, #DE33C4 0%, #781C6A 100%)',
+                        background: theme.palette.customColors.blue.main,
                         WebkitBackgroundClip: 'text',
                         WebkitTextFillColor: 'transparent',
                         paddingX: '40px',

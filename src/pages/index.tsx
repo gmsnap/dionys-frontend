@@ -20,7 +20,7 @@ const Home: NextPageWithLayout = () => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: theme.palette.customColors.pink.dark,
+        backgroundColor: theme.palette.customColors.blue.main,
       }}>
         <Image
           src="/category-social.jpg"

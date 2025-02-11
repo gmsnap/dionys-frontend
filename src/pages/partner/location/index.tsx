@@ -70,12 +70,13 @@ const PartnerPage: NextPageWithLayout = () => {
                                     primaryTypographyProps={{
                                         sx: {
                                             fontSize: { xs: '12px', sm: 'unset' },
+                                            fontWeight: locationId == null
+                                                ? 800
+                                                : 100,
+                                            color: locationId == null
+                                                ? theme.palette.customColors.blue.main
+                                                : theme.palette.customColors.text.tertiary,
                                         }
-                                    }}
-                                    sx={{
-                                        color: locationId == null ?
-                                            theme.palette.customColors.pink.light :
-                                            'inherit',
                                     }}
                                 />
                             </ListItemButton>
@@ -101,9 +102,12 @@ const PartnerPage: NextPageWithLayout = () => {
                                         primaryTypographyProps={{
                                             sx: {
                                                 fontSize: { xs: '12px', sm: '16px' },
+                                                fontWeight: locationId === location.id
+                                                    ? 800
+                                                    : 100,
                                                 color: locationId === location.id
-                                                    ? theme.palette.customColors.pink.light
-                                                    : 'inherit',
+                                                    ? theme.palette.customColors.blue.main
+                                                    : theme.palette.customColors.text.tertiary,
                                             }
                                         }}
                                     />

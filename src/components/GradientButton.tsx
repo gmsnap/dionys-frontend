@@ -1,3 +1,4 @@
+import theme from '@/theme';
 import { Box, Button, ButtonProps } from '@mui/material';
 
 interface GradientButtonProps extends ButtonProps {
@@ -5,7 +6,10 @@ interface GradientButtonProps extends ButtonProps {
 }
 
 export default function GradientButton({
-    gradientColors = ['#DE33C4', '#781C6A'],
+    gradientColors = [
+        theme.palette.customColors.blue.light,
+        theme.palette.customColors.blue.main
+    ],
     children,
     sx,
     ...props

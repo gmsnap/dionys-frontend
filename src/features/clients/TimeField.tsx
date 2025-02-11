@@ -8,11 +8,12 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 interface TimeFieldProps {
     control: any;
     fieldName: any;
+    errors: any;
     labelText: string;
     labelWidth: number;
 }
 
-const TimeField: React.FC<TimeFieldProps> = ({ control, fieldName, labelText, labelWidth }) => {
+const TimeField: React.FC<TimeFieldProps> = ({ control, fieldName, errors, labelText, labelWidth }) => {
     return (
         <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={'de'}>
             <>
@@ -25,6 +26,7 @@ const TimeField: React.FC<TimeFieldProps> = ({ control, fieldName, labelText, la
                         control={control}
                         render={({ field: { onChange, value, ...restField } }) => (
                             <TimePicker
+
                                 {...restField}
                                 value={value ? dayjs(value) : null}
                                 onChange={(newTime) => {
@@ -41,8 +43,11 @@ const TimeField: React.FC<TimeFieldProps> = ({ control, fieldName, labelText, la
                                 slotProps={{
                                     textField: {
                                         variant: "outlined",
+                                        error: !!errors[fieldName],
+                                        helperText: errors[fieldName]?.message,
                                     },
                                 }}
+                                ampm={false}
                             />
                         )}
                     />

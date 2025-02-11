@@ -28,7 +28,7 @@ const ProposalThanks = ({
             </Typography>
             <CircleCheckBig size={150} color='#002A58' />
             <Typography sx={{ textAlign: 'center', mt: 4 }}>
-                Your request has been received and our proposal will be in you inbox in a few minutes.
+                Your request has been received and our proposal will be in your inbox in a few minutes.
             </Typography>
             <Typography sx={{ textAlign: 'center', mt: 4 }}>
                 In case of any further questions, please contact us directly.

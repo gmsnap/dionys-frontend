@@ -157,7 +157,7 @@ const ImageUploadForm: React.FC<ImageUploadFormProps> = ({
                                 objectFit: "cover",
                                 borderStyle: "solid",
                                 borderColor: selectedImage === image
-                                    ? theme.palette.customColors.pink.light
+                                    ? theme.palette.customColors.blue.light
                                     : "transparent",
                                 borderWidth: "2px",
                                 borderRadius: "8px",
@@ -182,10 +182,10 @@ const ImageUploadForm: React.FC<ImageUploadFormProps> = ({
                             backgroundColor: theme.palette.customColors.textBackround.halfdark,
                             borderRadius: "8px",
                             '&:hover': {
-                                backgroundColor: theme.palette.customColors.pink.halfdark,
+                                backgroundColor: theme.palette.customColors.blue.halfdark,
                             },
                             '.icon': {
-                                color: theme.palette.customColors.pink.dark,
+                                color: theme.palette.customColors.blue.main,
                             },
                             '&:hover .icon': {
                                 color: '#000000',

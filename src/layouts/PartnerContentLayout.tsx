@@ -39,7 +39,7 @@ const PartnerContentLayout: React.FC<PartnerContentLayoutProps> = ({
             </Box>
             <Box
                 sx={{
-                    borderTop: (theme) => `1px solid ${theme.palette.customColors.pink.halfdark}`,
+                    borderTop: (theme) => `1px solid ${theme.palette.customColors.blue.halfdark}`,
                     width: '100%',
                     mt: 3,
                 }}

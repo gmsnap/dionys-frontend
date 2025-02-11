@@ -168,7 +168,7 @@ export const SignUp: React.FC = () => {
                         href="/partner"
                         sx={{
                             fontWeight: 'bold',
-                            color: theme.palette.customColors.pink.dark
+                            color: theme.palette.customColors.blue.main
                         }}
                     >log in</Link>{' '}
                     with the verification code.

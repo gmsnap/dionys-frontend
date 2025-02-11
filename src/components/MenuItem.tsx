@@ -24,12 +24,19 @@ const MenuItem: React.FC<MenuItemProps> = ({
             sx={{
                 cursor: 'pointer',
                 color: isSelected
-                    ? theme.palette.customColors.pink.light
-                    : (transparent ? 'primary.contrastText' : 'secondary.main'),
-                fontFamily: "'Gugi', sans-serif",
+                    ? (
+                        transparent
+                            ? theme.palette.customColors.blue.contrast
+                            : theme.palette.customColors.blue.main
+                    )
+                    : (
+                        transparent
+                            ? 'primary.contrastText'
+                            : theme.palette.customColors.blue.main
+                    ),
+                fontFamily: "'Roboto', sans-serif",
                 fontSize: '20px',
-                fontWeight: 400,
-                letterSpacing: '-0.07em',
+                fontWeight: isSelected ? 600 : 400,
                 backgroundColor: transparent ? 'transparent' : 'inherit',
                 whiteSpace: 'nowrap',
                 ...sx,

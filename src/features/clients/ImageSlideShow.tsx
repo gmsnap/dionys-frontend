@@ -162,7 +162,7 @@ const ImageSlideShow = ({ images, title, sx }: ImageSlideShowProps) => {
                                     borderWidth: "2px",
                                     borderColor:
                                         selectedImage === image
-                                            ? theme.palette.customColors.pink.light
+                                            ? theme.palette.customColors.blue.main
                                             : "transparent",
                                 }}
                                 src={image}

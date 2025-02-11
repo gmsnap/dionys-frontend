@@ -119,7 +119,7 @@ const Header: FC = () => {
                                 lg: '40px',
                                 xl: '40px',
                             },
-                            background: 'linear-gradient(90deg, #DE33C4 0%, #781C6A 100%)',
+                            background: theme.palette.customColors.blue.main,
                             WebkitBackgroundClip: 'text',
                             WebkitTextFillColor: 'transparent',
                             paddingX: {
@@ -150,7 +150,7 @@ const Header: FC = () => {
                                     aria-label="menu"
                                     onClick={handleMenuOpen}
                                 >
-                                    <MenuIcon color={theme.palette.customColors.pink.dark} />
+                                    <MenuIcon color={theme.palette.customColors.blue.dark} />
                                 </IconButton>
                                 <Menu
                                     anchorEl={anchorEl}
@@ -224,7 +224,7 @@ const Header: FC = () => {
                                     sx={{
                                         pt: 2,
                                         pb: 2,
-                                        color: theme.palette.customColors.pink.dark,
+                                        color: theme.palette.customColors.blue.light,
                                         backgroundColor: 'transparent',
                                     }}
                                 >

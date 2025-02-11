@@ -133,7 +133,7 @@ const PartnerLoginForm: React.FC = ({ }) => {
                                         fontWeight: 700,
                                         overflow: 'hidden',
                                         whiteSpace: 'nowrap',
-                                        color: theme.palette.customColors.pink.dark,
+                                        color: theme.palette.customColors.blue.main,
                                         mt: 2,
                                         mb: 2,
                                     }}>
@@ -143,7 +143,7 @@ const PartnerLoginForm: React.FC = ({ }) => {
                                             onClick={() => setIsOverlayOpen(true)}
                                             sx={{
                                                 fontWeight: 'bold',
-                                                color: theme.palette.customColors.pink.dark
+                                                color: theme.palette.customColors.blue.main
                                             }}
                                         >
                                             {' '}Profil Ihres Unternehmens.
@@ -206,7 +206,7 @@ const PartnerLoginForm: React.FC = ({ }) => {
                                     href="/partner/register"
                                     sx={{
                                         fontWeight: 'bold',
-                                        color: theme.palette.customColors.pink.dark
+                                        color: theme.palette.customColors.blue.main
                                     }}
                                 >
                                     Registrieren

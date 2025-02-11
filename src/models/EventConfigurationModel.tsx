@@ -13,7 +13,7 @@ export interface EventConfigurationModel {
     packageIds: number[] | null;
     package: EventPackageModel | null;
     eventCategory: EventCategories | null;
-    persons: number;
+    persons: number | null;
     date: number | null;
     endDate: number | null;
     roomConfigurationId: number | null;
@@ -42,7 +42,7 @@ export const EventConfValidationSchema = yup.object().shape({
         .required('Event Type ist erforderlich'),
     persons: yup
         .number()
-        .required('Anzahl der Personen ist erforderlich')
+        .required('Teilnehmerzahl ist erforderlich')
         .positive('Wählen Sie eine gültige Anzahl an Personen'),
     date: yup
         .number()
@@ -64,7 +64,7 @@ export const EventConfValidationSchema = yup.object().shape({
         .nullable()
         .test(
             'is-after-start-date',
-            'Das Enddatum muss nach dem Startdatum liegen',
+            'Die Endzeit muss nach der Startzeit liegen',
             function (value) {
                 const { date } = this.parent;
                 if (!date || !value) return true;

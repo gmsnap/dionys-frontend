@@ -28,7 +28,7 @@ const CustomChip = styled((props: CustomChipProps) => {
         right: 0,
         width: '28px',
         height: '100%',
-        backgroundColor: theme.palette.customColors.pink.dark,
+        backgroundColor: theme.palette.customColors.blue.main,
         color: 'white', // white "-" sign
         borderRadius: '0 8px 8px 0',
         '&:hover': {

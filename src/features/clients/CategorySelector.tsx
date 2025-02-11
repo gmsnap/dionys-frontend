@@ -140,7 +140,7 @@ const CategorySelector = ({
                     <Typography variant="h3" sx={{ mt: 8, mb: 2 }}>
                         Keine Event-Typen verfügbar
                     </Typography>
-                    <Frown size={32} color={theme.palette.customColors.pink.dark} />
+                    <Frown size={32} color={theme.palette.customColors.blue.main} />
                 </Box>
             )}
         </Box>

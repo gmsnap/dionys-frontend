@@ -1,6 +1,6 @@
-import { colors } from '@mui/material';
 import { createTheme } from '@mui/material/styles';
-import { light } from '@mui/material/styles/createPalette';
+import { deDE as coreDeDE } from '@mui/material/locale';
+import { deDE } from '@mui/x-date-pickers/locales';
 
 // Define custom colors
 const customColors = {
@@ -11,12 +11,21 @@ const customColors = {
         halfdark: '#781C6A78',
         halflight: '#DE33C478',
     },
+    blue: {
+        light: '#405F82',
+        main: '#002A58',
+        dark: '#002042',
+        halfdark: '#002A5878',
+        halflight: '#405F8278',
+        contrast: '#006bde',
+    },
     purple: '#513185',
     text: {
         primary: '#000000',
         secondary: '#535353',
         tertiary: '#606060',
         input: '#6f6f6f',
+        inactive: '#D9D9D9',
     },
     textBackround: {
         halfdark: '#F5F5F5',
@@ -24,6 +33,7 @@ const customColors = {
     },
     gradient: {
         pink: 'linear-gradient(90deg, #DE33C4 0%, #781C6A 100%)',
+        blue: 'linear-gradient(90deg, #405F8278 0%, #002A58 100%)',
     },
     embedded: {
         text: {
@@ -57,10 +67,10 @@ const theme = createTheme({
             contrastText: '#FFFFFF',
         },
         secondary: {
-            main: customColors.pink.dark,
+            main: customColors.blue.main,
         },
         success: {
-            main: customColors.pink.light,
+            main: customColors.blue.light,
         },
         customColors,
     },
@@ -77,7 +87,7 @@ const theme = createTheme({
         },
         h2: {
             fontFamily: "'Gugi', sans-serif",
-            color: customColors.purple,
+            color: customColors.blue.main,
             fontSize: '1.6rem',
             '@media (min-width:600px)': {
                 fontSize: '1.8rem',
@@ -94,14 +104,14 @@ const theme = createTheme({
         },
         h3: {
             fontFamily: "'Nunito', sans-serif",
-            color: customColors.pink.dark,
+            color: customColors.blue.dark,
             fontSize: '24px',
             fontWeight: 700,
             letterSpacing: '-0.05em',
         },
         h5: {
             fontFamily: "'Nunito', sans-serif",
-            color: customColors.pink.dark,
+            color: customColors.blue.dark,
             fontSize: '16px',
             fontWeight: 700,
             letterSpacing: '-0.05em',
@@ -166,14 +176,14 @@ const theme = createTheme({
                     color: customColors.text.primary,
                 },
                 outlinedSecondary: {
-                    border: `1px solid ${customColors.pink.light}`,
-                    color: customColors.pink.light,
-                    backgroundImage: customColors.gradient.pink,
+                    border: `1px solid ${customColors.blue.light}`,
+                    color: customColors.blue.light,
+                    backgroundImage: customColors.gradient.blue,
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent',
                     '&:hover': {
-                        color: customColors.pink.main,
-                        backgroundColor: customColors.pink.dark,
+                        color: customColors.blue.main,
+                        backgroundColor: customColors.blue.dark,
                     },
                 },
                 containedPrimary: {
@@ -182,7 +192,7 @@ const theme = createTheme({
                     fontWeight: 700,
                     letterSpacing: '-0.05em',
                     color: '#FFFFFF',
-                    backgroundColor: customColors.pink.main,
+                    backgroundColor: customColors.blue.main,
                     borderRadius: 0,
                 },
             },
@@ -191,7 +201,6 @@ const theme = createTheme({
             styleOverrides: {
                 root: {
                     fontFamily: "'Nunito', sans-serif",
-                    fontWeight: 700,
                     fontSize: '16px',
                     letterSpacing: '-0.05em',
                 },
@@ -201,7 +210,6 @@ const theme = createTheme({
             styleOverrides: {
                 root: {
                     fontFamily: "'Nunito', sans-serif",
-                    fontWeight: 700,
                     fontSize: '16px',
                     letterSpacing: '-0.05em',
                     '&:hover': {
@@ -218,10 +226,13 @@ const theme = createTheme({
         },
         MuiListItemText: {
             styleOverrides: {
+                root: {
+                    fontFamily: "'Nunito', sans-serif",
+                    letterSpacing: '-0.025em',
+                },
                 primary: {
                     fontFamily: "'Nunito', sans-serif",
-                    fontWeight: 700,
-                    letterSpacing: '-0.05em',
+                    letterSpacing: '-0.025em',
                 },
             },
         },
@@ -233,17 +244,16 @@ const theme = createTheme({
                         fontWeight: 400,
                         fontSize: '16px',
                         letterSpacing: '-0.07em',
-                        color: '#6F6F6F',
-                        backgroundColor: '#f5f5f5',
+                        color: customColors.text.primary,
                         borderRadius: '0px',
                         '& fieldset': {
-                            border: 'none',
+                            border: `1px solid ${customColors.blue.main}`,
                         },
                         '&:hover fieldset': {
-                            border: 'none',
+                            border: `1px solid ${customColors.blue.main}`,
                         },
                         '&.Mui-focused fieldset': {
-                            border: 'none',
+                            border: `2px solid ${customColors.blue.main}`,
                         },
                         '& .MuiInputBase-input': {
                             paddingTop: 8,
@@ -306,7 +316,7 @@ const theme = createTheme({
                         // Pink bar when checked
                         '& + .MuiSwitch-track': {
                             opacity: 1,
-                            backgroundColor: customColors.pink.dark,
+                            backgroundColor: customColors.blue.dark,
                         },
                     },
                 },
@@ -347,6 +357,9 @@ const theme = createTheme({
             },
         },
     },
-});
+},
+    deDE,
+    coreDeDE,
+);
 
 export default theme;

@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { Box, SxProps, Theme, Typography, Button, Grid2, TextField } from '@mui/material';
 import useStore, { createDefaultEventConfigurationModel } from '@/stores/eventStore';
 import { formatEventCategoriesSync } from '@/utils/formatEventCategories';
-import { Controller, useForm } from 'react-hook-form';
+import { Controller, useForm, useWatch } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { EventCategories } from '@/constants/EventCategories';
 import DateField from './DateField';
@@ -25,6 +25,8 @@ const GeneralSelector = ({
         control,
         handleSubmit,
         reset,
+        setValue,
+        watch,
         formState: { errors },
     } = useForm<EventConfigurationModel>({
         defaultValues: createDefaultEventConfigurationModel(0),
@@ -42,6 +44,40 @@ const GeneralSelector = ({
         }
         stepCompleted?.();
     };
+
+    // Watch the 'date' field
+    const startDate = useWatch({
+        control,
+        name: "date",
+    });
+
+    // Effect to update endDate when date changes
+    useEffect(() => {
+        const endDate = watch("endDate");
+        if (!startDate || !endDate) return;
+
+        if (endDate > startDate) return;
+
+        const newStartDate = new Date(startDate);
+        let newEndDate = new Date(endDate);
+
+        const timeDiff = newEndDate.getTime() - newStartDate.getTime();
+        const daysDiff = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+
+        if (daysDiff > 0) {
+            newEndDate.setDate(newStartDate.getDate() + daysDiff);
+        } else if (newEndDate.getDay() != newStartDate.getDay()) {
+            /*newEndDate.setDate(newStartDate.getDate() + 1);*/
+        }
+
+        if (newEndDate.getTime() <= newStartDate.getTime()) {
+            // Set endDate to startDate + 1 hour
+            newEndDate = new Date(newStartDate.getTime())
+            newEndDate.setHours(newEndDate.getHours() + 1)
+        }
+
+        setValue("endDate", newEndDate.getTime());
+    }, [startDate, watch, setValue])
 
     useEffect(() => {
         if (eventConfiguration) {
@@ -97,17 +133,33 @@ const GeneralSelector = ({
 
                     {/* Date */}
                     <Grid2 container alignItems="top" rowSpacing={0} sx={{ width: '100%' }}>
-                        <DateField control={control} errors={errors} labelWidth={labelWidth} />
+                        <DateField
+                            control={control}
+                            errors={errors}
+                            labelWidth={labelWidth}
+                        />
                     </Grid2>
 
                     {/* Time */}
                     <Grid2 container alignItems="top" rowSpacing={0} sx={{ width: '100%' }}>
-                        <TimeField control={control} fieldName="date" labelText="Uhrzeit (von)" labelWidth={labelWidth} />
+                        <TimeField
+                            control={control}
+                            fieldName="date"
+                            errors={errors}
+                            labelText="Uhrzeit (von)"
+                            labelWidth={labelWidth}
+                        />
                     </Grid2>
 
                     {/* End Time */}
                     <Grid2 container alignItems="top" rowSpacing={0} sx={{ width: '100%' }}>
-                        <TimeField control={control} fieldName="endDate" labelText="Uhrzeit (bis)" labelWidth={labelWidth} />
+                        <TimeField
+                            control={control}
+                            fieldName="endDate"
+                            errors={errors}
+                            labelText="Uhrzeit (bis)"
+                            labelWidth={labelWidth}
+                        />
                     </Grid2>
 
                     {/* Event Category */}

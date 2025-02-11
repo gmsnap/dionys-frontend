@@ -29,7 +29,7 @@ const CircleInitials: React.FC<CircleInitialsProps> = ({
                 width: 50,
                 height: 50,
                 borderRadius: '50%',
-                backgroundColor: theme.palette.customColors.pink.dark,
+                backgroundColor: theme.palette.customColors.blue.main,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',

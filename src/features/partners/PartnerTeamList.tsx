@@ -94,7 +94,7 @@ const PartnerTeamList: React.FC = () => {
                                     <Typography>{user.givenName + " " + user.familyName}</Typography>
                                     {partnerUser.id === user.id &&
                                         <Typography sx={{
-                                            backgroundColor: theme.palette.customColors.pink.main,
+                                            backgroundColor: theme.palette.customColors.blue.main,
                                             color: theme.palette.primary.contrastText,
                                             fontFamily: "'Nunito', sans-serif",
                                             fontSize: '12px',

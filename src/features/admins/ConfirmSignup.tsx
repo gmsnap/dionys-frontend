@@ -123,7 +123,7 @@ const ConfirmSignup: React.FC<ConfirmSignupProps> = ({ email }) => {
                         href="/partner"
                         sx={{
                             fontWeight: 'bold',
-                            color: theme.palette.customColors.pink.dark
+                            color: theme.palette.customColors.blue.main
                         }}
                     > einloggen</Link>.
                 </Alert>

@@ -106,12 +106,13 @@ const PartnerPage: NextPageWithLayout = () => {
                                     primaryTypographyProps={{
                                         sx: {
                                             fontSize: { xs: '12px', sm: 'unset' },
+                                            fontWeight: roomId == null
+                                                ? 800
+                                                : 100,
+                                            color: roomId == null
+                                                ? theme.palette.customColors.blue.main
+                                                : theme.palette.customColors.text.tertiary,
                                         }
-                                    }}
-                                    sx={{
-                                        color: roomId == null ?
-                                            theme.palette.customColors.pink.light :
-                                            'inherit',
                                     }}
                                 />
                             </ListItemButton>
@@ -136,9 +137,12 @@ const PartnerPage: NextPageWithLayout = () => {
                                         primaryTypographyProps={{
                                             sx: {
                                                 fontSize: { xs: '12px', sm: '16px' },
+                                                fontWeight: roomId === room.id
+                                                    ? 800
+                                                    : 100,
                                                 color: roomId === room.id
-                                                    ? theme.palette.customColors.pink.light
-                                                    : 'inherit',
+                                                    ? theme.palette.customColors.blue.main
+                                                    : theme.palette.customColors.text.tertiary,
                                             }
                                         }}
                                     />

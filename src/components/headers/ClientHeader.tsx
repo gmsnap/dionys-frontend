@@ -113,7 +113,7 @@ const Header: FC<HeaderProps> = ({ transparentHeader = false }) => {
                         },
                         background: transparentHeader && !isScrolled ?
                             '#FFFFFF' :
-                            'linear-gradient(90deg, #DE33C4 0%, #781C6A 100%)',
+                            theme.palette.customColors.blue.main,
                         WebkitBackgroundClip: 'text',
                         WebkitTextFillColor: 'transparent',
                         paddingX: {
@@ -156,7 +156,7 @@ const Header: FC<HeaderProps> = ({ transparentHeader = false }) => {
                                 aria-label="menu"
                                 onClick={handleMenuOpen}
                             >
-                                <MenuIcon color={theme.palette.customColors.pink.dark} />
+                                <MenuIcon color={theme.palette.customColors.blue.main} />
                             </IconButton>
                             <Menu
                                 anchorEl={anchorEl}

@@ -570,12 +570,12 @@ const LocationForm = ({ locationId, locationCreated }: LocationFormProps) => {
                         variant="body2"
                         sx={{
                             fontSize: '14px',
-                            color: theme.palette.customColors.pink.dark,
+                            color: theme.palette.customColors.blue.main,
                         }}
                     > {'Vorschau der Einbettung '}
                         <SquareArrowOutUpRight
                             size={16}
-                            color={theme.palette.customColors.pink.dark} />
+                            color={theme.palette.customColors.blue.main} />
                     </Link>
 
                     <Typography variant="body2"
