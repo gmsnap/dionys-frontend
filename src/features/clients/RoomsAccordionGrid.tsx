@@ -37,7 +37,10 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
                             isSelected={eventConfiguration?.roomId === room.id}
                             selectRequested={(id) => setRoomId(id)}
                             title={room.name}
-                            subTitle={`${formatRoomSize(room.size)}, ${formatPrice(room.price)}`}
+                            subTitle={
+                                `${formatRoomSize(room.size)}, ${formatPrice(room.price)}` +
+                                `|${room.minPersons} - ${room.maxPersons} Personen`
+                            }
                             information={room.description}
                             infoItems={[
                                 {

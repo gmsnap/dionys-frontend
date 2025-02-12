@@ -4,16 +4,19 @@ import useStore from '@/stores/eventStore';
 import ProposalBackButton from './ProposalBackButton';
 import ProposalNextButton from './ProposalNextButton';
 import PackagesAccordeonGrid from './PackagesAccordeonGrid';
+import { PackageCategories } from '@/constants/PackageCategories';
 
 interface SelectorProps {
     previousStep: () => void,
     stepCompleted: () => void,
+    packageCategory?: PackageCategories,
     sx?: SxProps<Theme>;
 }
 
 const PackageSelector = ({
     previousStep,
     stepCompleted,
+    packageCategory,
     sx
 }: SelectorProps) => {
     const { eventConfiguration, location, setEventConfiguration } = useStore();
@@ -34,7 +37,7 @@ const PackageSelector = ({
                         paddingBottom: '64px',
                     }}
                 >
-                    <PackagesAccordeonGrid />
+                    <PackagesAccordeonGrid packageCategory={packageCategory} />
                 </Box>
             )}
             <Box sx={{

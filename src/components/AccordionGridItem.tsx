@@ -85,7 +85,14 @@ const GridItem: React.FC<GridItemProps> = ({
                             opacity: 0.75,
                         }}
                     >
-                        {title}<br />{subTitle}
+                        {title}
+                        <br />
+                        {subTitle.split("|").map((part, index) => (
+                            <React.Fragment key={index}>
+                                {index > 0 && <br />}
+                                {part.trim()}
+                            </React.Fragment>
+                        ))}
                     </Typography>
                 </Box>
 

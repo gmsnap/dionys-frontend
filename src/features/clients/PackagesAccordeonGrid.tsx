@@ -6,12 +6,14 @@ import { formatPriceWithType } from '@/utils/formatPrice';
 import { HandCoins, Package } from 'lucide-react';
 import { formatPackageCategory } from '@/utils/formatPackageCategories';
 import theme from '@/theme';
+import { PackageCategories } from '@/constants/PackageCategories';
 
 interface Props {
+    packageCategory?: PackageCategories,
     sx?: SxProps<Theme>;
 }
 
-const PackagesAccordeonGrid = ({ sx }: Props) => {
+const PackagesAccordeonGrid = ({ packageCategory, sx }: Props) => {
     const { eventConfiguration, location, setEventConfiguration } = useStore();
 
     const togglePackage = (packageId: number) => {
@@ -30,7 +32,10 @@ const PackagesAccordeonGrid = ({ sx }: Props) => {
 
     const iconColor = theme.palette.customColors.embedded.text.tertiary;
 
-    if (!(location?.eventPackages) || location?.eventPackages.length == 0) {
+    if (!(location?.eventPackages) ||
+        location.eventPackages
+            .filter((p) => !packageCategory || p.packageCategory === packageCategory)
+            .length == 0) {
         return (
             <Typography sx={{ textAlign: 'center' }}>Keine Event-Pakete verfügbar</Typography>
         );
@@ -38,12 +43,17 @@ const PackagesAccordeonGrid = ({ sx }: Props) => {
 
     return (
         <Grid2 container spacing={5} sx={{ ...sx }}>
-            {location?.eventPackages &&
-                location.eventPackages.map((p) => (
+            {location.eventPackages
+                .filter((p) => !packageCategory || p.packageCategory === packageCategory)
+                .map((p) => (
                     <Grid2 key={p.id} size={{ xs: 12 }}>
                         <AccordionGridItem
                             id={p.id}
-                            image={p.images.length > 0 ? (p.images[0] as string) : ""}
+                            image={
+                                p.images.length > 0
+                                    ? (p.images[0] as string)
+                                    : `/p-category-${p.packageCategory}.jpg`
+                            }
                             isSelected={eventConfiguration?.packageIds?.includes(p.id)}
                             selectRequested={(id) => togglePackage(id)}
                             title={p.title}

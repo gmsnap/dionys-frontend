@@ -109,7 +109,7 @@ const GeneralSelector = ({
             <form onSubmit={handleSubmit(onSubmit)}>
                 <Grid2 container rowSpacing={2}>
 
-                    {/* Title */}
+                    {/* Persons */}
                     <Grid2 container alignItems="top" rowSpacing={0} sx={{ width: '100%' }}>
                         <Grid2 size={{ xs: 12, sm: labelWidth }}>
                             <Typography variant="label">Teilnehmer</Typography>
@@ -123,6 +123,7 @@ const GeneralSelector = ({
                                         {...field}
                                         fullWidth
                                         variant="outlined"
+                                        type="number"
                                         error={!!errors.persons}
                                         helperText={errors.persons?.message}
                                     />
@@ -198,16 +199,24 @@ const GeneralSelector = ({
                             />
                         </Grid2>
                     </Grid2>
+                </Grid2>
 
+                <Box sx={{
+                    backgroundColor: 'white',
+                    width: '100%',
+                    position: 'sticky', // Fixes the button at the bottom
+                    bottom: 0,
+                    zIndex: 2, // Ensures button remains above scrolling content
+                }}>
                     {/* Submit */}
-                    <Grid2
+                    <Box
                         display={'flex'}
                         gap={2}
                         sx={{
                             width: '100%',
                             xs: 12,
                             mt: 2,
-                            pt: 1,
+                            pt: 2,
                             pr: 2,
                             pb: 1,
                             pl: 2,
@@ -223,11 +232,12 @@ const GeneralSelector = ({
                         >
                             Weiter
                         </Button>
-                    </Grid2>
+                    </Box>
+                    <ProposalBackButton previousStep={previousStep} />
+                </Box>
 
-                </Grid2>
             </form>
-            <ProposalBackButton previousStep={previousStep} />
+
         </Box>
     );
 }

@@ -17,7 +17,6 @@ const VenueSelector = ({
     sx
 }: VenueSelectorProps) => {
     const { eventConfiguration, location, setEventConfiguration } = useStore();
-    const [visible, setVisible] = useState(false);
 
     const tryComplete = (): void => {
         if (eventConfiguration?.roomId) {
@@ -32,7 +31,7 @@ const VenueSelector = ({
             {location?.rooms && (
                 <Box
                     sx={{
-                        flex: 1, 
+                        flex: 1,
                         paddingBottom: '64px',
                     }}
                 >

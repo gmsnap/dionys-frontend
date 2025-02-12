@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { Box, Grid2, SxProps, TextField, Theme, Typography } from '@mui/material';
 import useStore from '@/stores/eventStore';
 import ProposalBackButton from './ProposalBackButton';
@@ -142,6 +142,7 @@ const PersonalDataSelector = ({
                                         {...field}
                                         fullWidth
                                         variant="outlined"
+                                        type="email"
                                         error={!!errors.email}
                                         helperText={errors.email?.message}
                                         onBlur={(e) => {
@@ -168,6 +169,7 @@ const PersonalDataSelector = ({
                                         {...field}
                                         fullWidth
                                         variant="outlined"
+                                        type="tel"
                                         error={!!errors.phoneNumber}
                                         helperText={errors.phoneNumber?.message}
                                         onBlur={(e) => {

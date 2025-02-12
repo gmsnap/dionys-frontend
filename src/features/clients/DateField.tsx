@@ -1,10 +1,11 @@
 import React from 'react';
 import { Controller } from 'react-hook-form';
-import { Grid2, Typography } from '@mui/material';
+import { Grid2, InputAdornment, Typography } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import dayjs, { Dayjs } from 'dayjs';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { CalendarIcon } from '@mui/x-date-pickers';
 
 interface DateFieldProps {
     control: any;
@@ -41,8 +42,17 @@ const DateField: React.FC<DateFieldProps> = ({ control, errors, labelWidth }) =>
                                         variant: "outlined",
                                         error: !!errors.date,
                                         helperText: errors.date?.message,
+                                        InputProps: {
+                                            endAdornment: (
+                                                <InputAdornment position="end">
+                                                    <CalendarIcon sx={{ color: "action.active" }} />
+                                                </InputAdornment>
+                                            ),
+                                        },
                                     },
                                 }}
+                                disablePast={true}
+                                sx={{ width: '100%' }}
                             />
                         )}
                     />

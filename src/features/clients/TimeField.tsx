@@ -1,7 +1,7 @@
 import React from "react";
 import { Controller } from "react-hook-form";
-import { Grid2, Typography, TextField } from "@mui/material";
-import { LocalizationProvider, TimePicker } from "@mui/x-date-pickers";
+import { Grid2, InputAdornment, Typography } from "@mui/material";
+import { DesktopTimePicker, LocalizationProvider, TimeIcon, TimePicker } from "@mui/x-date-pickers";
 import dayjs from "dayjs";
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 
@@ -26,7 +26,6 @@ const TimeField: React.FC<TimeFieldProps> = ({ control, fieldName, errors, label
                         control={control}
                         render={({ field: { onChange, value, ...restField } }) => (
                             <TimePicker
-
                                 {...restField}
                                 value={value ? dayjs(value) : null}
                                 onChange={(newTime) => {
@@ -45,9 +44,19 @@ const TimeField: React.FC<TimeFieldProps> = ({ control, fieldName, errors, label
                                         variant: "outlined",
                                         error: !!errors[fieldName],
                                         helperText: errors[fieldName]?.message,
+                                        InputProps: {
+                                            endAdornment: (
+                                                <InputAdornment position="end">
+                                                    <TimeIcon sx={{ color: "action.active" }} />
+                                                </InputAdornment>
+                                            ),
+                                        },
                                     },
                                 }}
                                 ampm={false}
+                                timeSteps={{ hours: 1, minutes: 15 }}
+                                minutesStep={15}
+                                sx={{ width: '100%' }}
                             />
                         )}
                     />

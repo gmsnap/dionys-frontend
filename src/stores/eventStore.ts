@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware';
 import { LocationModel } from '@/models/LocationModel';
 import { EventConfigurationModel } from '@/models/EventConfigurationModel';
 import { EventConfigurationFilters } from '@/models/EventConfigurationFilters';
+import { roundToNext15 } from '@/utils/formatDateTime';
 
 interface StoreState {
     location: LocationModel | null;
@@ -35,7 +36,7 @@ export default useStore;
 export const createDefaultEventConfigurationModel = (locationId: number): EventConfigurationModel => {
     const now = new Date();
     // tomorrow
-    now.setDate(now.getDate() + 1);
+    now.setDate(roundToNext15(now).getDate() + 1);
 
     // Create a new Date object for endDate and add 2 hours
     const endDate = new Date(now.getTime());

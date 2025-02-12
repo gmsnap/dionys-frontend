@@ -1,16 +1,16 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Box, SxProps, Theme, Typography } from '@mui/material';
 import useStore, { createDefaultEventConfigurationModel } from '@/stores/eventStore';
 import theme from '@/theme';
 import CategorySelector from './CategorySelector';
 import GeneralSelector from './GeneralSelector';
 import VenueSelector from './VenueSelector';
-import CateringSelector from './CateringSelector';
 import PackageSelector from './PackageSelector';
 import PersonalDataSelector from './PersonalDataSelector';
 import ProposalSummary from './ProposalSummary';
 import CompanyDataSelector from './CompanyDataSelector';
 import ProposalThanks from './ProposalThanks';
+import { AvailablePackageCategories, PackageCategories } from '@/constants/PackageCategories';
 
 interface EventConfiguratorProps {
     locationId: number;
@@ -23,12 +23,22 @@ interface EventConfiguratorProps {
 const EventConfigurator2 = ({ locationId, sx, }: EventConfiguratorProps) => {
     const { location, eventConfiguration, setEventConfiguration } = useStore();
     const [selectedIndex, setSelectedIndex] = useState(0);
+    const scrollableBoxRef = useRef<HTMLDivElement>(null);
 
     const handleNavClick = (index: number) => {
         if (index <= selectedIndex) {
             setSelectedIndex(index);
         }
     };
+
+    const scrollToTop = () => {
+        if (scrollableBoxRef.current) {
+            scrollableBoxRef.current.scrollTo({
+                top: 0,
+                behavior: "smooth",
+            });
+        }
+    }
 
     const prevStep = () => {
         setSelectedIndex(selectedIndex - 1);
@@ -55,18 +65,48 @@ const EventConfigurator2 = ({ locationId, sx, }: EventConfiguratorProps) => {
                 previousStep={prevStep}
                 stepCompleted={nextStep} />
         },
-        /*{
-            label: 'Catering', id: 'catering',
-            control: <CateringSelector
-                previousStep={prevStep}
-                stepCompleted={nextStep} />
-         },*/
-        {
-            label: 'Packages', id: 'packages',
-            control: <PackageSelector
-                previousStep={prevStep}
-                stepCompleted={nextStep} />
-        },
+    ];
+
+    // Conditionally add Catering PackageSelector
+    if (location?.eventPackages &&
+        location.eventPackages
+            .filter((p) => p.packageCategory === AvailablePackageCategories[0] as PackageCategories)
+            .length > 0) {
+        navItems.push(
+            {
+                label: 'Catering', id: 'catering',
+                control: <PackageSelector
+                    previousStep={prevStep}
+                    stepCompleted={nextStep}
+                    packageCategory={
+                        AvailablePackageCategories[0] as PackageCategories
+                    }
+                />
+            }
+        );
+    }
+
+    // Conditionally add Equipment PackageSelector
+    if (location?.eventPackages &&
+        location.eventPackages
+            .filter((p) => p.packageCategory === AvailablePackageCategories[1] as PackageCategories)
+            .length > 0) {
+        navItems.push(
+            {
+                label: 'Packages', id: 'packages',
+                control: <PackageSelector
+                    previousStep={prevStep}
+                    stepCompleted={nextStep}
+                    packageCategory={
+                        AvailablePackageCategories[1] as PackageCategories
+                    }
+                />
+            }
+        );
+    }
+
+    // Add remaining items
+    navItems.push(
         {
             label: 'PersonalData', id: 'personalData',
             control: <PersonalDataSelector
@@ -88,8 +128,8 @@ const EventConfigurator2 = ({ locationId, sx, }: EventConfiguratorProps) => {
         {
             label: 'Thanks', id: 'thanks',
             control: <ProposalThanks />
-        },
-    ];
+        }
+    );
 
     useEffect(() => {
         if (!locationId) {
@@ -99,6 +139,10 @@ const EventConfigurator2 = ({ locationId, sx, }: EventConfiguratorProps) => {
             setEventConfiguration(createDefaultEventConfigurationModel(locationId));
         }
     }, [eventConfiguration, locationId]);
+
+    useEffect(() => {
+        scrollToTop();
+    }, [selectedIndex]);
 
     if (!location) {
         return (
@@ -159,6 +203,12 @@ const EventConfigurator2 = ({ locationId, sx, }: EventConfiguratorProps) => {
                     gap: 2,
                     mt: 2,
                     mb: 2,
+                    opacity: selectedIndex < navItems.length - 1
+                        ? 1
+                        : 0.2,
+                    pointerEvents: selectedIndex < navItems.length - 1
+                        ? 'auto'
+                        : 'none',
                 }}
             >
                 {navItems.map((item, index) => (
@@ -192,12 +242,13 @@ const EventConfigurator2 = ({ locationId, sx, }: EventConfiguratorProps) => {
 
             {/* Selected Control */}
             <Box
+                ref={scrollableBoxRef}
                 sx={{
                     display: 'flex',
                     justifyContent: 'center',
                     alignItems: 'top',
                     width: { xs: '100%' },
-                    maxWidth: '400px',
+                    maxWidth: '600px',
                     height: 'calc(100% - 200px)',
                     overflow: 'auto',
                     scrollbarColor: '#888 transparent',
