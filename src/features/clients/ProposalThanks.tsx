@@ -1,10 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import { Box, Button, Grid2, Link, SxProps, TextField, Theme, Typography } from '@mui/material';
+import React, { } from 'react';
+import { Box, SxProps, Theme, Typography } from '@mui/material';
 import useStore from '@/stores/eventStore';
-import { ChevronsLeft, CircleCheckBig } from 'lucide-react';
-import ProposalBackButton from './ProposalBackButton';
-import { Controller, useForm } from 'react-hook-form';
-import { EventConfigurationModel } from '@/models/EventConfigurationModel';
+import { CircleCheckBig, Mail, Phone } from 'lucide-react';
 
 interface Props {
     sx?: SxProps<Theme>;
@@ -13,6 +10,7 @@ interface Props {
 const ProposalThanks = ({
     sx
 }: Props) => {
+    const { location } = useStore();
 
     return (
         <Box sx={{
@@ -28,11 +26,34 @@ const ProposalThanks = ({
             </Typography>
             <CircleCheckBig size={150} color='#002A58' />
             <Typography sx={{ textAlign: 'center', mt: 4 }}>
-                Your request has been received and our proposal will be in your inbox in a few minutes.
+                Wir haben Ihre Anfrage erhalten und unser Angebot wird in wenigen Minuten in Ihrem Posteingang sein.
             </Typography>
             <Typography sx={{ textAlign: 'center', mt: 4 }}>
-                In case of any further questions, please contact us directly.
+                Sollten Sie weitere Fragen haben, wenden Sie sich bitte direkt an uns
             </Typography>
+            <Box sx={{
+                display: 'flex',
+                flexDirection: 'row',
+                alignItems: 'center',
+                mt: 2,
+            }}>
+                <Mail color={'black'} size={20} />
+                <Typography sx={{ ml: 1 }}>
+                    {"TODO: location email"}
+                </Typography>
+            </Box>
+            <Box sx={{
+                display: 'flex',
+                flexDirection: 'row',
+                alignItems: 'center',
+                mt: 1,
+                mb: 1,
+            }}>
+                <Phone color={'black'} size={20} />
+                <Typography sx={{ ml: 1 }}>
+                    {"TODO: location phone"}
+                </Typography>
+            </Box>
         </Box >
     );
 };

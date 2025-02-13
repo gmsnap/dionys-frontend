@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Controller } from "react-hook-form";
 import { Grid2, InputAdornment, Typography } from "@mui/material";
 import { DesktopTimePicker, LocalizationProvider, TimeIcon, TimePicker } from "@mui/x-date-pickers";
@@ -14,6 +14,12 @@ interface TimeFieldProps {
 }
 
 const TimeField: React.FC<TimeFieldProps> = ({ control, fieldName, errors, labelText, labelWidth }) => {
+    const [open, setOpen] = useState(false)
+
+    const handleAdornmentClick = () => {
+        setOpen(true);
+    };
+
     return (
         <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={'de'}>
             <>
@@ -39,6 +45,9 @@ const TimeField: React.FC<TimeFieldProps> = ({ control, fieldName, errors, label
                                         onChange(updatedDate.getTime());
                                     }
                                 }}
+                                open={open}
+                                onOpen={() => setOpen(true)}
+                                onClose={() => setOpen(false)}
                                 slotProps={{
                                     textField: {
                                         variant: "outlined",
@@ -46,7 +55,16 @@ const TimeField: React.FC<TimeFieldProps> = ({ control, fieldName, errors, label
                                         helperText: errors[fieldName]?.message,
                                         InputProps: {
                                             endAdornment: (
-                                                <InputAdornment position="end">
+                                                <InputAdornment
+                                                    position="end"
+                                                    sx={{
+                                                        cursor: "pointer",
+                                                        "&:hover": {
+                                                            opacity: 0.8,
+                                                        },
+                                                    }}
+                                                    onClick={handleAdornmentClick}
+                                                >
                                                     <TimeIcon sx={{ color: "action.active" }} />
                                                 </InputAdornment>
                                             ),

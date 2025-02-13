@@ -3,7 +3,7 @@ import { Box, SxProps, Theme, Typography, Button } from '@mui/material';
 import { title } from 'process';
 import useStore from '@/stores/eventStore';
 import { RoomModel } from '@/models/RoomModel';
-import ImageSlideShow from './ImageSlideShow';
+import ImageGallery from './ImageGallery';
 import { fetchRooms } from '@/services/roomService';
 
 const baseUrl = process.env.NEXT_PUBLIC_API_URL;
@@ -24,8 +24,7 @@ const Rooms = ({ sx }: VenueProps) => {
             const room = rooms?.find((room) => room.id === newRoomId);
             setEventConfiguration({
                 ...eventConfiguration,
-                roomId: newRoomId,
-                room: room || null,
+                roomIds: [newRoomId],
                 rooms: rooms || null,
             });
         }
@@ -109,12 +108,14 @@ const Rooms = ({ sx }: VenueProps) => {
                             color="primary"
                             sx={{ flex: 1 }}
                             onClick={() => handleRoomChange(room.id)}>
-                            {eventConfiguration?.roomId === room.id ? 'Ausgewählt' : 'Venue Auswählen'}
+                            {eventConfiguration?.roomIds?.length && eventConfiguration.roomIds[0] === room.id
+                                ? 'Ausgewählt'
+                                : 'Venue Auswählen'}
                         </Button>
                     </Box>
 
                     {/* Right Column */}
-                    <ImageSlideShow
+                    <ImageGallery
                         images={room.images}
                         title={title}
                         sx={{ maxWidth: '550px' }}

@@ -183,8 +183,8 @@ const EventConfigurator = ({ locationId, sx }: EventConfiguratorProps) => {
                             value = eventConfiguration?.persons ? eventConfiguration.persons.toString() : '';
                             break;
                         case 2:
-                            value = eventConfiguration && eventConfiguration.room ?
-                                eventConfiguration.room.name :
+                            value = eventConfiguration && eventConfiguration.rooms?.length ?
+                                eventConfiguration.rooms[0].name :
                                 '';
                             break;
                         default:

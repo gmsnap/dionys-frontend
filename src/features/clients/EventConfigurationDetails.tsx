@@ -60,31 +60,44 @@ const EventConfigurationDetails = ({
 
     return (
         <Box sx={{ ...sx }}>
-            <Typography variant="h6">Buchung ID-{model.id}</Typography>
-
-            <Typography variant="h5" sx={{ mt: 2 }}>Event</Typography>
+            <Typography variant="h5" sx={{ mt: 2 }}>Ihre Anfragedaten</Typography>
             <Typography>{formatDates(model)}</Typography>
-            <Typography>{model.persons} Personen</Typography>
-            <Typography>{formatLocation(model)}</Typography>
-            <Typography>{formatRooms(model)}</Typography>
+            <Typography sx={{ mt: 1 }}>{model.persons} Personen</Typography>
+            <Typography sx={{ mt: 1 }}>{formatRooms(model)}</Typography>
 
-            <Typography variant="h5" sx={{ mt: 2 }}>Pakete</Typography>
-            {model.packages && model.packages.map((item, index) => (
-                <Box key={index} sx={{}}>
-                    <Typography>{item.title} ({formatPriceWithType(item.price, item.priceType)})</Typography>
-                </Box>
-            ))}
 
-            <Typography sx={{ fontWeight: 'bold', mt: 2 }}>Total: {formatPrice(calculateTotalPrice(model))}</Typography>
+            {model.packages &&
+                <>
+                    <Typography variant="h5" sx={{ mt: 2 }}>Pakete</Typography>
+                    {model.packages.map((item, index) => (
+                        <Box key={index} sx={{}}>
+                            <Typography>{item.title} ({formatPriceWithType(item.price, item.priceType)})</Typography>
+                        </Box>
+                    ))}
+                </>
+            }
 
-            <Typography variant="h5" sx={{ mt: 2 }}>Unternehmen</Typography>
-            <Typography>{getCompanyName(model)}</Typography>
-            <Typography>{getCompanyStreet(model)}</Typography>
-            <Typography>{getCompanyCity(model)}</Typography>
-            <Typography>{model.booker?.email ?? 'no email'}</Typography>
+            <Typography sx={{ fontWeight: 'bold', mt: 2 }}>
+                Total: {formatPrice(calculateTotalPrice(model))}
+            </Typography>
 
-            <Typography variant="h5" sx={{ mt: 2 }}>Kommentar</Typography>
-            <Typography>{model.notes}</Typography>
+            {model.booker &&
+                <>
+                    <Typography variant="h5" sx={{ mt: 2 }}>Persönliche Daten</Typography>
+                    <Typography>
+                        {`${model.booker?.givenName ?? ''} ${model.booker?.familyName ?? ''}`}
+                    </Typography>
+                    <Typography>{model.booker?.email ?? 'no email'}</Typography>
+                    {model.booker.bookingCompany &&
+                        <>
+                            <Typography variant="h5" sx={{ mt: 2 }}>Unternehmen</Typography>
+                            <Typography>{getCompanyName(model)}</Typography>
+                            <Typography>{getCompanyStreet(model)}</Typography>
+                            <Typography>{getCompanyCity(model)}</Typography>
+                        </>
+                    }
+                </>
+            }
         </Box>
     );
 };

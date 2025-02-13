@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Controller } from 'react-hook-form';
 import { Grid2, InputAdornment, Typography } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
@@ -14,6 +14,12 @@ interface DateFieldProps {
 }
 
 const DateField: React.FC<DateFieldProps> = ({ control, errors, labelWidth }) => {
+    const [open, setOpen] = useState(false)
+
+    const handleAdornmentClick = () => {
+        setOpen(true);
+    };
+
     return (
         <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={'de'}>
             <>
@@ -37,6 +43,9 @@ const DateField: React.FC<DateFieldProps> = ({ control, errors, labelWidth }) =>
                                         onChange(null); // Handle null case
                                     }
                                 }}
+                                open={open}
+                                onOpen={() => setOpen(true)}
+                                onClose={() => setOpen(false)}
                                 slotProps={{
                                     textField: {
                                         variant: "outlined",
@@ -44,7 +53,16 @@ const DateField: React.FC<DateFieldProps> = ({ control, errors, labelWidth }) =>
                                         helperText: errors.date?.message,
                                         InputProps: {
                                             endAdornment: (
-                                                <InputAdornment position="end">
+                                                <InputAdornment
+                                                    position="end"
+                                                    sx={{
+                                                        cursor: "pointer",
+                                                        "&:hover": {
+                                                            opacity: 0.8,
+                                                        },
+                                                    }}
+                                                    onClick={handleAdornmentClick}
+                                                >
                                                     <CalendarIcon sx={{ color: "action.active" }} />
                                                 </InputAdornment>
                                             ),

@@ -62,12 +62,16 @@ export const calculateTotalPrice = (conf: EventConfigurationModel) => {
 
     const persons = conf.persons ?? 0;
 
-    const roomPrice = conf.room
-        ? multiplyPriceByPriceType(conf.room.price,
-            conf.room.priceType,
-            diffInHours,
-            persons)
-        : 0;
+    const roomsPrice = conf.rooms?.reduce((total, room) => {
+        const roomPrice = room
+            ? multiplyPriceByPriceType(
+                room.price,
+                room.priceType,
+                diffInHours,
+                persons)
+            : 0;
+        return total + roomPrice;
+    }, 0) || 0;
 
     let packagePrice = 0;
     if (conf.packages) {
@@ -80,5 +84,5 @@ export const calculateTotalPrice = (conf: EventConfigurationModel) => {
         });
     }
 
-    return roomPrice + packagePrice;
+    return roomsPrice + packagePrice;
 }

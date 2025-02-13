@@ -57,9 +57,9 @@ const PartnerPage: NextPageWithLayout = () => {
     }
 
     const formatTitle = (conf: EventConfigurationModel) => {
-        const room = conf.room?.name ?? "?";
+        const location = conf.location?.title ?? "?";
         const company = conf.booker?.bookingCompany?.companyName ?? "?";
-        return `Raum: ${room}, Anfrage von: ${company}`;
+        return `Location: ${location}, Anfrage von: ${company}`;
     }
 
     const formatDates = (conf: EventConfigurationModel) => {

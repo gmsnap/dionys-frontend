@@ -45,11 +45,11 @@ const PackageSelector = ({
                 width: '100%', // Full width
                 position: 'sticky', // Fixes the button at the bottom
                 bottom: 0, // Sticks to the bottom of the container
-                zIndex: 2, // Ensures button remains above scrolling content
+                zIndex: 200, // Ensures button remains above scrolling content
             }}>
                 <ProposalNextButton
                     nextStep={tryComplete}
-                    isDisabled={!eventConfiguration?.roomId} />
+                    isDisabled={!eventConfiguration?.roomIds?.length} />
                 <ProposalBackButton previousStep={previousStep} />
             </Box>
         </Box >

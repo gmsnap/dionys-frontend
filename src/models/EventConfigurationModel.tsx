@@ -8,10 +8,8 @@ import { LocationModel } from './LocationModel';
 export interface EventConfigurationModel {
     id: number;
     locationId: number;
-    roomId: number | null;
-    room: RoomModel | null;
+    roomIds: number[] | null;
     packageIds: number[] | null;
-    package: EventPackageModel | null;
     eventCategory: EventCategories | null;
     persons: number | null;
     date: number | null;

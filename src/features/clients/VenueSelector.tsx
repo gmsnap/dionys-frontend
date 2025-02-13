@@ -19,7 +19,7 @@ const VenueSelector = ({
     const { eventConfiguration, location, setEventConfiguration } = useStore();
 
     const tryComplete = (): void => {
-        if (eventConfiguration?.roomId) {
+        if (eventConfiguration?.roomIds?.length) {
             stepCompleted?.();
         }
     };
@@ -43,11 +43,11 @@ const VenueSelector = ({
                 width: '100%',
                 position: 'sticky', // Fixes the button at the bottom
                 bottom: 0,
-                zIndex: 2, // Ensures button remains above scrolling content
+                zIndex: 200, // Ensures button remains above scrolling content
             }}>
                 <ProposalNextButton
                     nextStep={tryComplete}
-                    isDisabled={!eventConfiguration?.roomId} />
+                    isDisabled={!eventConfiguration?.roomIds?.length} />
                 <ProposalBackButton previousStep={previousStep} />
             </Box>
         </Box >

@@ -15,12 +15,15 @@ const labelWidth = 4;
 interface SelectorProps {
     previousStep: () => void,
     stepCompleted: () => void,
+    stepCompletedAndSkip: () => void,
     sx?: SxProps<Theme>;
 }
 
 const PersonalDataSelector = ({
     previousStep,
-    stepCompleted }: SelectorProps) => {
+    stepCompleted,
+    stepCompletedAndSkip,
+    sx }: SelectorProps) => {
     const { eventConfiguration, setEventConfiguration } = useStore();
 
     const {
@@ -28,16 +31,20 @@ const PersonalDataSelector = ({
         handleSubmit,
         reset,
         trigger,
-        formState: { errors },
+        formState: { errors, isValid },
     } = useForm({
         defaultValues: eventConfiguration?.booker || createEmptyBookingUserModel(),
         resolver: yupResolver(BookingUserValidationSchema),
     });
 
-    const tryComplete = async (): Promise<void> => {
+    const tryComplete = async (skipNext: boolean = false): Promise<void> => {
         const isValid = await trigger(); // Validates all fields
         if (!isValid) return;
 
+        if (skipNext) {
+            stepCompletedAndSkip?.();
+            return;
+        }
         stepCompleted?.();
     };
 
@@ -194,8 +201,15 @@ const PersonalDataSelector = ({
                 zIndex: 2, // Ensures button remains above scrolling content
             }}>
                 <ProposalNextButton
-                    nextStep={tryComplete}
-                    isDisabled={!eventConfiguration?.roomId} />
+                    nextStep={() => tryComplete(true)}
+                    isDisabled={!isValid}
+                    sx={{ mb: 0, pb: 0 }} />
+                <ProposalNextButton
+                    nextStep={() => tryComplete(false)}
+                    isDisabled={!isValid}
+                    title='Weiter mit Rechnungsadresse'
+                    invert={true}
+                    sx={{ mt: 0, pt: 0 }} />
                 <ProposalBackButton previousStep={previousStep} />
             </Box>
         </Box >

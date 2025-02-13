@@ -1,24 +1,25 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Button, Grid2, Link, SxProps, TextField, Theme, Typography } from '@mui/material';
+import { Box, Button, Grid2, SxProps, TextField, Theme, Typography } from '@mui/material';
 import useStore from '@/stores/eventStore';
-import { ChevronsLeft } from 'lucide-react';
 import ProposalBackButton from './ProposalBackButton';
 import { Controller, useForm } from 'react-hook-form';
 import { EventConfigurationModel } from '@/models/EventConfigurationModel';
+import EventConfigurationDetails from './EventConfigurationDetails';
 
 interface SelectorProps {
     previousStep: () => void,
+    previousStepdAndSkip: () => void,
     proposalSent: () => void,
     sx?: SxProps<Theme>;
 }
 
 const ProposalSummary = ({
     previousStep,
+    previousStepdAndSkip,
     proposalSent,
     sx
 }: SelectorProps) => {
     const { eventConfiguration, location, setEventConfiguration } = useStore();
-    const [visible, setVisible] = useState(false);
     const [sending, setIsSending] = useState(false);
 
     const {
@@ -72,16 +73,29 @@ const ProposalSummary = ({
             ml: 7,
             mr: 7,
         }}>
-            <Typography variant='body2' sx={{ fontWeight: 700 }}>
-                Dear Mr. Klaustermann, please review and confirm your selected options. Based on your selections, we’ll provide you with an indicative proposal that we can adjust in our next meeting.
+            <Typography variant='body1'>
+                <Typography sx={{ fontSize: '14px', textAlign: 'left' }}>
+                    {`${eventConfiguration?.booker?.givenName} ${eventConfiguration?.booker?.familyName}`},
+                </Typography>
+                <Typography sx={{ fontSize: '14px', textAlign: 'left' }}>
+                    bitte überprüfen und bestätigen Sie die von Ihnen gewählten Optionen.
+                </Typography>
+                <Typography sx={{ fontSize: '14px', textAlign: 'left' }}>
+                    Auf der Grundlage Ihrer Auswahl werden wir Ihnen einen unverbindlichen Vorschlag unterbreiten,
+                    den wir bei unserem nächsten Treffen anpassen können.
+                </Typography>
             </Typography>
 
-            {/* Company Name */}
-            <Grid2 container alignItems="top" rowSpacing={0} sx={{ width: '100%' }}>
-                <Grid2 size={{ xs: 12, sm: 4 }}>
-                    <Typography variant="label">Kommentar</Typography>
+            {eventConfiguration &&
+                <EventConfigurationDetails model={eventConfiguration} sx={{ mt: 2, ml: 0 }} />
+            }
+
+            {/* Notes */}
+            <Grid2 container alignItems="top" rowSpacing={0} sx={{ width: '100%', mt: 1, mb: 1, }}>
+                <Grid2 size={{ xs: 12 }}>
+                    <Typography variant="label">Sonderwünsche und Hinweise (optional)</Typography>
                 </Grid2>
-                <Grid2 size={{ xs: 12, sm: 8, md: 6 }}>
+                <Grid2 size={{ xs: 12 }}>
                     <Controller
                         name="notes"
                         control={control}
@@ -118,9 +132,13 @@ const ProposalSummary = ({
                     }}
                     onClick={sendProposal}
                 >
-                    Get my proposal now
+                    Jetzt mein Angebot anfordern
                 </Button>
-                <ProposalBackButton previousStep={previousStep} />
+                <ProposalBackButton previousStep={
+                    eventConfiguration?.booker?.bookingCompany
+                        ? previousStep
+                        : previousStepdAndSkip
+                } />
             </Box>
         </Box >
     );

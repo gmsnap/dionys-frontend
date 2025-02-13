@@ -40,12 +40,12 @@ const EventConfigurator2 = ({ locationId, sx, }: EventConfiguratorProps) => {
         }
     }
 
-    const prevStep = () => {
-        setSelectedIndex(selectedIndex - 1);
+    const prevStep = (steps: number = 1) => {
+        setSelectedIndex(selectedIndex - steps);
     };
 
-    const nextStep = () => {
-        setSelectedIndex(selectedIndex + 1);
+    const nextStep = (steps: number = 1) => {
+        setSelectedIndex(selectedIndex + steps);
     };
 
     const navItems = [
@@ -111,7 +111,8 @@ const EventConfigurator2 = ({ locationId, sx, }: EventConfiguratorProps) => {
             label: 'PersonalData', id: 'personalData',
             control: <PersonalDataSelector
                 previousStep={prevStep}
-                stepCompleted={nextStep} />
+                stepCompleted={nextStep}
+                stepCompletedAndSkip={() => nextStep(2)} />
         },
         {
             label: 'CompanyData', id: 'company',
@@ -123,6 +124,7 @@ const EventConfigurator2 = ({ locationId, sx, }: EventConfiguratorProps) => {
             label: 'Summary', id: 'summary',
             control: <ProposalSummary
                 previousStep={prevStep}
+                previousStepdAndSkip={() => prevStep(2)}
                 proposalSent={nextStep} />
         },
         {
@@ -186,7 +188,7 @@ const EventConfigurator2 = ({ locationId, sx, }: EventConfiguratorProps) => {
                 }}
             >
                 <Typography variant='h4' sx={{ fontSize: '26px', fontWeight: 700 }}>
-                    {selectedIndex == navItems.length - 1
+                    {selectedIndex == navItems.length - 2
                         ? 'Your Summary'
                         : 'Create my event'}
                 </Typography>

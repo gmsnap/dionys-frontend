@@ -26,7 +26,7 @@ const CompanyDataSelector = ({ previousStep, stepCompleted }: SelectorProps) => 
         handleSubmit,
         reset,
         trigger,
-        formState: { errors },
+        formState: { errors, isValid },
     } = useForm<BookingCompanyModel>({
         defaultValues: eventConfiguration?.booker?.bookingCompany || createEmptyBookingCompanyModel(),
         resolver: yupResolver(BookingCompanyModelValidationSchema) as any,
@@ -164,7 +164,7 @@ const CompanyDataSelector = ({ previousStep, stepCompleted }: SelectorProps) => 
 
             {/* Navigation Buttons */}
             <Box sx={{ backgroundColor: 'white', width: '100%', position: 'sticky', bottom: 0, zIndex: 2 }}>
-                <ProposalNextButton nextStep={tryComplete} isDisabled={!eventConfiguration?.roomId} />
+                <ProposalNextButton nextStep={tryComplete} isDisabled={!isValid} />
                 <ProposalBackButton previousStep={previousStep} />
             </Box>
         </Box>

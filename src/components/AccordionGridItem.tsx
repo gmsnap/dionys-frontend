@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Box, Button, Typography } from '@mui/material';
+import ImageSlideshow from '@/features/clients/ImageSlideShow';
 
 interface InfoItem {
     icon: React.ReactNode;
@@ -8,7 +9,7 @@ interface InfoItem {
 
 interface GridItemProps {
     id: number;
-    image: string;
+    images: string[];
     isSelected?: boolean;
     selectRequested?: (id: number) => void;
     title: string;
@@ -19,7 +20,7 @@ interface GridItemProps {
 
 const GridItem: React.FC<GridItemProps> = ({
     id,
-    image,
+    images,
     isSelected,
     selectRequested,
     title,
@@ -50,15 +51,9 @@ const GridItem: React.FC<GridItemProps> = ({
                 }}
             >
                 {/* Image */}
-                <Box
-                    component="img"
-                    sx={{
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'fill',
-                    }}
-                    src={image}
-                    alt={title}
+                <ImageSlideshow
+                    images={images}
+                    sx={{ height: '250px', }}
                 />
 
                 {/* Title overlay */}
@@ -72,6 +67,8 @@ const GridItem: React.FC<GridItemProps> = ({
                         backgroundColor: 'rgba(0, 0, 0, 0.5)',
                         color: '#FFFFFF',
                         textAlign: 'center',
+                        pointerEvents: 'none',
+                        zIndex: 10,
                     }}
                 >
                     <Typography
@@ -104,6 +101,7 @@ const GridItem: React.FC<GridItemProps> = ({
                         right: 16,
                         display: 'flex',
                         gap: 2,
+                        zIndex: 11,
                     }}
                 > {information &&
                     <Button

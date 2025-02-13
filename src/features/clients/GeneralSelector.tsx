@@ -163,42 +163,6 @@ const GeneralSelector = ({
                         />
                     </Grid2>
 
-                    {/* Event Category */}
-                    <Grid2 container alignItems="top" rowSpacing={0} sx={{ width: '100%' }}>
-                        <Grid2 size={{ xs: 12, sm: labelWidth }}>
-                            <Typography variant="label">Event Type</Typography>
-                        </Grid2>
-                        <Grid2 size={{ xs: 12, sm: 8, md: 6 }}>
-                            <Controller
-                                name="eventCategory"
-                                control={control}
-                                render={({ field }) => (
-                                    <TextField
-                                        {...field}
-                                        fullWidth
-                                        variant="outlined"
-                                        error={!!errors.eventCategory}
-                                        helperText={errors.eventCategory?.message}
-                                        // Display the translated text
-                                        value={field.value
-                                            ? formatEventCategoriesSync([field.value as EventCategories])
-                                            : ''}
-                                        // Maintain the original field value
-                                        onChange={(event) => {
-                                            const value = event.target.value;
-                                            field.onChange(value); // Store the raw field value
-                                        }}
-                                        // Disable editing if this is a read-only display field
-                                        slotProps={{
-                                            input: {
-                                                readOnly: true,
-                                            },
-                                        }}
-                                    />
-                                )}
-                            />
-                        </Grid2>
-                    </Grid2>
                 </Grid2>
 
                 <Box sx={{

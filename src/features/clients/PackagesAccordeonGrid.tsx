@@ -22,10 +22,13 @@ const PackagesAccordeonGrid = ({ packageCategory, sx }: Props) => {
             const updatedPackageIds = currentPackageIds.includes(packageId)
                 ? currentPackageIds.filter(id => id !== packageId) // Remove if already selected
                 : [...currentPackageIds, packageId]; // Add if not selected
+            const packageIdSet = new Set(updatedPackageIds);
+            const packages = location?.eventPackages?.filter(room => packageIdSet.has(room.id));
 
             setEventConfiguration({
                 ...eventConfiguration,
                 packageIds: updatedPackageIds,
+                packages: packages || null,
             });
         }
     };
@@ -37,23 +40,23 @@ const PackagesAccordeonGrid = ({ packageCategory, sx }: Props) => {
             .filter((p) => !packageCategory || p.packageCategory === packageCategory)
             .length == 0) {
         return (
-            <Typography sx={{ textAlign: 'center' }}>Keine Event-Pakete verfügbar</Typography>
+            <Typography sx={{ textAlign: 'center' }}>
+                Keine Event-Pakete verfügbar
+            </Typography>
         );
     }
 
     return (
-        <Grid2 container spacing={5} sx={{ ...sx }}>
+        <Grid2 container spacing={1} sx={{ ...sx }}>
             {location.eventPackages
                 .filter((p) => !packageCategory || p.packageCategory === packageCategory)
                 .map((p) => (
                     <Grid2 key={p.id} size={{ xs: 12 }}>
                         <AccordionGridItem
                             id={p.id}
-                            image={
-                                p.images.length > 0
-                                    ? (p.images[0] as string)
-                                    : `/p-category-${p.packageCategory}.jpg`
-                            }
+                            images={p.images.length > 0
+                                ? p.images
+                                : [`/p-category-${p.packageCategory}.jpg`]}
                             isSelected={eventConfiguration?.packageIds?.includes(p.id)}
                             selectRequested={(id) => togglePackage(id)}
                             title={p.title}

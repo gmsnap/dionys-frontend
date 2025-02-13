@@ -30,7 +30,7 @@ const RoomConfigurator = ({ sx }: RoomConfiguratorProps) => {
         return () => clearTimeout(timer); // Cleanup timeout on unmount or change
     }, [roomConfiguration]);
 
-    if (!eventConfiguration?.room) {
+    if (!eventConfiguration?.rooms?.length) {
         return <Box sx={{ ...sx }}>
             <Typography variant="h3" sx={{ mb: 8 }}>CONFIGURATOR - ROOM</Typography>
             <Typography variant="h5" sx={{ mt: 4 }}>Bitte Room auswählen</Typography>
