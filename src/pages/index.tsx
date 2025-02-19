@@ -63,26 +63,11 @@ const Home: NextPageWithLayout = () => {
       </Box>
 
       <Box textAlign={'center'} mt={'200px'} display={'flex'} flexDirection={'column'}>
-
-        {/*<Button
-          href='/locations'
-          sx={{
-            color: 'secondary.main',
-            fontFamily: "'Gugi', sans-serif",
-            fontSize: '20px',
-            fontWeight: 400,
-            letterSpacing: '-0.07em',
-            m: 2,
-          }}
-        >
-          Location finden<ArrowRight />
-        </Button> */}
-
         <Button
           href='/partner'
           sx={{
             color: 'secondary.main',
-            fontFamily: "'Gugi', sans-serif",
+            fontFamily: "'DM Sans', sans-serif",
             fontSize: '20px',
             fontWeight: 400,
             letterSpacing: '-0.07em',
@@ -107,27 +92,40 @@ const Home: NextPageWithLayout = () => {
           Jetzt Registrieren
         </Button>
 
-        <Typography
+        <Box
           sx={{
+            fontFamily: "'DM Sans', sans-serif",
             textAlign: { xs: 'left', sm: 'center' },
             maxWidth: '620px',
             mr: 'auto',
             ml: 'auto',
           }}>
           <Typography
-            component="span"
             sx={{
+              fontFamily: "'Poppins', sans-serif",
               fontWeight: 'bold',
+              textAlign: 'center',
               fontSize: { xs: '16px', sm: '24px', md: '32px' },
             }}
           >
             DIONYS ist das &ldquo;OpenTable f&uuml;r Events&rdquo;
           </Typography>
-          <Typography component="span" sx={{ display: 'block', marginTop: 1 }}>
+          <Typography sx={{
+            fontFamily: "'DM Sans', sans-serif",
+            textAlign: 'center',
+            display: 'block',
+            marginTop: 1
+          }}>
             Wir ersetzen das Kontaktformular auf deiner Website und beantworten Eventanfragen automatisch.
             Spar dir die Zeit hunderte von Erstanfragen zu beantworten.
           </Typography>
-          <Typography component="span" sx={{ display: 'block', fontSize: 'small', marginTop: 1 }}>
+          <Typography sx={{
+            display: 'block',
+            fontFamily: "'DM Sans', sans-serif",
+            fontSize: 'small',
+            textAlign: 'center',
+            marginTop: 1
+          }}>
             Bei Interesse kontaktiere {' '}
             <Link
               href="mailto:sales@dionys.ai"
@@ -139,7 +137,7 @@ const Home: NextPageWithLayout = () => {
               sales@dionys.ai
             </Link>
           </Typography>
-        </Typography>
+        </Box>
 
       </Box>
     </Box>

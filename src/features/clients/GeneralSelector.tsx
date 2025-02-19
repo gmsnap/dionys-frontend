@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
-import { Box, SxProps, Theme, Typography, Button, Grid2, TextField } from '@mui/material';
+import { Box, SxProps, Theme, Typography, Button, Grid2, TextField, duration } from '@mui/material';
 import useStore, { createDefaultEventConfigurationModel } from '@/stores/eventStore';
-import { formatEventCategoriesSync } from '@/utils/formatEventCategories';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { EventCategories } from '@/constants/EventCategories';
@@ -9,6 +8,7 @@ import DateField from './DateField';
 import { EventConfigurationModel, EventConfValidationSchema } from '@/models/EventConfigurationModel';
 import TimeField from './TimeField';
 import ProposalBackButton from './ProposalBackButton';
+import WaitOverlay from '@/components/WaitOverlay';
 
 interface EventConfiguratorStepProps {
     previousStep: () => void,
@@ -36,10 +36,14 @@ const GeneralSelector = ({
     const onSubmit = async (data: EventConfigurationModel) => {
         if (eventConfiguration) {
             const selectedDate = new Date(data.date || 0);
+            const ts = selectedDate.getTime();
+            const endDate = new Date(ts);
+            endDate.setHours(endDate.getHours() + (data.duration || 2));
             setEventConfiguration({
                 ...eventConfiguration,
                 ...data,
-                date: selectedDate.getTime(), // Ensure final timestamp is correct
+                date: ts,
+                endDate: endDate.getTime(),
             });
         }
         stepCompleted?.();
@@ -152,15 +156,27 @@ const GeneralSelector = ({
                         />
                     </Grid2>
 
-                    {/* End Time */}
+                    {/* Duration */}
                     <Grid2 container alignItems="top" rowSpacing={0} sx={{ width: '100%' }}>
-                        <TimeField
-                            control={control}
-                            fieldName="endDate"
-                            errors={errors}
-                            labelText="Uhrzeit (bis)"
-                            labelWidth={labelWidth}
-                        />
+                        <Grid2 size={{ xs: 12, sm: labelWidth }}>
+                            <Typography variant="label">Dauer (in Stunden)</Typography>
+                        </Grid2>
+                        <Grid2 size={{ xs: 12, sm: 8, md: 6 }}>
+                            <Controller
+                                name="duration"
+                                control={control}
+                                render={({ field }) => (
+                                    <TextField
+                                        {...field}
+                                        fullWidth
+                                        variant="outlined"
+                                        type="number"
+                                        error={!!errors.duration}
+                                        helperText={errors.duration?.message}
+                                    />
+                                )}
+                            />
+                        </Grid2>
                     </Grid2>
 
                 </Grid2>

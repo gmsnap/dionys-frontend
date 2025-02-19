@@ -13,7 +13,7 @@ const NoLocationMessage = () => {
                 href='/partner/location'
                 sx={{
                     color: 'secondary.main',
-                    fontFamily: "'Gugi', sans-serif",
+                    fontFamily: "'DM Sans', sans-serif",
                     fontSize: '20px',
                     fontWeight: 400,
                     letterSpacing: '-0.07em',

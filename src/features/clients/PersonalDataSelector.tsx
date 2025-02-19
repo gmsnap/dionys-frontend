@@ -37,20 +37,6 @@ const PersonalDataSelector = ({
         resolver: yupResolver(BookingUserValidationSchema),
     });
 
-    const tryComplete = async (skipNext: boolean = false): Promise<void> => {
-        const isValid = await trigger(); // Validates all fields
-        if (!isValid) return;
-
-        if (skipNext) {
-            stepCompletedAndSkip?.();
-            return;
-        }
-        stepCompleted?.();
-    };
-
-    const onSubmit = async () => {
-    };
-
     const handleFieldBlur = (fieldName: keyof BookingUserModel, value: string) => {
         if (eventConfiguration) {
             setEventConfiguration({
@@ -80,7 +66,7 @@ const PersonalDataSelector = ({
             ml: 7,
             mr: 7,
         }}>
-            <form onSubmit={handleSubmit(onSubmit)}>
+            <form onSubmit={handleSubmit(() => { })}>
                 <Grid2 container rowSpacing={2}>
 
                     {/* Given Name */}
@@ -165,7 +151,7 @@ const PersonalDataSelector = ({
                     {/* Phone */}
                     <Grid2 container alignItems="top" rowSpacing={0} sx={{ width: '100%' }}>
                         <Grid2 size={{ xs: 12, sm: labelWidth }}>
-                            <Typography variant="label">Phone</Typography>
+                            <Typography variant="label">Telefon</Typography>
                         </Grid2>
                         <Grid2 size={{ xs: 12, sm: 8, md: 6 }}>
                             <Controller
@@ -195,19 +181,19 @@ const PersonalDataSelector = ({
 
             <Box sx={{
                 backgroundColor: 'white',
-                width: '100%', // Full width
-                position: 'sticky', // Fixes the button at the bottom
-                bottom: 0, // Sticks to the bottom of the container
-                zIndex: 2, // Ensures button remains above scrolling content
+                width: '100%',
+                position: 'sticky',
+                bottom: 0,
+                zIndex: 2,
             }}>
                 <ProposalNextButton
-                    nextStep={() => tryComplete(true)}
+                    nextStep={() => stepCompletedAndSkip()}
                     isDisabled={!isValid}
-                    sx={{ mb: 0, pb: 0 }} />
+                    sx={{ mt: 2, mb: 0, pb: 0 }} />
                 <ProposalNextButton
-                    nextStep={() => tryComplete(false)}
+                    nextStep={() => stepCompleted()}
                     isDisabled={!isValid}
-                    title='Weiter mit Rechnungsadresse'
+                    title="Rechnungsadresse hinzufügen"
                     invert={true}
                     sx={{ mt: 0, pt: 0 }} />
                 <ProposalBackButton previousStep={previousStep} />

@@ -6,7 +6,6 @@ import { PartnerUserModel } from '@/models/PartnerUserModel';
 import { fetchCompanies, fetchPartners } from '@/services/partnerService';
 import { PartnerCompanyModel } from '@/models/PartnerCompanyModel';
 import { Building, UserRound } from 'lucide-react';
-import theme from '@/theme';
 
 const AdminHome: NextPageWithLayout = () => {
     const [partners, setPartners] = useState<PartnerUserModel[] | null>(null);

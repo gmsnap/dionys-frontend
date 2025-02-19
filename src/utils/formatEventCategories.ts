@@ -1,6 +1,11 @@
 import { EventCategories } from '@/constants/EventCategories';
 import { getTranslations } from '@/i18n';
 
+const staticTranslations = {
+    "business": "Business Event",
+    "social": "Privates Event",
+};
+
 export const formatEventCategories = async (categories: EventCategories[]): Promise<string> => {
     const t = await getTranslations('de'); // Await the async translator function
 
@@ -20,10 +25,6 @@ export const formatEventCategoriesSync = (categories: EventCategories[]): string
     if (!categories || categories.length === 0) {
         return "-";
     }
-    const staticTranslations = {
-        "business": "Business",
-        "social": "Social",
-    };
 
     const translated = categories
         .map((category) => staticTranslations[category])

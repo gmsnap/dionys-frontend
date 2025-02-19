@@ -1,8 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Box, SxProps, Theme, Typography } from '@mui/material';
 import useStore from '@/stores/eventStore';
-import { AvailableEventCategories, EventCategories } from '@/constants/EventCategories';
-import router from 'next/router';
+import { EventCategories } from '@/constants/EventCategories';
 import { formatEventCategoriesSync } from '@/utils/formatEventCategories';
 import { Frown } from 'lucide-react';
 import theme from '@/theme';
@@ -55,7 +54,7 @@ const CategorySelector = ({
         setEventCategories(cat);
     }, [location]);
 
-    useEffect(() => {
+    /*useEffect(() => {
         const resizeObserver = new ResizeObserver((entries) => {
             for (const entry of entries) {
                 // Toggle `isNarrow` based on the container's width
@@ -70,7 +69,7 @@ const CategorySelector = ({
         return () => {
             resizeObserver.disconnect();
         };
-    }, []);
+    }, []);*/
 
     return (
         <Box
@@ -120,8 +119,8 @@ const CategorySelector = ({
                                 top: '50%',
                                 left: '50%',
                                 transform: 'translate(-50%, -50%)',
-                                fontFamily: "'Nunito', sans-serif",
                                 opacity: 0.75,
+                                fontWeight: 'normal',
                                 color: 'white',
                             }}
                         >

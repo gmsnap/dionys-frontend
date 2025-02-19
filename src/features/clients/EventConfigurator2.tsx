@@ -51,19 +51,22 @@ const EventConfigurator2 = ({ locationId, sx, }: EventConfiguratorProps) => {
     const navItems = [
         {
             label: 'Anlass', id: 'category',
-            control: <CategorySelector stepCompleted={nextStep} />
+            control: <CategorySelector stepCompleted={nextStep} />,
+            hasButton: true,
         },
         {
             label: 'Allgemeines', id: 'general',
             control: <GeneralSelector
                 previousStep={prevStep}
-                stepCompleted={nextStep} />
+                stepCompleted={nextStep} />,
+            hasButton: true,
         },
         {
             label: 'Venue', id: 'venue',
             control: <VenueSelector
                 previousStep={prevStep}
-                stepCompleted={nextStep} />
+                stepCompleted={nextStep} />,
+            hasButton: true,
         },
     ];
 
@@ -81,7 +84,8 @@ const EventConfigurator2 = ({ locationId, sx, }: EventConfiguratorProps) => {
                     packageCategory={
                         AvailablePackageCategories[0] as PackageCategories
                     }
-                />
+                />,
+                hasButton: true,
             }
         );
     }
@@ -100,7 +104,8 @@ const EventConfigurator2 = ({ locationId, sx, }: EventConfiguratorProps) => {
                     packageCategory={
                         AvailablePackageCategories[1] as PackageCategories
                     }
-                />
+                />,
+                hasButton: true,
             }
         );
     }
@@ -112,24 +117,28 @@ const EventConfigurator2 = ({ locationId, sx, }: EventConfiguratorProps) => {
             control: <PersonalDataSelector
                 previousStep={prevStep}
                 stepCompleted={nextStep}
-                stepCompletedAndSkip={() => nextStep(2)} />
+                stepCompletedAndSkip={() => nextStep(2)} />,
+            hasButton: true,
         },
         {
             label: 'CompanyData', id: 'company',
             control: <CompanyDataSelector
                 previousStep={prevStep}
-                stepCompleted={nextStep} />
+                stepCompleted={nextStep} />,
+            hasButton: false,
         },
         {
             label: 'Summary', id: 'summary',
             control: <ProposalSummary
                 previousStep={prevStep}
                 previousStepdAndSkip={() => prevStep(2)}
-                proposalSent={nextStep} />
+                proposalSent={nextStep} />,
+            hasButton: false,
         },
         {
             label: 'Thanks', id: 'thanks',
-            control: <ProposalThanks />
+            control: <ProposalThanks />,
+            hasButton: false,
         }
     );
 
@@ -160,22 +169,6 @@ const EventConfigurator2 = ({ locationId, sx, }: EventConfiguratorProps) => {
             width: '100%',
             height: '100vh',
         }}>
-            {/* Title Header */}
-            <Box
-                sx={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    backgroundColor: theme.palette.customColors.textBackround.darker,
-                    gap: 1,
-                    pt: 2,
-                    pb: 2,
-                }}
-            >
-                <Typography variant='h3'>{location.title}</Typography>
-                <Typography variant='h5'>{location.city}</Typography>
-            </Box>
-
             {/* Headlines */}
             <Box
                 sx={{
@@ -187,13 +180,16 @@ const EventConfigurator2 = ({ locationId, sx, }: EventConfiguratorProps) => {
                     pt: 2, pr: 8, pb: 0, pl: 8,
                 }}
             >
-                <Typography variant='h4' sx={{ fontSize: '26px', fontWeight: 700 }}>
+                <Typography variant='h4' sx={{
+                    fontSize: { xs: '28px', sm: '36px' },
+                    fontWeight: 700
+                }}>
                     {selectedIndex == navItems.length - 2
-                        ? 'Your Summary'
-                        : 'Create my event'}
+                        ? 'Zusammenfassung'
+                        : 'Event erstellen'}
                 </Typography>
-                <Typography variant='body1' sx={{ fontSize: '12px' }}>
-                    Select your event and receive a proposal in 2 minutes
+                <Typography variant='body1' >
+                    Erstelle dein Event und erhalte ein erstes Angebot in 2 Minuten
                 </Typography>
             </Box>
 
@@ -213,33 +209,35 @@ const EventConfigurator2 = ({ locationId, sx, }: EventConfiguratorProps) => {
                         : 'none',
                 }}
             >
-                {navItems.map((item, index) => (
-                    <Box
-                        key={item.id}
-                        onClick={() => handleNavClick(index)}
-                        sx={{
-                            display: 'flex',
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            minWidth: '20px',
-                            height: '13px',
-                            cursor: 'pointer',
-                            backgroundColor: 'transparent',
-                        }}
-                    >
+                {navItems
+                    .filter(item => item.hasButton === true)
+                    .map((item, index) => (
                         <Box
+                            key={item.id}
+                            onClick={() => handleNavClick(index)}
                             sx={{
-                                width: '100%',
-                                height: '3px',
-                                backgroundColor: index <= selectedIndex
-                                    ? theme.palette.customColors.blue.main
-                                    : theme.palette.customColors.text.inactive,
+                                display: 'flex',
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                minWidth: '20px',
+                                height: '13px',
+                                cursor: 'pointer',
+                                backgroundColor: 'transparent',
                             }}
                         >
+                            <Box
+                                sx={{
+                                    width: '100%',
+                                    height: '3px',
+                                    backgroundColor: index <= selectedIndex
+                                        ? theme.palette.customColors.blue.main
+                                        : theme.palette.customColors.text.inactive,
+                                }}
+                            >
 
+                            </Box>
                         </Box>
-                    </Box>
-                ))}
+                    ))}
             </Box>
 
             {/* Selected Control */}
@@ -251,7 +249,7 @@ const EventConfigurator2 = ({ locationId, sx, }: EventConfiguratorProps) => {
                     alignItems: 'top',
                     width: { xs: '100%' },
                     maxWidth: '600px',
-                    height: 'calc(100% - 200px)',
+                    height: '100%',
                     overflow: 'auto',
                     scrollbarColor: '#888 transparent',
                     scrollbarWidth: 'thin', // For Firefox
@@ -269,15 +267,6 @@ const EventConfigurator2 = ({ locationId, sx, }: EventConfiguratorProps) => {
                 }}
             >
                 {navItems[selectedIndex].control}
-            </Box>
-
-            {/* Footer */}
-            <Box
-                sx={{
-                    flexGrow: 1,
-                    backgroundColor: theme.palette.customColors.textBackround.darker,
-                }}
-            >
             </Box>
         </Box>
     );

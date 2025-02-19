@@ -15,7 +15,7 @@ const CustomChip = styled((props: CustomChipProps) => {
     textAlign: 'left',
     justifyContent: 'flex-start',
     fontSize: '16px',
-    fontFamily: "'Gugi', sans-serif",
+    fontFamily: "'DM Sans', sans-serif",
     minHeight: "38px",
     borderRadius: '8px',
     padding: '0 3px',

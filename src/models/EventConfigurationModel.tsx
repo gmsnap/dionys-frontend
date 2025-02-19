@@ -14,6 +14,7 @@ export interface EventConfigurationModel {
     persons: number | null;
     date: number | null;
     endDate: number | null;
+    duration: number | null;
     roomConfigurationId: number | null;
     bookerId: number | null;
     location: LocationModel | null;
@@ -57,18 +58,10 @@ export const EventConfValidationSchema = yup.object().shape({
                 return inputDate > today;
             }
         ),
-    endDate: yup
+    duration: yup
         .number()
-        .nullable()
-        .test(
-            'is-after-start-date',
-            'Die Endzeit muss nach der Startzeit liegen',
-            function (value) {
-                const { date } = this.parent;
-                if (!date || !value) return true;
-                return value > date;
-            }
-        ),
+        .required('Dauer ist erforderlich')
+        .positive('Die Dauer muss positiv sein'),
     roomConfigurationId: yup
         .number()
         .nullable(),

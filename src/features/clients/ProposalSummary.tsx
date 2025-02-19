@@ -5,6 +5,7 @@ import ProposalBackButton from './ProposalBackButton';
 import { Controller, useForm } from 'react-hook-form';
 import { EventConfigurationModel } from '@/models/EventConfigurationModel';
 import EventConfigurationDetails from './EventConfigurationDetails';
+import WaitOverlay from '@/components/WaitOverlay';
 
 interface SelectorProps {
     previousStep: () => void,
@@ -19,13 +20,12 @@ const ProposalSummary = ({
     proposalSent,
     sx
 }: SelectorProps) => {
-    const { eventConfiguration, location, setEventConfiguration } = useStore();
+    const { eventConfiguration, setEventConfiguration } = useStore();
     const [sending, setIsSending] = useState(false);
 
     const {
         control,
         reset,
-        trigger,
         formState: { errors },
     } = useForm();
 
@@ -36,6 +36,7 @@ const ProposalSummary = ({
 
         setIsSending(true);
 
+        //const url = `${process.env.NEXT_PUBLIC_API_URL}/eventConfigurations?sendMail=false`;
         const url = `${process.env.NEXT_PUBLIC_API_URL}/eventConfigurations`;
         const method = "POST";
 
@@ -74,15 +75,11 @@ const ProposalSummary = ({
             mr: 7,
         }}>
             <Typography variant='body1'>
-                <Typography sx={{ fontSize: '14px', textAlign: 'left' }}>
-                    {`${eventConfiguration?.booker?.givenName} ${eventConfiguration?.booker?.familyName}`},
+                <Typography>
+                    Hallo {`${eventConfiguration?.booker?.givenName} ${eventConfiguration?.booker?.familyName}`},
                 </Typography>
-                <Typography sx={{ fontSize: '14px', textAlign: 'left' }}>
-                    bitte überprüfen und bestätigen Sie die von Ihnen gewählten Optionen.
-                </Typography>
-                <Typography sx={{ fontSize: '14px', textAlign: 'left' }}>
-                    Auf der Grundlage Ihrer Auswahl werden wir Ihnen einen unverbindlichen Vorschlag unterbreiten,
-                    den wir bei unserem nächsten Treffen anpassen können.
+                <Typography>
+                    vielen Dank für deine Anfrage. <br />Du hast aktuell folgende Optionen gewählt:
                 </Typography>
             </Typography>
 
@@ -90,11 +87,13 @@ const ProposalSummary = ({
                 <EventConfigurationDetails model={eventConfiguration} sx={{ mt: 2, ml: 0 }} />
             }
 
+            <Typography variant='body1' sx={{ mt: 2 }}>
+                Bitte überprüfe deine gewählten Optionen noch einmal und hinterlasse uns weitere Wünsche gerne als Kommentar.<br />
+                Wir schicken dir gleich ein erstes, unverbindliches Angebot zu und melden uns zeitnah persönlich bei dir.
+            </Typography>
+
             {/* Notes */}
-            <Grid2 container alignItems="top" rowSpacing={0} sx={{ width: '100%', mt: 1, mb: 1, }}>
-                <Grid2 size={{ xs: 12 }}>
-                    <Typography variant="label">Sonderwünsche und Hinweise (optional)</Typography>
-                </Grid2>
+            <Grid2 container alignItems="top" rowSpacing={0} sx={{ width: '100%', mt: 2, mb: 1, }}>
                 <Grid2 size={{ xs: 12 }}>
                     <Controller
                         name="notes"
@@ -102,11 +101,18 @@ const ProposalSummary = ({
                         render={({ field }) => (
                             <TextField
                                 {...field}
+                                label="Sonderwünsche und Hinweise (optional)"
                                 fullWidth
                                 variant="outlined"
                                 multiline={true}
                                 rows={3}
                                 onBlur={(e) => handleFieldBlur("notes", e.target.value)}
+                                slotProps={{
+                                    inputLabel: {
+                                        // Adjust label font size
+                                        style: { fontSize: "0.8rem" }
+                                    }
+                                }}
                             />
                         )}
                     />
@@ -132,7 +138,7 @@ const ProposalSummary = ({
                     }}
                     onClick={sendProposal}
                 >
-                    Jetzt mein Angebot anfordern
+                    Angebot anfordern
                 </Button>
                 <ProposalBackButton previousStep={
                     eventConfiguration?.booker?.bookingCompany
@@ -140,6 +146,9 @@ const ProposalSummary = ({
                         : previousStepdAndSkip
                 } />
             </Box>
+
+            {sending && <WaitOverlay />}
+
         </Box >
     );
 };

@@ -13,7 +13,7 @@ const Header: FC = () => {
                     variant="h6"
                     component="div"
                     sx={{
-                        fontFamily: "'Gugi', sans-serif",
+                        fontFamily: "'DM Sans', sans-serif",
                         fontSize: '40px',
                         background: theme.palette.customColors.blue.main,
                         WebkitBackgroundClip: 'text',
@@ -32,7 +32,7 @@ const Header: FC = () => {
                     variant="h6"
                     component="div"
                     sx={{
-                        fontFamily: "'Gugi', sans-serif",
+                        fontFamily: "'DM Sans', sans-serif",
                         fontSize: '20px',
                         background: 'linear-gradient(90deg, #DE33C4 0%, #781C6A 100%)',
                         WebkitBackgroundClip: 'text',

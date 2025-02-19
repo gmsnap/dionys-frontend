@@ -163,8 +163,17 @@ const CompanyDataSelector = ({ previousStep, stepCompleted }: SelectorProps) => 
             </form>
 
             {/* Navigation Buttons */}
-            <Box sx={{ backgroundColor: 'white', width: '100%', position: 'sticky', bottom: 0, zIndex: 2 }}>
-                <ProposalNextButton nextStep={tryComplete} isDisabled={!isValid} />
+            <Box sx={{
+                backgroundColor: 'white',
+                width: '100%',
+                position: 'sticky',
+                bottom: 0,
+                zIndex: 2
+            }}>
+                <ProposalNextButton
+                    nextStep={tryComplete}
+                    isDisabled={!isValid}
+                    sx={{ mt: 2, mb: 0, pb: 0 }} />
                 <ProposalBackButton previousStep={previousStep} />
             </Box>
         </Box>

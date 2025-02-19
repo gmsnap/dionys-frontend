@@ -31,7 +31,7 @@ const TimeField: React.FC<TimeFieldProps> = ({ control, fieldName, errors, label
                         name={fieldName}
                         control={control}
                         render={({ field: { onChange, value, ...restField } }) => (
-                            <TimePicker
+                            <DesktopTimePicker
                                 {...restField}
                                 value={value ? dayjs(value) : null}
                                 onChange={(newTime) => {

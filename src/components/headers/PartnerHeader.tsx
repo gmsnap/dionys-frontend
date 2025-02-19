@@ -36,9 +36,9 @@ const Header: FC = () => {
         { label: 'Locations', link: '/partner/location' },
         { label: 'Räume', link: '/partner/rooms' },
         { label: 'Pakete', link: '/partner/packages' },
-        { label: 'Equipment', link: '/partner/equipment' },
+        //{ label: 'Equipment', link: '/partner/equipment' },
         //{ label: 'Personal', link: '/partner/personnel' },
-        { label: 'Catering', link: '/partner/catering' },
+        //{ label: 'Catering', link: '/partner/catering' },
     ];
 
     const isItemSelected = (link: string): boolean => {
@@ -111,7 +111,7 @@ const Header: FC = () => {
                         variant="h6"
                         component="div"
                         sx={{
-                            fontFamily: "'Gugi', sans-serif",
+                            fontFamily: "'DM Sans', sans-serif",
                             fontSize: {
                                 xs: '24px',
                                 sm: '28px',
@@ -200,7 +200,7 @@ const Header: FC = () => {
                                             width: 32,
                                             height: 32,
                                             fontSize: '14px',
-                                            fontFamily: "'Nunito', sans-serif",
+                                            fontFamily: "'DM Sans', sans-serif",
                                         }}
                                     /> :
                                     <CircleUserRound width={32} height={32} strokeWidth={1} />

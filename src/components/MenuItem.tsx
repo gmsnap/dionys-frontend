@@ -18,9 +18,17 @@ const MenuItem: React.FC<MenuItemProps> = ({
 }) => {
     const theme = useTheme();
 
+    const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+        if (href === "/payments") {
+            event.preventDefault(); // Prevent default navigation
+            window.open(href, "_blank");
+        }
+    };
+
     return (
         <Button
             href={href}
+            onClick={handleClick}
             sx={{
                 cursor: 'pointer',
                 color: isSelected
@@ -34,7 +42,7 @@ const MenuItem: React.FC<MenuItemProps> = ({
                             ? 'primary.contrastText'
                             : theme.palette.customColors.blue.main
                     ),
-                fontFamily: "'Roboto', sans-serif",
+                fontFamily: "'DM Sans', sans-serif",
                 fontSize: '20px',
                 fontWeight: isSelected ? 600 : 400,
                 backgroundColor: transparent ? 'transparent' : 'inherit',

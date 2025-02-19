@@ -32,10 +32,12 @@ const Header: FC<HeaderProps> = ({ transparentHeader = false }) => {
 
     const menuItems = [
         { "label": "Home", "link": "/" },
-        { "label": "Locations", "link": "/locations" },
-        { "label": "Services", "link": "/services" },
-        { "label": "Über Uns", "link": "/about" },
+        { "label": "Partner", "link": "/partner" },
+        //{ "label": "Locations", "link": "/locations" },
+        //{ "label": "Services", "link": "/services" },
+        //{ "label": "Über Uns", "link": "/about" },
         { "label": "Kontakt", "link": "/contact" },
+        //{ "label": "Zahlung", "link": "/payments" },
     ];
 
     const handleConfiguratorClick = (locationId: number | null) => {
@@ -103,7 +105,7 @@ const Header: FC<HeaderProps> = ({ transparentHeader = false }) => {
                     variant="h6"
                     component="div"
                     sx={{
-                        fontFamily: "'Gugi', sans-serif",
+                        fontFamily: "'DM Sans', sans-serif",
                         fontSize: {
                             xs: '24px',
                             sm: '28px',
@@ -167,7 +169,11 @@ const Header: FC<HeaderProps> = ({ transparentHeader = false }) => {
                                     <MuiMenuItem
                                         key={index}
                                         onClick={() => {
-                                            router.push(item.link);
+                                            if (item.link === "/payments") {
+                                                window.open(item.link, "_blank");
+                                            } else {
+                                                router.push(item.link);
+                                            }
                                             handleMenuClose();
                                         }}
                                         selected={isItemSelected(item.link)}

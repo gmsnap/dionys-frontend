@@ -59,7 +59,7 @@ const GridItem: React.FC<GridItemProps> = (
                     <Typography
                         variant="h6"
                         sx={{
-                            fontFamily: "'Gugi', sans-serif",
+                            fontFamily: "'DM Sans', sans-serif",
                             whiteSpace: 'nowrap', // No multiple lines 
                             overflow: 'hidden', // Hides the overflowing text
                             textOverflow: 'ellipsis', // Adds '...' when text is truncated
@@ -69,7 +69,7 @@ const GridItem: React.FC<GridItemProps> = (
                         {title}
                     </Typography>
                     <Typography sx={{
-                        fontFamily: "'Nunito', sans-serif",
+                        fontFamily: "'DM Sans', sans-serif",
                         fontSize: '14px',
                         fontWeight: 600,
                         textAlign: 'right',

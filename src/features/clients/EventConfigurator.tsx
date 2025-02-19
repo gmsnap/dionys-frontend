@@ -38,7 +38,7 @@ const ConfiguratorNavItem: React.FC<ConfiguratorNavItemProps> = ({
                     <Button
                         variant="outlined"
                         sx={{
-                            fontFamily: "'Nunito', sans-serif",
+                            fontFamily: "'DM Sans', sans-serif",
                             fontSize: '16px',
                             fontWeight: 700,
                             letterSpacing: '-0.05em',

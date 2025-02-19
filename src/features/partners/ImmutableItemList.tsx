@@ -10,7 +10,7 @@ const ImmutableItemList: React.FC<ImmutableItemListProps> = ({ strings }) => {
         <Box>
             {strings.map((s, index) => (
                 <Typography key={index} sx={{
-                    fontFamily: "'Nunito', sans-serif",
+                    fontFamily: "'DM Sans', sans-serif",
                     fontSize: '16px',
                     fontWeight: 400,
                     letterSpacing: '-0.07em',

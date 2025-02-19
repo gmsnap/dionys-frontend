@@ -96,7 +96,7 @@ const PartnerTeamList: React.FC = () => {
                                         <Typography sx={{
                                             backgroundColor: theme.palette.customColors.blue.main,
                                             color: theme.palette.primary.contrastText,
-                                            fontFamily: "'Nunito', sans-serif",
+                                            fontFamily: "'DM Sans', sans-serif",
                                             fontSize: '12px',
                                             borderRadius: '8px',
                                             pl: 1,

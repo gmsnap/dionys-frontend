@@ -79,14 +79,14 @@ const theme = createTheme({
     },
     typography: {
         h1: {
-            fontFamily: "'Roboto', sans-serif",
+            fontFamily: "'DM Sans', sans-serif",
             fontSize: '38px',
             fontWeight: 600,
             color: 'white',
             letterSpacing: 'normal',
         },
         h2: {
-            fontFamily: "'Gugi', sans-serif",
+            fontFamily: "'DM Sans', sans-serif",
             color: customColors.blue.main,
             fontSize: '1.6rem',
             '@media (min-width:600px)': {
@@ -103,34 +103,41 @@ const theme = createTheme({
             },
         },
         h3: {
-            fontFamily: "'Nunito', sans-serif",
+            fontFamily: "'DM Sans', sans-serif",
             color: customColors.blue.dark,
             fontSize: '24px',
             fontWeight: 700,
             letterSpacing: '-0.05em',
         },
         h5: {
-            fontFamily: "'Nunito', sans-serif",
+            fontFamily: "'DM Sans', sans-serif",
             color: customColors.blue.dark,
             fontSize: '16px',
             fontWeight: 700,
             letterSpacing: '-0.05em',
         },
+        h4: {
+            fontFamily: "'Poppins', sans-serif",
+        },
         h6: {
-            fontFamily: "'Nunito', sans-serif",
+            fontFamily: "'DM Sans', sans-serif",
             fontSize: '24px',
             fontWeight: 700,
             letterSpacing: '-0.05em',
         },
+        body1: {
+            fontFamily: "'DM Sans', sans-serif",
+            letterSpacing: '-0.025em',
+        },
         body2: {
-            fontFamily: "'Nunito', sans-serif",
+            fontFamily: "'DM Sans', sans-serif",
             color: customColors.text.secondary,
             fontSize: '14px',
             fontWeight: 400,
             letterSpacing: '-0.05em',
         },
         label: {
-            fontFamily: "'Nunito', sans-serif",
+            fontFamily: "'DM Sans', sans-serif",
             fontWeight: 400,
             fontSize: '16px',
             letterSpacing: '-0.05em',
@@ -141,7 +148,7 @@ const theme = createTheme({
         MuiTypography: {
             styleOverrides: {
                 subtitle2: {
-                    fontFamily: "'Nunito', sans-serif",
+                    fontFamily: "'DM Sans', sans-serif",
                     fontSize: '14px',
                     fontWeight: 600,
                     color: customColors.text.tertiary,
@@ -163,7 +170,7 @@ const theme = createTheme({
             styleOverrides: {
                 root: {
                     borderRadius: 0,
-                    fontFamily: "'Gugi', sans-serif",
+                    fontFamily: "'DM Sans', sans-serif",
                     fontSize: 12,
                     fontWeight: 400,
                     letterSpacing: '-0.07em',
@@ -187,7 +194,7 @@ const theme = createTheme({
                     },
                 },
                 containedPrimary: {
-                    fontFamily: "'Arial', sans-serif",
+                    fontFamily: "'DM Sans', sans-serif",
                     fontSize: 12,
                     fontWeight: 700,
                     letterSpacing: '-0.05em',
@@ -200,7 +207,7 @@ const theme = createTheme({
         MuiListItem: {
             styleOverrides: {
                 root: {
-                    fontFamily: "'Nunito', sans-serif",
+                    fontFamily: "'DM Sans', sans-serif",
                     fontSize: '16px',
                     letterSpacing: '-0.05em',
                 },
@@ -209,7 +216,7 @@ const theme = createTheme({
         MuiListItemButton: {
             styleOverrides: {
                 root: {
-                    fontFamily: "'Nunito', sans-serif",
+                    fontFamily: "'DM Sans', sans-serif",
                     fontSize: '16px',
                     letterSpacing: '-0.05em',
                     '&:hover': {
@@ -227,11 +234,11 @@ const theme = createTheme({
         MuiListItemText: {
             styleOverrides: {
                 root: {
-                    fontFamily: "'Nunito', sans-serif",
+                    fontFamily: "'DM Sans', sans-serif",
                     letterSpacing: '-0.025em',
                 },
                 primary: {
-                    fontFamily: "'Nunito', sans-serif",
+                    fontFamily: "'DM Sans', sans-serif",
                     letterSpacing: '-0.025em',
                 },
             },
@@ -240,7 +247,7 @@ const theme = createTheme({
             styleOverrides: {
                 root: {
                     '& .MuiOutlinedInput-root': {
-                        fontFamily: "'Nunito', sans-serif",
+                        fontFamily: "'DM Sans', sans-serif",
                         fontWeight: 400,
                         fontSize: '16px',
                         letterSpacing: '-0.07em',
@@ -284,7 +291,7 @@ const theme = createTheme({
         MuiSelect: {
             styleOverrides: {
                 root: {
-                    fontFamily: "'Nunito', sans-serif",
+                    fontFamily: "'DM Sans', sans-serif",
                     fontWeight: 400,
                     fontSize: '16px',
                     letterSpacing: '-0.07em',
@@ -330,7 +337,7 @@ const theme = createTheme({
             styleOverrides: {
                 root: {
                     '& .MuiOutlinedInput-root': {
-                        fontFamily: "'Nunito', sans-serif",
+                        fontFamily: "'DM Sans', sans-serif",
                         fontWeight: 400,
                         fontSize: '16px',
                         letterSpacing: '-0.07em',

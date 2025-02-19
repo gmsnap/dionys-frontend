@@ -74,7 +74,7 @@ const GridItem: React.FC<GridItemProps> = ({
                     <Typography
                         variant="h6"
                         sx={{
-                            fontFamily: "'Nunito', sans-serif",
+                            fontFamily: "'DM Sans', sans-serif",
                             whiteSpace: 'normal',
                             overflow: 'hidden',
                             textOverflow: 'ellipsis',

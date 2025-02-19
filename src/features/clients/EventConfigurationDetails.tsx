@@ -5,11 +5,12 @@ import { Box, SxProps, Theme, Typography } from "@mui/material";
 
 interface Props {
     model: EventConfigurationModel;
+    showNotes?: boolean;
     sx?: SxProps<Theme>;
 }
 
 const EventConfigurationDetails = ({
-    model, sx
+    model, showNotes, sx
 }: Props) => {
 
     const formatLocation = (conf: EventConfigurationModel) => {
@@ -60,11 +61,10 @@ const EventConfigurationDetails = ({
 
     return (
         <Box sx={{ ...sx }}>
-            <Typography variant="h5" sx={{ mt: 2 }}>Ihre Anfragedaten</Typography>
+            <Typography variant="h5" sx={{ mt: 2, mb: 1 }}>Eventdaten</Typography>
             <Typography>{formatDates(model)}</Typography>
-            <Typography sx={{ mt: 1 }}>{model.persons} Personen</Typography>
-            <Typography sx={{ mt: 1 }}>{formatRooms(model)}</Typography>
-
+            <Typography>{model.persons} Personen</Typography>
+            <Typography>{formatRooms(model)}</Typography>
 
             {model.packages &&
                 <>
@@ -83,7 +83,7 @@ const EventConfigurationDetails = ({
 
             {model.booker &&
                 <>
-                    <Typography variant="h5" sx={{ mt: 2 }}>Persönliche Daten</Typography>
+                    <Typography variant="h5" sx={{ mt: 2, mb: 1 }}>Persönliche Daten</Typography>
                     <Typography>
                         {`${model.booker?.givenName ?? ''} ${model.booker?.familyName ?? ''}`}
                     </Typography>
@@ -97,6 +97,13 @@ const EventConfigurationDetails = ({
                         </>
                     }
                 </>
+            }
+
+            {showNotes && model.notes &&
+                <Box sx={{ mt: 2, mb: 1 }}>
+                    <Typography variant="h5">Sonderwünsche und Hinweise</Typography>
+                    <Typography>{model.notes}</Typography>
+                </Box>
             }
         </Box>
     );
