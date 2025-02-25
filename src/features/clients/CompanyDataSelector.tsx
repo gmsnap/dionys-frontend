@@ -26,6 +26,7 @@ const CompanyDataSelector = ({ previousStep, stepCompleted }: SelectorProps) => 
         handleSubmit,
         reset,
         trigger,
+        getValues,
         formState: { errors, isValid },
     } = useForm<BookingCompanyModel>({
         defaultValues: eventConfiguration?.booker?.bookingCompany || createEmptyBookingCompanyModel(),
@@ -35,22 +36,16 @@ const CompanyDataSelector = ({ previousStep, stepCompleted }: SelectorProps) => 
     const tryComplete = async (): Promise<void> => {
         const isValid = await trigger();
         if (!isValid) return;
-        stepCompleted?.();
-    };
-
-    const handleFieldBlur = (fieldName: keyof BookingCompanyModel, value: string) => {
         if (eventConfiguration?.booker) {
             setEventConfiguration({
                 ...eventConfiguration,
                 booker: {
                     ...eventConfiguration.booker,
-                    bookingCompany: {
-                        ...eventConfiguration.booker.bookingCompany,
-                        [fieldName]: value,
-                    } as BookingCompanyModel,
+                    bookingCompany: getValues(),
                 },
             });
         }
+        stepCompleted?.();
     };
 
     useEffect(() => {
@@ -84,7 +79,6 @@ const CompanyDataSelector = ({ previousStep, stepCompleted }: SelectorProps) => 
                                         variant="outlined"
                                         error={!!errors.companyName}
                                         helperText={errors.companyName?.message}
-                                        onBlur={(e) => handleFieldBlur("companyName", e.target.value)}
                                     />
                                 )}
                             />
@@ -107,7 +101,6 @@ const CompanyDataSelector = ({ previousStep, stepCompleted }: SelectorProps) => 
                                         variant="outlined"
                                         error={!!errors.contactName}
                                         helperText={errors.contactName?.message}
-                                        onBlur={(e) => handleFieldBlur("contactName", e.target.value)}
                                     />
                                 )}
                             />
@@ -130,7 +123,6 @@ const CompanyDataSelector = ({ previousStep, stepCompleted }: SelectorProps) => 
                                         variant="outlined"
                                         error={!!errors.streetAddress}
                                         helperText={errors.streetAddress?.message}
-                                        onBlur={(e) => handleFieldBlur("streetAddress", e.target.value)}
                                     />
                                 )}
                             />
@@ -153,7 +145,6 @@ const CompanyDataSelector = ({ previousStep, stepCompleted }: SelectorProps) => 
                                         variant="outlined"
                                         error={!!errors.city}
                                         helperText={errors.city?.message}
-                                        onBlur={(e) => handleFieldBlur("city", e.target.value)}
                                     />
                                 )}
                             />

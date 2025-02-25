@@ -5,13 +5,13 @@ import ProposalBackButton from './ProposalBackButton';
 import ProposalNextButton from './ProposalNextButton';
 import { Controller, useForm } from 'react-hook-form';
 import {
-    BookingUserModel,
     BookingUserValidationSchema,
     createEmptyBookingUserModel
 } from '@/models/BookingUserModel';
 import { yupResolver } from '@hookform/resolvers/yup';
 
 const labelWidth = 4;
+
 interface SelectorProps {
     previousStep: () => void,
     stepCompleted: () => void,
@@ -23,49 +23,38 @@ const PersonalDataSelector = ({
     previousStep,
     stepCompleted,
     stepCompletedAndSkip,
-    sx }: SelectorProps) => {
+    sx
+}: SelectorProps) => {
     const { eventConfiguration, setEventConfiguration } = useStore();
 
     const {
         control,
         handleSubmit,
         reset,
-        trigger,
         formState: { errors, isValid },
     } = useForm({
         defaultValues: eventConfiguration?.booker || createEmptyBookingUserModel(),
         resolver: yupResolver(BookingUserValidationSchema),
     });
 
-    const handleFieldBlur = (fieldName: keyof BookingUserModel, value: string) => {
+    useEffect(() => {
+        if (eventConfiguration?.booker) {
+            reset(eventConfiguration.booker);
+        }
+    }, [eventConfiguration]);
+
+    const handleFormSubmit = (data: any, nextStep: () => void) => {
         if (eventConfiguration) {
             setEventConfiguration({
                 ...eventConfiguration,
-                booker: {
-                    ...eventConfiguration.booker,
-                    [fieldName]: value,
-                } as BookingUserModel,
+                booker: data
             });
         }
+        nextStep(); // Proceed to the next step
     };
 
-    useEffect(() => {
-        if (!eventConfiguration) {
-            return;
-        }
-
-        if (eventConfiguration.booker) {
-            reset(eventConfiguration.booker);
-        }
-
-    }, [eventConfiguration]);
-
     return (
-        <Box sx={{
-            width: '100%',
-            ml: 7,
-            mr: 7,
-        }}>
+        <Box sx={{ width: '100%', ml: 7, mr: 7 }}>
             <form onSubmit={handleSubmit(() => { })}>
                 <Grid2 container rowSpacing={2}>
 
@@ -85,10 +74,6 @@ const PersonalDataSelector = ({
                                         variant="outlined"
                                         error={!!errors.givenName}
                                         helperText={errors.givenName?.message}
-                                        onBlur={(e) => {
-                                            field.onBlur(); // Ensure validation is triggered
-                                            handleFieldBlur("givenName", e.target.value);
-                                        }}
                                     />
                                 )}
                             />
@@ -111,10 +96,6 @@ const PersonalDataSelector = ({
                                         variant="outlined"
                                         error={!!errors.familyName}
                                         helperText={errors.familyName?.message}
-                                        onBlur={(e) => {
-                                            field.onBlur(); // Ensure validation is triggered
-                                            handleFieldBlur("familyName", e.target.value);
-                                        }}
                                     />
                                 )}
                             />
@@ -138,10 +119,6 @@ const PersonalDataSelector = ({
                                         type="email"
                                         error={!!errors.email}
                                         helperText={errors.email?.message}
-                                        onBlur={(e) => {
-                                            field.onBlur(); // Ensure validation is triggered
-                                            handleFieldBlur("email", e.target.value);
-                                        }}
                                     />
                                 )}
                             />
@@ -165,10 +142,6 @@ const PersonalDataSelector = ({
                                         type="tel"
                                         error={!!errors.phoneNumber}
                                         helperText={errors.phoneNumber?.message}
-                                        onBlur={(e) => {
-                                            field.onBlur(); // Ensure validation is triggered
-                                            handleFieldBlur("phoneNumber", e.target.value);
-                                        }}
                                     />
                                 )}
                             />
@@ -176,29 +149,25 @@ const PersonalDataSelector = ({
                     </Grid2>
 
                 </Grid2>
-
             </form>
 
-            <Box sx={{
-                backgroundColor: 'white',
-                width: '100%',
-                position: 'sticky',
-                bottom: 0,
-                zIndex: 2,
-            }}>
+            {/* Navigation Buttons */}
+            <Box sx={{ backgroundColor: 'white', width: '100%', position: 'sticky', bottom: 0, zIndex: 2 }}>
                 <ProposalNextButton
-                    nextStep={() => stepCompletedAndSkip()}
+                    nextStep={() => handleSubmit((data) => handleFormSubmit(data, stepCompletedAndSkip))()}
                     isDisabled={!isValid}
-                    sx={{ mt: 2, mb: 0, pb: 0 }} />
+                    sx={{ mt: 2, mb: 0, pb: 0 }}
+                />
                 <ProposalNextButton
-                    nextStep={() => stepCompleted()}
+                    nextStep={() => handleSubmit((data) => handleFormSubmit(data, stepCompleted))()}
                     isDisabled={!isValid}
                     title="Rechnungsadresse hinzufügen"
                     invert={true}
-                    sx={{ mt: 0, pt: 0 }} />
+                    sx={{ mt: 0, pt: 0 }}
+                />
                 <ProposalBackButton previousStep={previousStep} />
             </Box>
-        </Box >
+        </Box>
     );
 };
 
