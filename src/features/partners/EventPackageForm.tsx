@@ -29,6 +29,7 @@ import PriceInput from '@/components/PriceInput';
 import PriceTypeField from './PriceTypeField';
 import { AvailablePackageCategories, PackageCategories } from '@/constants/PackageCategories';
 import { formatPackageCategory } from '@/utils/formatPackageCategories';
+import RichTextField from '@/components/RichTextField';
 
 const controlWidth = 12;
 const labelWidth = 4;
@@ -157,6 +158,7 @@ const EventPackageForm = ({
     }, [watchedModel]);
 
     useEffect(() => {
+
         setResponseMessage("");
 
         if (!authUser) {
@@ -207,6 +209,20 @@ const EventPackageForm = ({
             setLoading(false);
         }
     }, [packageId]);
+
+    useEffect(() => {
+        // Clear minPersons and maxPersons when packageId changes
+        setValue("minPersons", null)
+        setValue("maxPersons", null)
+    }, [setValue])
+
+    useEffect(() => {
+        // Clear minPersons and maxPersons when packageId changes
+        if (packageId === 0 || packageId === null) {
+            setValue("minPersons", null)
+            setValue("maxPersons", null)
+        }
+    }, [packageId, setValue])
 
     const onSubmit = async (data: any) => {
         setIsSubmitting(true);
@@ -261,6 +277,9 @@ const EventPackageForm = ({
         }
     };
 
+    const priceTypeValue = watch("priceType");
+    const isPriceInputDisabled = priceTypeValue === "none";
+
     return (
         <Box sx={{ height: "100vh", }}>
             <Typography variant="h5"
@@ -307,14 +326,10 @@ const EventPackageForm = ({
                                     name="description"
                                     control={control}
                                     render={({ field }) => (
-                                        <TextField
-                                            {...field}
-                                            fullWidth
-                                            variant="outlined"
-                                            error={!!errors.description}
-                                            helperText={errors.description?.message}
-                                            multiline
-                                            rows={3}
+                                        <RichTextField
+                                            name="description"
+                                            control={control}
+                                            error={errors.description?.message}
                                         />
                                     )}
                                 />
@@ -356,10 +371,13 @@ const EventPackageForm = ({
                                 <Typography variant="label">Preis</Typography>
                             </Grid2>
                             <Grid2 size={{ xs: 12, sm: 8, md: 6 }}>
-                                <PriceInput
-                                    control={control}
-                                    errors={errors}
-                                />
+                                {isPriceInputDisabled
+                                    ? <TextField value={"-"} disabled={true} sx={{ width: '100%' }} />
+                                    : <PriceInput
+                                        control={control}
+                                        errors={errors}
+                                    />}
+
                             </Grid2>
                         </Grid2>
 
@@ -391,6 +409,11 @@ const EventPackageForm = ({
                                     render={({ field }) => (
                                         <TextField
                                             {...field}
+                                            value={field.value ?? ""}
+                                            onChange={(e) => {
+                                                const value = e.target.value === "" ? null : Number(e.target.value)
+                                                field.onChange(value)
+                                            }}
                                             variant="outlined"
                                             slotProps={{
                                                 input: {
@@ -415,6 +438,11 @@ const EventPackageForm = ({
                                     render={({ field }) => (
                                         <TextField
                                             {...field}
+                                            value={field.value ?? ""}
+                                            onChange={(e) => {
+                                                const value = e.target.value === "" ? null : Number(e.target.value)
+                                                field.onChange(value)
+                                            }}
                                             variant="outlined"
                                             slotProps={{
                                                 input: {

@@ -11,7 +11,7 @@ const CustomChip = styled((props: CustomChipProps) => {
     const { customDeleteIcon, ...chipProps } = props;
     return <Chip {...chipProps} deleteIcon={customDeleteIcon || <Minus />} />;
 })(({ theme }) => ({
-    backgroundColor: theme.palette.customColors.textBackround.halfdark,
+    backgroundColor: theme.palette.customColors.textBackground.halfdark,
     textAlign: 'left',
     justifyContent: 'flex-start',
     fontSize: '16px',

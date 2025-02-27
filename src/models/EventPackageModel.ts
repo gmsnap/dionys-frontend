@@ -10,8 +10,8 @@ export interface EventPackageModel {
     packageCategory: PackageCategories;
     price: number;
     priceType: PriceTypes;
-    minPersons: number;
-    maxPersons: number;
+    minPersons: number | null;
+    maxPersons: number | null;
     images: string[];
     eventCategories: string[];
 }
@@ -24,8 +24,8 @@ export const createEmptyEventPackageModel = (locationId: number): EventPackageMo
     packageCategory: AvailablePackageCategories[0] as PackageCategories,
     price: 0,
     priceType: 'person',
-    minPersons: 0,
-    maxPersons: 0,
+    minPersons: null,
+    maxPersons: null,
     images: [],
     eventCategories: [],
 });
@@ -57,16 +57,32 @@ export const EventPackageValidationSchema = yup.object().shape({
         .min(1, 'Preis-Type muss ein gültiger Wert sein'),
     minPersons: yup
         .number()
-        .typeError('Mindestpersonenanzahl muss eine Zahl sein')
-        .positive('Mindestpersonenanzahl muss positiv sein')
-        .max(yup.ref('maxPersons'), 'Mindestpersonenanzahl muss kleiner als Maximalpersonenanzahl sein')
-        .required('Mindestpersonenanzahl ist erforderlich'),
+        .nullable()
+        .typeError("Mindestpersonenanzahl muss eine Zahl sein")
+        .positive("Mindestpersonenanzahl muss positiv sein")
+        .test(
+            "min-max-persons",
+            "Mindestpersonenanzahl muss kleiner oder gleich Maximalpersonenanzahl sein",
+            function (this: yup.TestContext<yup.AnyObject>, value: number | null | undefined) {
+                const maxPersons = this.parent.maxPersons as number | null | undefined
+                if (value === null || value === undefined || maxPersons === null || maxPersons === undefined) return true
+                return value <= maxPersons
+            },
+        ),
     maxPersons: yup
         .number()
-        .typeError('Maximalpersonenanzahl muss eine Zahl sein')
-        .positive('Maximalpersonenanzahl muss positiv sein')
-        .min(yup.ref('minPersons'), 'Maximalpersonenanzahl muss größer als Mindestpersonenanzahl sein')
-        .required('Maximalpersonenanzahl ist erforderlich'),
+        .nullable()
+        .typeError("Maximalpersonenanzahl muss eine Zahl sein")
+        .positive("Maximalpersonenanzahl muss positiv sein")
+        .test(
+            "max-min-persons",
+            "Maximalpersonenanzahl muss größer oder gleich Mindestpersonenanzahl sein",
+            function (this: yup.TestContext<yup.AnyObject>, value: number | null | undefined) {
+                const minPersons = this.parent.minPersons as number | null | undefined
+                if (value === null || value === undefined || minPersons === null || minPersons === undefined) return true
+                return value >= minPersons
+            },
+        ),
     images: yup.array().of(yup.string()),
     eventCategories: yup
         .array()

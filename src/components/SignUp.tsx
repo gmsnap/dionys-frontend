@@ -161,17 +161,17 @@ export const SignUp: React.FC = () => {
             {formError && <Alert severity="error" sx={{ mt: 2 }}>{formError}</Alert>}
             {success && (
                 <Alert severity="success" sx={{ mt: 2 }}>
-                    Partner Registration successful!<br />
-                    We have sent a verification code to the email address.<br />
-                    Partner can now{' '}
+                    Partner-Registrierung erfolgreich!<br />
+                    Wir haben einen Bestätigungscode an Ihre E-Mail-Adresse gesendet.<br />
+                    Bitte{' '}
                     <Link
                         href="/partner"
                         sx={{
                             fontWeight: 'bold',
                             color: theme.palette.customColors.blue.main
                         }}
-                    >log in</Link>{' '}
-                    with the verification code.
+                    >melden Sie sich an</Link>{' '}
+                    und geben Sie Ihren Verifizierungscode ein.
                 </Alert>
             )}
         </Box>

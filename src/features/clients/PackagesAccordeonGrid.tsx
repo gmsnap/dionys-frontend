@@ -60,7 +60,11 @@ const PackagesAccordeonGrid = ({ packageCategory, sx }: Props) => {
                             isSelected={eventConfiguration?.packageIds?.includes(p.id)}
                             selectRequested={(id) => togglePackage(id)}
                             title={p.title}
-                            subTitle={`${formatPriceWithType(p.price, p.priceType)}`}
+                            subTitle={
+                                p.priceType === "none"
+                                    ? undefined
+                                    : `${formatPriceWithType(p.price, p.priceType)}`
+                            }
                             information={p.description}
                             infoItems={[
                                 {

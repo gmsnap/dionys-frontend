@@ -35,9 +35,9 @@ const ClientLayout: React.FC<ClientLayoutProps> = ({
             <Box
                 sx={{
                     // Ensure content starts below the non-transparent header
-                    marginTop: transparentHeader ? 0 : `${theme.layout.headerHeight}px`,
-                    ml: margins ? 4 : 0,
-                    mr: margins ? 4 : 0,
+                    //marginTop: transparentHeader ? 0 : `${theme.layout.headerHeight}px`,
+                    //ml: margins ? 4 : 0,
+                    //mr: margins ? 4 : 0,
                 }}
             >
                 {children}

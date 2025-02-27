@@ -1,4 +1,6 @@
+import theme from "@/theme";
 import { Box, SxProps, Theme } from "@mui/material";
+import { Plus } from "lucide-react";
 
 interface GridAddItemProps {
     id: number;
@@ -33,18 +35,23 @@ const GridAddItem: React.FC<GridAddItemProps> = (
         >
             {/* Add-Image */}
             <Box
-                component="img"
                 sx={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
                     width: '100%',
-                    objectFit: 'scale-down',
+                    height: '100%',
                     borderTopLeftRadius: '16px',
                     borderTopRightRadius: '16px',
-                    margin: 'auto 0',
+                    margin: 'auto',
                     padding: 0,
                 }}
-                src='/add-item.png'
-                alt='Add Item'
-            />
+            >
+                <Plus
+                    color={theme.palette.customColors.blue.main}
+                    strokeWidth={1}
+                    size={180} />
+            </Box>
         </Box>
     );
 };

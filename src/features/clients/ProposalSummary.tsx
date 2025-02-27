@@ -69,11 +69,14 @@ const ProposalSummary = ({
     }, [eventConfiguration]);
 
     return (
-        <Box sx={{
-            width: '100%',
-            ml: 7,
-            mr: 7,
-        }}>
+        <Box
+            sx={{
+                width: '100%',
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+            }}
+        >
             <Typography variant='body1'>
                 <Typography>
                     Hallo {`${eventConfiguration?.booker?.givenName} ${eventConfiguration?.booker?.familyName}`},
@@ -119,13 +122,16 @@ const ProposalSummary = ({
                 </Grid2>
             </Grid2>
 
-            <Box sx={{
-                backgroundColor: 'white',
-                width: '100%', // Full width
-                position: 'sticky', // Fixes the button at the bottom
-                bottom: 0, // Sticks to the bottom of the container
-                zIndex: 2, // Ensures button remains above scrolling content
-            }}
+            {/* Navigation Buttons */}
+            <Box
+                sx={{
+                    backgroundColor: 'white',
+                    width: '100%',
+                    mt: 'auto',
+                    pt: 2,
+                    pb: 2,
+                    zIndex: 200,
+                }}
             >
                 <Button
                     variant="contained"

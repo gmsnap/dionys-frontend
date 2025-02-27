@@ -1,17 +1,15 @@
 import React, { useEffect } from 'react';
-import { Box, SxProps, Theme, Typography, Button, Grid2, TextField, duration } from '@mui/material';
+import { Box, SxProps, Theme, Typography, Button, Grid2, TextField } from '@mui/material';
 import useStore, { createDefaultEventConfigurationModel } from '@/stores/eventStore';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { EventCategories } from '@/constants/EventCategories';
 import DateField from './DateField';
 import { EventConfigurationModel, EventConfValidationSchema } from '@/models/EventConfigurationModel';
 import TimeField from './TimeField';
 import ProposalBackButton from './ProposalBackButton';
-import WaitOverlay from '@/components/WaitOverlay';
 
 interface EventConfiguratorStepProps {
-    previousStep: () => void,
+    previousStep?: () => void,
     stepCompleted: () => void,
     sx?: SxProps<Theme>;
 }
@@ -107,10 +105,18 @@ const GeneralSelector = ({
     return (
         <Box sx={{
             width: '100%',
-            ml: 7,
-            mr: 7,
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column',
         }}>
-            <form onSubmit={handleSubmit(onSubmit)}>
+            <form
+                onSubmit={handleSubmit(onSubmit)}
+                style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    flexGrow: 1, // Take up available space
+                }}
+            >
                 <Grid2 container rowSpacing={2}>
 
                     {/* Persons */}
@@ -181,13 +187,16 @@ const GeneralSelector = ({
 
                 </Grid2>
 
-                <Box sx={{
-                    backgroundColor: 'white',
-                    width: '100%',
-                    position: 'sticky', // Fixes the button at the bottom
-                    bottom: 0,
-                    zIndex: 2, // Ensures button remains above scrolling content
-                }}>
+                {/* Navigation Buttons */}
+                <Box
+                    sx={{
+                        backgroundColor: 'white',
+                        width: '100%',
+                        mt: 'auto', // Pushes this box to the bottom
+                        pt: 2,
+                        pb: 2,
+                    }}
+                >
                     {/* Submit */}
                     <Box
                         display={'flex'}
@@ -213,7 +222,8 @@ const GeneralSelector = ({
                             Weiter
                         </Button>
                     </Box>
-                    <ProposalBackButton previousStep={previousStep} />
+                    {previousStep &&
+                        <ProposalBackButton previousStep={previousStep} />}
                 </Box>
 
             </form>

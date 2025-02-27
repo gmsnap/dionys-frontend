@@ -13,7 +13,7 @@ interface GridItemProps {
     isSelected?: boolean;
     selectRequested?: (id: number) => void;
     title: string;
-    subTitle: string;
+    subTitle?: string;
     information?: string;
     infoItems?: InfoItem[];
 }
@@ -84,7 +84,7 @@ const GridItem: React.FC<GridItemProps> = ({
                     >
                         {title}
                         <br />
-                        {subTitle.split("|").map((part, index) => (
+                        {subTitle && subTitle.split("|").map((part, index) => (
                             <React.Fragment key={index}>
                                 {index > 0 && <br />}
                                 {part.trim()}
@@ -141,7 +141,12 @@ const GridItem: React.FC<GridItemProps> = ({
                         <Typography variant='subtitle2' sx={{ lineHeight: '24px' }}>{item.label}</Typography>
                     </Box>
                 ))}
-                <Typography variant="body2" sx={{ mt: 4 }}>{information}</Typography>
+                <Typography
+                    variant="body2"
+                    component="div"
+                    dangerouslySetInnerHTML={{ __html: information ?? '' }}
+                    sx={{ mt: 4 }}
+                />
             </Box>}
         </Box>
     );

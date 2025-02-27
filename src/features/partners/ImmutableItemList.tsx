@@ -16,7 +16,7 @@ const ImmutableItemList: React.FC<ImmutableItemListProps> = ({ strings }) => {
                     letterSpacing: '-0.07em',
                     lineHeight: 2,
                     color: theme.palette.customColors.text.input,
-                    backgroundColor: theme.palette.customColors.textBackround.halfdark,
+                    backgroundColor: theme.palette.customColors.textBackground.halfdark,
                     borderRadius: '6px 0 0 6px',
                     pl: 2,
                     pr: 2,

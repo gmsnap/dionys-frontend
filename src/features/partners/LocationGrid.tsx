@@ -13,6 +13,7 @@ import {
     storePartnerLocations
 } from '@/services/locationService';
 import GridAddItem from '@/components/GridAddItem';
+import theme from '@/theme';
 
 interface ListItem {
     icon: React.ReactNode;
@@ -89,10 +90,16 @@ const LocationGrid = ({ sx, selectHandler }: LocationGridProps) => {
                         title={location.title}
                         priceTag={`Ab ${formatPrice(getAggregatedRoomPrices(location))} / Tag`}
                         listItems={[
-                            { icon: <MapPin />, label: location.area },
-                            { icon: <User />, label: '10-50' },
                             {
-                                icon: <Layers2 />,
+                                icon: <MapPin color={theme.palette.customColors.blue.main} />,
+                                label: location.area
+                            },
+                            {
+                                icon: <User color={theme.palette.customColors.blue.main} />,
+                                label: '10-50'
+                            },
+                            {
+                                icon: <Layers2 color={theme.palette.customColors.blue.main} />,
                                 label: formatEventCategoriesSync(location.eventCategories)
                             },
                         ]}
@@ -118,7 +125,7 @@ const LocationGrid = ({ sx, selectHandler }: LocationGridProps) => {
                                 }}
                                 onClick={() => { selectHandler?.(location.id); }}
                             >
-                                Edit
+                                Bearbeiten
                                 <Box component="span" sx={{ ml: 1, }}>
                                     <Pencil className="icon" width={12} height={12} />
                                 </Box>
@@ -155,7 +162,7 @@ const LocationGrid = ({ sx, selectHandler }: LocationGridProps) => {
                                             () => { })
                                 }
                             >
-                                Delete
+                                Löschen
                                 <Box component="span" sx={{ ml: 1 }}>
                                     <X className="icon" width={16} height={16} />
                                 </Box>

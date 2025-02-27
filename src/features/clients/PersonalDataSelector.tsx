@@ -54,8 +54,20 @@ const PersonalDataSelector = ({
     };
 
     return (
-        <Box sx={{ width: '100%', ml: 7, mr: 7 }}>
-            <form onSubmit={handleSubmit(() => { })}>
+        <Box sx={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+        }}>
+            <form
+                onSubmit={handleSubmit(() => { })}
+                style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    flexGrow: 1, // Take up available space
+                }}
+            >
                 <Grid2 container rowSpacing={2}>
 
                     {/* Given Name */}
@@ -152,7 +164,15 @@ const PersonalDataSelector = ({
             </form>
 
             {/* Navigation Buttons */}
-            <Box sx={{ backgroundColor: 'white', width: '100%', position: 'sticky', bottom: 0, zIndex: 2 }}>
+            <Box
+                sx={{
+                    backgroundColor: 'white',
+                    width: '100%',
+                    mt: 'auto', // Pushes this box to the bottom
+                    pt: 2,
+                    pb: 2,
+                }}
+            >
                 <ProposalNextButton
                     nextStep={() => handleSubmit((data) => handleFormSubmit(data, stepCompletedAndSkip))()}
                     isDisabled={!isValid}

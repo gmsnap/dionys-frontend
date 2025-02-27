@@ -5,6 +5,7 @@ import { Box, CircularProgress, Typography } from '@mui/material'
 import { fetchLocationByCode } from '@/services/locationService'
 import EventConfigurator2 from '@/features/clients/EventConfigurator2'
 import useStore from '@/stores/eventStore'
+import { LocationModel } from '@/models/LocationModel'
 
 const Configurator: NextPageWithLayout = () => {
     const router = useRouter();
@@ -28,13 +29,21 @@ const Configurator: NextPageWithLayout = () => {
                 setLocationId(null);
             } else {
                 const fetchLocation = async () => {
-                    const location =
-                        await fetchLocationByCode(code, setIsLoading, setError);
-                    if (location) {
-                        setLocationId(location.id);
-                        setLocation(location); 
-                        return;
+                    setIsLoading(true);
+                    let location: LocationModel | null = null;
+                    let attempts = 3;
+                    while (!location && attempts-- > 0) {
+                        location =
+                            await fetchLocationByCode(code, null, null);
+                        if (location) {
+                            setIsLoading(false);
+                            setLocationId(location.id);
+                            setLocation(location);
+                            return;
+                        }
                     }
+                    setIsLoading(false);
+                    setError('not found');
                     setLocationId(null);
                 }
                 fetchLocation();

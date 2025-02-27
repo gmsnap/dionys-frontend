@@ -27,26 +27,31 @@ const PackageSelector = ({
     };
 
     return (
-        <Box sx={{
-            width: '100%',
-        }}>
+        <Box
+            sx={{
+                width: '100%',
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+            }}
+        >
             {location?.rooms && (
-                <Box
-                    sx={{
-                        flex: 1,
-                        paddingBottom: '64px',
-                    }}
-                >
+                <Box sx={{ flex: 1, }}>
                     <PackagesAccordeonGrid packageCategory={packageCategory} />
                 </Box>
             )}
-            <Box sx={{
-                backgroundColor: 'white',
-                width: '100%', // Full width
-                position: 'sticky', // Fixes the button at the bottom
-                bottom: 0, // Sticks to the bottom of the container
-                zIndex: 200, // Ensures button remains above scrolling content
-            }}>
+
+            {/* Navigation Buttons */}
+            <Box
+                sx={{
+                    backgroundColor: 'white',
+                    width: '100%',
+                    mt: 'auto',
+                    pt: 2,
+                    pb: 2,
+                    zIndex: 200,
+                }}
+            >
                 <ProposalNextButton
                     nextStep={tryComplete}
                     isDisabled={!eventConfiguration?.roomIds?.length} />

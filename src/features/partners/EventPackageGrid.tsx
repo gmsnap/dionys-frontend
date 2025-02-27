@@ -1,12 +1,13 @@
 import React, { } from 'react';
 import { Box, SxProps, Theme, Grid2, Button } from '@mui/material';
 import GridItem from '@/components/GridItem';
-import { formatPrice, translatePrice } from '@/utils/formatPrice';
+import { formatPrice, formatPriceWithType, translatePrice } from '@/utils/formatPrice';
 import { Pencil, User, X } from 'lucide-react';
 import GridAddItem from '@/components/GridAddItem';
 import { EventPackageModel } from '@/models/EventPackageModel';
 import { PriceTypes } from '@/constants/PriceTypes';
 import { handleDeleteEventPackage } from '@/services/eventPackageService';
+import theme from '@/theme';
 
 interface EventPackageGridProps {
     sx?: SxProps<Theme>;
@@ -25,11 +26,15 @@ const EventPackageGrid = ({ sx, eventPackages, addButton = true, selectHandler, 
                         id={p.id}
                         image={p.images[0]}
                         title={p.title}
-                        priceTag={`${formatPrice(p.price)} ${translatePrice(p.priceType as PriceTypes)}`}
-                        listItems={[{
-                            icon: <User />,
-                            label: `${p.minPersons}-${p.maxPersons}`
-                        }]}
+                        priceTag={formatPriceWithType(p.price, p.priceType as PriceTypes)}
+                        listItems={[
+                            ...(p.minPersons != null || p.maxPersons != null
+                                ? [{
+                                    icon: <User color={theme.palette.customColors.blue.main} />,
+                                    label: `${p.minPersons ?? ''}-${p.maxPersons ?? ''}`
+                                }]
+                                : [])
+                        ]}
                         buttons={[
                             <Button
                                 key={`${p.id}-1`}
@@ -52,7 +57,7 @@ const EventPackageGrid = ({ sx, eventPackages, addButton = true, selectHandler, 
                                 }}
                                 onClick={() => { selectHandler?.(p.id); }}
                             >
-                                Edit
+                                Bearbeiten
                                 <Box
                                     component="span" sx={{ ml: 1, }}
                                 >
@@ -83,7 +88,7 @@ const EventPackageGrid = ({ sx, eventPackages, addButton = true, selectHandler, 
                                     () => handleDeleteEventPackage(p.id, () => eventPackagesChanged?.())
                                 }
                             >
-                                Delete
+                                Löschen
                                 <Box component="span" sx={{ ml: 1 }}>
                                     <X className="icon" width={16} height={16} />
                                 </Box>

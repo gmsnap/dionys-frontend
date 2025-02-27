@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Box, SxProps, Theme, Typography } from '@mui/material';
 import useStore, { createDefaultEventConfigurationModel } from '@/stores/eventStore';
-import theme from '@/theme';
 import CategorySelector from './CategorySelector';
 import GeneralSelector from './GeneralSelector';
 import VenueSelector from './VenueSelector';
@@ -11,6 +10,7 @@ import ProposalSummary from './ProposalSummary';
 import CompanyDataSelector from './CompanyDataSelector';
 import ProposalThanks from './ProposalThanks';
 import { AvailablePackageCategories, PackageCategories } from '@/constants/PackageCategories';
+import theme from '@/theme';
 
 interface EventConfiguratorProps {
     locationId: number;
@@ -41,23 +41,37 @@ const EventConfigurator2 = ({ locationId, sx, }: EventConfiguratorProps) => {
     }
 
     const prevStep = (steps: number = 1) => {
-        setSelectedIndex(selectedIndex - steps);
+        if (selectedIndex > 0) {
+            setSelectedIndex(selectedIndex - steps);
+        }
     };
 
     const nextStep = (steps: number = 1) => {
         setSelectedIndex(selectedIndex + steps);
     };
 
-    const navItems = [
-        {
-            label: 'Anlass', id: 'category',
-            control: <CategorySelector stepCompleted={nextStep} />,
-            hasButton: true,
-        },
+    const navItems = [];
+
+    if (location?.eventCategories) {
+        if (location.eventCategories?.length === 1 &&
+            eventConfiguration) {
+            eventConfiguration.eventCategory = location.eventCategories[0];
+        } else {
+            navItems.push(
+                {
+                    label: 'Anlass', id: 'category',
+                    control: <CategorySelector stepCompleted={nextStep} />,
+                    hasButton: true,
+                },
+            );
+        }
+    }
+
+    navItems.push(
         {
             label: 'Allgemeines', id: 'general',
             control: <GeneralSelector
-                previousStep={prevStep}
+                previousStep={navItems.length > 0 ? prevStep : undefined}
                 stepCompleted={nextStep} />,
             hasButton: true,
         },
@@ -68,7 +82,7 @@ const EventConfigurator2 = ({ locationId, sx, }: EventConfiguratorProps) => {
                 stepCompleted={nextStep} />,
             hasButton: true,
         },
-    ];
+    );
 
     // Conditionally add Catering PackageSelector
     if (location?.eventPackages &&
@@ -167,7 +181,7 @@ const EventConfigurator2 = ({ locationId, sx, }: EventConfiguratorProps) => {
             display: 'flex',
             flexDirection: 'column',
             width: '100%',
-            height: '100vh',
+            height: '100dvh',
         }}>
             {/* Headlines */}
             <Box

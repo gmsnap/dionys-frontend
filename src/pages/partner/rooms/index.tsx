@@ -108,7 +108,7 @@ const PartnerPage: NextPageWithLayout = () => {
                                             fontSize: { xs: '12px', sm: 'unset' },
                                             fontWeight: roomId == null
                                                 ? 800
-                                                : 100,
+                                                : 'normal',
                                             color: roomId == null
                                                 ? theme.palette.customColors.blue.main
                                                 : theme.palette.customColors.text.tertiary,
@@ -139,7 +139,7 @@ const PartnerPage: NextPageWithLayout = () => {
                                                 fontSize: { xs: '12px', sm: '16px' },
                                                 fontWeight: roomId === room.id
                                                     ? 800
-                                                    : 100,
+                                                    : 'normal',
                                                 color: roomId === room.id
                                                     ? theme.palette.customColors.blue.main
                                                     : theme.palette.customColors.text.tertiary,

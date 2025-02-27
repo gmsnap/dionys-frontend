@@ -27,7 +27,7 @@ const customColors = {
         input: '#6f6f6f',
         inactive: '#D9D9D9',
     },
-    textBackround: {
+    textBackground: {
         halfdark: '#F5F5F5',
         darker: '#E5E5E5',
     },
@@ -179,8 +179,9 @@ const theme = createTheme({
                     backgroundColor: '#FFFFFF',
                 },
                 outlinedPrimary: {
-                    border: `1px solid ${customColors.text.primary}99`,
-                    color: customColors.text.primary,
+                    border: `1px solid ${customColors.blue.main}`,
+                    color: customColors.blue.main,
+                    fontWeight: 700,
                 },
                 outlinedSecondary: {
                     border: `1px solid ${customColors.blue.light}`,
@@ -195,9 +196,7 @@ const theme = createTheme({
                 },
                 containedPrimary: {
                     fontFamily: "'DM Sans', sans-serif",
-                    fontSize: 12,
                     fontWeight: 700,
-                    letterSpacing: '-0.05em',
                     color: '#FFFFFF',
                     backgroundColor: customColors.blue.main,
                     borderRadius: 0,
@@ -209,7 +208,7 @@ const theme = createTheme({
                 root: {
                     fontFamily: "'DM Sans', sans-serif",
                     fontSize: '16px',
-                    letterSpacing: '-0.05em',
+                    color: customColors.text.primary,
                 },
             },
         },
@@ -218,7 +217,7 @@ const theme = createTheme({
                 root: {
                     fontFamily: "'DM Sans', sans-serif",
                     fontSize: '16px',
-                    letterSpacing: '-0.05em',
+                    color: customColors.text.primary,
                     '&:hover': {
                         backgroundColor: 'transparent',
                     },
@@ -359,6 +358,18 @@ const theme = createTheme({
                             paddingTop: 8,
                             paddingBottom: 8,
                         },
+                    },
+                },
+            },
+        },
+        MuiCssBaseline: {
+            styleOverrides: {
+                a: {
+                    color: 'blue',
+                    textDecoration: 'underline',
+                    fontWeight: 700,
+                    '&:hover': {
+                        color: customColors.blue.main,
                     },
                 },
             },

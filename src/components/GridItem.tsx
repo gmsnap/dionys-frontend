@@ -31,9 +31,10 @@ const GridItem: React.FC<GridItemProps> = (
                 display: 'flex',
                 flexDirection: 'column',
                 borderRadius: '16px',
-                backgroundColor: '#FFFFFF',
+                backgroundColor: '#FFFF0FF',
                 margin: 0,
                 padding: 0,
+                height: '100%',
             }}
         >
             {/* Image at the top */}
@@ -52,10 +53,18 @@ const GridItem: React.FC<GridItemProps> = (
                 alt={title}
             />
 
-            <Box sx={{ mt: 2, ml: 2, mr: 2, mb: 2 }}>
-
+            {/* Lower part (texts and buttons) */}
+            <Box sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                flexGrow: 1,
+                mt: 2,
+                ml: 2,
+                mr: 2,
+                mb: 2,
+            }}>
                 <Box sx={{ display: 'flex', gap: 2, alignItems: 'baseline' }}>
-                    {/* Title below the image */}
+                    {/* Title */}
                     <Typography
                         variant="h6"
                         sx={{
@@ -93,8 +102,8 @@ const GridItem: React.FC<GridItemProps> = (
                 </Box>
 
                 {/* Buttons at the bottom */}
-                <Box sx={{ mt: 3, display: 'flex', gap: 2 }}>
-                    {buttons && buttons.map((button, index) => (
+                <Box sx={{ mt: 'auto', display: 'flex', gap: 2, pt: 1 }}>
+                    {buttons && buttons.map((button) => (
                         button
                     ))}
                 </Box>

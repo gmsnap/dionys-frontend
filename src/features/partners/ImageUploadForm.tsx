@@ -179,7 +179,7 @@ const ImageUploadForm: React.FC<ImageUploadFormProps> = ({
                             justifyContent: "center",
                             width: "100%",
                             height: "100%",
-                            backgroundColor: theme.palette.customColors.textBackround.halfdark,
+                            backgroundColor: theme.palette.customColors.textBackground.halfdark,
                             borderRadius: "8px",
                             '&:hover': {
                                 backgroundColor: theme.palette.customColors.blue.halfdark,

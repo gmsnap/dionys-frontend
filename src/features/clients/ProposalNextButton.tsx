@@ -35,16 +35,12 @@ const ProposalBackButton = ({
             {invert === true
                 ? (
                     <Button
-                        variant="contained"
-                        color="primary"
+                        variant="outlined"
                         disabled={disabled}
                         sx={{
                             width: '100%',
                             mt: 1,
                             mb: 1,
-                            color: theme.palette.customColors.blue.main,
-                            border: `1px solid ${theme.palette.customColors.blue.main}`,
-                            background: 'white'
                         }}
                         onClick={nextStep}
                     >

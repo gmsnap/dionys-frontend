@@ -1,11 +1,12 @@
 import React, { } from 'react';
 import { Box, SxProps, Theme, Grid2, Button } from '@mui/material';
 import GridItem from '@/components/GridItem';
-import { formatPrice } from '@/utils/formatPrice';
+import { formatPrice, formatPriceWithType } from '@/utils/formatPrice';
 import { Pencil, User, X } from 'lucide-react';
 import GridAddItem from '@/components/GridAddItem';
 import { RoomModel } from '@/models/RoomModel';
 import { handleDeleteRoom } from '@/services/roomService';
+import theme from '@/theme';
 
 interface RoomGridProps {
     sx?: SxProps<Theme>;
@@ -24,9 +25,9 @@ const RoomGrid = ({ sx, rooms, addButton = true, selectHandler, roomsChanged }: 
                         id={room.id}
                         image={room.images[0]}
                         title={room.name}
-                        priceTag={`${formatPrice(room.price)} / Tag`}
+                        priceTag={formatPriceWithType(room.price, room.priceType)}
                         listItems={[{
-                            icon: <User />,
+                            icon: <User color={theme.palette.customColors.blue.main} />,
                             label: `${room.minPersons}-${room.maxPersons}`
                         }]}
                         buttons={[
@@ -51,7 +52,7 @@ const RoomGrid = ({ sx, rooms, addButton = true, selectHandler, roomsChanged }: 
                                 }}
                                 onClick={() => { selectHandler?.(room.id); }}
                             >
-                                Edit
+                                Bearbeiten
                                 <Box
                                     component="span" sx={{ ml: 1, }}
                                 >
@@ -82,7 +83,7 @@ const RoomGrid = ({ sx, rooms, addButton = true, selectHandler, roomsChanged }: 
                                     () => handleDeleteRoom(room.id, () => roomsChanged?.())
                                 }
                             >
-                                Delete
+                                Löschen
                                 <Box component="span" sx={{ ml: 1 }}>
                                     <X className="icon" width={16} height={16} />
                                 </Box>

@@ -58,7 +58,7 @@ const ImageUploadField: React.FC<ImageUploadFieldProps> = ({ name }) => {
                                 width: '100%',
                                 height: '250px',
                                 borderRadius: '16px',
-                                backgroundColor: theme.palette.customColors.textBackround.halfdark,
+                                backgroundColor: theme.palette.customColors.textBackground.halfdark,
                                 mb: 2,
                             }}
                         >

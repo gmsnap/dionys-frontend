@@ -1,4 +1,4 @@
-import { PriceTypes } from "@/constants/PriceTypes";
+import { AvailablePriceTypes, PriceTypes } from "@/constants/PriceTypes";
 
 export const formatPrice = (price: number): string => {
   return new Intl.NumberFormat('de-DE', {
@@ -14,6 +14,7 @@ const staticTranslations = {
   "once": "einmalig",
   "hour": "pro Stunde",
   "person": "pro Person",
+  "none": "kostenlos",
 };
 
 export const translatePrices = (values: PriceTypes[]): string => {
@@ -43,8 +44,9 @@ export const formatPriceWithType = (price: number, priceType: PriceTypes): strin
 
   // Ensure priceType exists in staticTranslations
   const translation = staticTranslations[priceType];
-  if (!translation) {
-    return formatPrice(price);
+
+  if (priceType === "none") {
+    return translation;
   }
 
   return `${formatPrice(price)} ${translation}`;

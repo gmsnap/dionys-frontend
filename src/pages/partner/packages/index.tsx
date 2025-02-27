@@ -108,7 +108,7 @@ const PartnerPage: NextPageWithLayout = () => {
                                             fontSize: { xs: '12px', sm: 'unset' },
                                             fontWeight: packageId == null
                                                 ? 800
-                                                : 100,
+                                                : 'normal',
                                             color: packageId == null
                                                 ? theme.palette.customColors.blue.main
                                                 : theme.palette.customColors.text.tertiary,
@@ -139,7 +139,7 @@ const PartnerPage: NextPageWithLayout = () => {
                                                 fontSize: { xs: '12px', sm: '16px' },
                                                 fontWeight: packageId === p.id
                                                     ? 800
-                                                    : 100,
+                                                    : 'normal',
                                                 color: packageId === p.id
                                                     ? theme.palette.customColors.blue.main
                                                     : theme.palette.customColors.text.tertiary,
