@@ -1,3 +1,7 @@
+import { AuthUser } from "@/auth/useAuth";
+import { PartnerCompanyModel } from "@/models/PartnerCompanyModel";
+import { PartnerUserModel } from "@/models/PartnerUserModel";
+
 export const usersBaseUrl = `${process.env.NEXT_PUBLIC_API_URL}/partner-users`;
 export const companyBaseUrl = `${process.env.NEXT_PUBLIC_API_URL}/partner-companies`;
 
@@ -108,5 +112,83 @@ export const fetchCompanies = async (
         if (setIsLoading != null) {
             setIsLoading(false);
         }
+    }
+};
+
+export const createPartnerUser = async (
+    authUser: AuthUser,
+    onSuccess?: (result: PartnerUserModel) => void,
+    onError?: (message?: string) => void,
+): Promise<void> => {
+    try {
+        // Fetch additional user data from API
+        let response = await fetch(`${usersBaseUrl}/sub/${authUser.sub}`);
+
+        // Create user via API if not exists
+        if (response.status === 404) {
+            const createResponse = await fetch(
+                usersBaseUrl,
+                {
+                    method: "POST",
+                    body: JSON.stringify({
+                        cognitoSub: authUser.sub,
+                        username: authUser.username,
+                        email: authUser.email,
+                        givenName: authUser.givenName,
+                        familyName: authUser.familyName,
+                    }),
+                    headers: { "Content-Type": "application/json" },
+                });
+            response = await fetch(`${usersBaseUrl}/sub/${authUser.sub}`);
+        }
+
+        if (!response.ok) {
+            onError?.("Failed to fetch user data");
+        }
+
+        const result = await response.json();
+        onSuccess?.(result);
+        return;
+    } catch (err) {
+        if (err instanceof Error) {
+            onError?.(err.message);
+        } else {
+            onError?.("An unknown error occurred");
+        }
+    }
+};
+
+export const updatePartnerCompany = async (
+    idToken: string,
+    companyId: number,
+    companyData: any,
+    onSuccess?: (result: PartnerCompanyModel) => void,
+    onError?: (message?: string) => void,
+): Promise<void> => {
+    try {
+        const response = await fetch(
+            `${companyBaseUrl}/${companyId}`,
+            {
+                method: "PUT",
+                headers: {
+                    Authorization: `Bearer ${idToken}`,
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(companyData),
+            }
+        );
+
+        if (response.ok) {
+            const updatedCompany = (await response?.json())?.company as PartnerCompanyModel;
+            onSuccess?.(updatedCompany);
+        } else {
+            const errorMessage = await response.text();
+            console.error(errorMessage);
+            onError?.(`Error ${response.status}: ${response.statusText}`);
+        }
+    }
+    catch (error) {
+        console.error('Error updating user:', error);
+        onError?.();
     }
 };

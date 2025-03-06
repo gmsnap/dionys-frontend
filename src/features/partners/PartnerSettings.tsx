@@ -6,14 +6,12 @@ import {
     ListItem,
     ListItemText,
     useTheme,
-    ListItemButton,
-    Link
-} from "@mui/material";
+    ListItemButton} from "@mui/material";
 import { useState } from "react";
 import PartnerUserEditForm from "./PartnerUserEditForm";
 import PartnerCompanyForm from "./PartnerCompanyForm";
 import PartnerTeamList from "./PartnerTeamList";
-import { ArrowRight } from "lucide-react";
+import PaymentComponent from "./PaymentComponent";
 
 const PartnerSettings: React.FC = () => {
     const theme = useTheme();
@@ -32,22 +30,7 @@ const PartnerSettings: React.FC = () => {
         <PartnerUserEditForm key="profile" />,
         <PartnerCompanyForm key="company" />,
         <PartnerTeamList key="team" />,
-        <Typography key="billing" variant="body1">
-            <Link
-                href="/payments"
-                target="_blank"
-                sx={{
-                    fontWeight: "bold",
-                    color: theme.palette.customColors.blue.main,
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: "4px",
-                }}
-            >
-                Zahlung
-                <ArrowRight size={16} color={theme.palette.customColors.blue.main} />
-            </Link>
-        </Typography>,
+        <PaymentComponent key="payment" />,
         <Typography key="licence" variant="body1">Lizentinformationen:</Typography>,
     ];
 

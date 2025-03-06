@@ -10,8 +10,6 @@ import theme from "@/theme";
 import { useHeaderContext } from "@/components/headers/PartnerHeaderContext";
 import router from "next/router";
 
-const baseUrl = process.env.NEXT_PUBLIC_API_URL;
-
 const PartnerLoginForm: React.FC = ({ }) => {
     const { authUser, login, logout } = useAuthContext();
     const { setIsOverlayOpen } = useHeaderContext();
@@ -22,7 +20,7 @@ const PartnerLoginForm: React.FC = ({ }) => {
     const [confirmForm, setConfirmForm] = useState(false);
     const [error, setError] = useState("");
 
-    const { partnerUser, setPartnerUser } = useStore();
+    const { partnerUser } = useStore();
 
     useSetLocationByCurrentPartner();
 
@@ -56,58 +54,13 @@ const PartnerLoginForm: React.FC = ({ }) => {
     };
 
     useEffect(() => {
-        console.log("authUser:", authUser?.username);
-
-        if (authUser?.username) {
-            const fetchUserData = async () => {
-                try {
-                    // Fetch additional user data from API
-                    let response = await fetch(`${baseUrl}/partner-users/sub/${authUser.sub}`);
-
-                    // Create user via API if not exists
-                    if (response.status === 404) {
-                        const createResponse = await fetch(
-                            `${baseUrl}/partner-users`,
-                            {
-                                method: "POST",
-                                body: JSON.stringify({
-                                    cognitoSub: authUser.sub,
-                                    username: authUser.username,
-                                    email: authUser.email,
-                                    givenName: authUser.givenName,
-                                    familyName: authUser.familyName,
-                                }),
-                                headers: { "Content-Type": "application/json" },
-                            });
-                        response = await fetch(`${baseUrl}/partner-users/sub/${authUser.sub}`);
-                    }
-
-                    if (!response.ok) {
-                        throw new Error("Failed to fetch user data");
-                    }
-
-                    const result = await response.json();
-                    setPartnerUser(result);
-                    router.push("/partner/events")
-                } catch (err) {
-                    if (err instanceof Error) {
-                        setError(err.message);
-                    } else {
-                        setError("An unknown error occurred");
-                    }
-                    setPartnerUser(null);
-                } finally {
-                    setIsLoading(false);
-                }
+        if (partnerUser) {
+            if (partnerUser.company?.subscription) {
+                router.push("/partner/events");
+                return;
             }
-
-            setIsLoading(true);
-            fetchUserData();
-            return;
         }
-
-        setPartnerUser(null);
-    }, [authUser]);
+    }, [partnerUser]);
 
     return (
         <Box sx={{ textAlign: "center", p: { xs: 2, md: 4 } }}>

@@ -18,14 +18,19 @@ import { CircleUserRound, MenuIcon, X } from 'lucide-react';
 import MenuItem from '../MenuItem';
 import PartnerSettings from '@/features/partners/PartnerSettings';
 import { useAuthContext } from '@/auth/AuthContext';
+import useStore from '@/stores/partnerStore';
 import CircleInitials from '../CircleInitials';
 import { useHeaderContext } from './PartnerHeaderContext';
+import PaymentComponent from '@/features/partners/PaymentComponent';
+import { createPartnerUser } from '@/services/partnerService';
 
 const Header: FC = () => {
     const theme = useTheme();
     const pathname = usePathname();
     const { authUser, logout, authLoading } = useAuthContext();
     const { isOverlayOpen, setIsOverlayOpen } = useHeaderContext();
+    const { isPaymentOverlayOpen, setIsPaymentOverlayOpen } = useHeaderContext();
+    const { partnerUser, setPartnerUser } = useStore();
 
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [userPanelAnchorEl, setUserPanelAnchorEl] = useState<null | HTMLElement>(null);
@@ -90,6 +95,46 @@ const Header: FC = () => {
             return;
         }
     }, [authUser, authLoading]);
+
+    useEffect(() => {
+        if (authUser?.username) {
+            const fetchUserData = async () => {
+                await createPartnerUser(authUser,
+                    (result) => {
+                        setPartnerUser(result);
+                    },
+                    (message) => {
+                        setPartnerUser(null);
+                    }
+                );
+            }
+
+            fetchUserData();
+            return;
+        }
+
+        setPartnerUser(null);
+    }, [authUser]);
+
+    useEffect(() => {
+        if (!partnerUser) {
+            setIsPaymentOverlayOpen(false);
+            return;
+        }
+        if (!partnerUser?.company?.subscription) {
+            setIsPaymentOverlayOpen(true);
+            return;
+        }
+    }, [partnerUser]);
+
+    const logoutButton = <Button
+        variant="contained"
+        color="primary"
+        onClick={authUser ? handleLogout : () => router.push('/partner')}
+        sx={{ ml: 2, mr: 2 }}
+    >
+        {authUser ? 'Logout' : 'Login'}
+    </Button>
 
     return (
         <>
@@ -235,14 +280,7 @@ const Header: FC = () => {
                                         Einstellungen
                                     </Button>
                                     <Box sx={{ width: '100%', alignItems: 'center' }}>
-                                        <Button
-                                            variant="contained"
-                                            color="primary"
-                                            onClick={authUser ? handleLogout : () => router.push('/partner')}
-                                            sx={{ ml: 2, mr: 2 }}
-                                        >
-                                            {authUser ? 'Logout' : 'Login'}
-                                        </Button>
+                                        {logoutButton}
                                     </Box>
                                 </Box>
                             </Popover>
@@ -250,6 +288,7 @@ const Header: FC = () => {
                     </Box>
                 </Toolbar>
             </AppBar>
+
             {/* Overlay */}
             {isOverlayOpen && (
                 <Box
@@ -290,6 +329,57 @@ const Header: FC = () => {
                     </Box>
                 </Box>
             )}
+
+            {/* Overlay */}
+            {isPaymentOverlayOpen && (
+                <Box
+                    sx={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        width: '100vw',
+                        height: '100vh',
+                        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        zIndex: 1301,
+                        padding: { xs: 0, sm: '50px' },
+                    }}
+                >
+                    <Box
+                        onClick={(e) => e.stopPropagation()}
+                        sx={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: { xs: 'center', md: 'flex-start' },
+                            gap: 6,
+                            backgroundColor: '#fff',
+                            pl: '20px',
+                            pr: '20px',
+                            pt: { xs: '0px', md: '20%' },
+                            borderRadius: '16px',
+                            width: 'calc(100% - 100px)',
+                            height: 'calc(100% - 100px)',
+                            boxShadow: theme.shadows[5],
+                            position: 'relative',
+                        }}
+                    >
+                        <Typography sx={{
+                            textAlign: 'center',
+                            ml: { xs: 0, sm: 8 },
+                            mr: { xs: 0, sm: 8 },
+                        }}
+                        >
+                            Dein Login war erfolgreich. <br />Bitte hinterlege deine Zahlungsdaten:
+                        </Typography>
+                        <PaymentComponent />
+                        {logoutButton}
+                    </Box>
+                </Box>
+            )}
+
         </>
     );
 };

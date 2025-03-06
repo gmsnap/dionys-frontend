@@ -7,20 +7,19 @@ import {
     Grid2,
     Switch,
     FormControlLabel,
-    useTheme,
     Select,
     MenuItem,
     SelectChangeEvent,
 } from "@mui/material";
 import useStore from "@/stores/partnerStore";
 import router from "next/router";
-import { fetchCompanyById } from "@/services/partnerService";
-import { PartnerCompanyModel } from "@/models/PartnerCompanyModel";
+import { fetchCompanyById, updatePartnerCompany } from "@/services/partnerService";
 import City, { AvailableCities } from "@/models/City";
 import BillingAddressFields from "./BillingAddressFields";
+import { useAuthContext } from "@/auth/AuthContext";
 
 const PartnerCompanyForm: React.FC = () => {
-    const theme = useTheme();
+    const { authUser } = useAuthContext();
     const { partnerUser, setPartnerUser } = useStore();
 
     const [formData, setFormData] = useState({
@@ -33,7 +32,7 @@ const PartnerCompanyForm: React.FC = () => {
         billingAddress: { city: "", streetAddress: "", postalCode: "", country: "" },
         billingAddressId: null,
     });
-    
+
     const [billingToggle, setBillingToggle] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState(false);
@@ -130,8 +129,14 @@ const PartnerCompanyForm: React.FC = () => {
         }
 
         try {
-            if (!partnerUser) {
+            if (!partnerUser || !authUser) {
                 setError("Please login.");
+                setSuccess(false);
+                return;
+            }
+
+            if (!partnerUser?.companyId) {
+                setError("Invalid Company.");
                 setSuccess(false);
                 return;
             }
@@ -139,33 +144,27 @@ const PartnerCompanyForm: React.FC = () => {
             // Use the filter utility to prepare the data for submission
             const dataToSubmit = filterPartnerCompanyData(formData);
 
-            const response = await fetch(
-                `${process.env.NEXT_PUBLIC_API_URL}/partner-companies/${partnerUser?.companyId}`,
-                {
-                    method: "PUT",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify(dataToSubmit),
+            await updatePartnerCompany(
+                authUser.idToken,
+                partnerUser.companyId,
+                dataToSubmit,
+                (updatedCompany) => {
+                    if (updatedCompany) {
+                        // Update partnerUser's company in the store
+                        setPartnerUser({
+                            ...partnerUser,
+                            company: updatedCompany,
+                        });
+                        setError(null);
+                        setSuccess(true);
+                    }
+                },
+                (message) => {
+                    setError(message ?? "Unknown Error");
+                    setSuccess(false);
                 }
             );
 
-            if (!response.ok) {
-                throw new Error(`Error ${response.status}: ${response.statusText}`);
-            }
-
-            const updatedCompany = (await response?.json())?.company as PartnerCompanyModel;
-
-            if (updatedCompany) {
-                // Update partnerUser's company in the store
-                setPartnerUser({
-                    ...partnerUser,
-                    company: updatedCompany,
-                });
-            }
-
-            setError(null);
-            setSuccess(true);
         } catch (err) {
             console.error("Error updating company:", err);
             setError("Failed to update company. Please try again.");
@@ -402,15 +401,20 @@ const PartnerCompanyForm: React.FC = () => {
                         <BillingAddressFields formData={formData} handleChange={handleChange} />}
 
                     {/* Submit */}
-                    <Grid2 size={{ xs: 12, md: 4 }} sx={{ mt: 3 }}>
+                    <Grid2 size={{ xs: 12, }} sx={{ mt: 3 }}>
                         <Box sx={{ display: "flex", flexDirection: "column", }}>
-                            <Button type="submit" variant="contained" color="primary">
+                            <Button
+                                type="submit"
+                                variant="contained"
+                                color="primary"
+                                sx={{ maxWidth: { xs: '100%', md: 150 } }}
+                            >
                                 Speichern
                             </Button>
                             {error && <Typography sx={{ color: "red", mt: 2 }}>{error}</Typography>}
                             {success && (
-                                <Typography sx={{ color: "green", mt: 2 }}>
-                                    Company successfully updated!
+                                <Typography color="secondary" sx={{ mt: 2 }}>
+                                    Unternehmensdaten gespeichert.
                                 </Typography>
                             )}
                         </Box>
