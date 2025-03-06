@@ -147,13 +147,22 @@ const Home: NextPageWithLayout = () => {
         }}
       >
         <Typography variant="body2" sx={{ color: "text.secondary" }}>
-          <Link href="/" sx={{ mx: 2, color: "inherit", textDecoration: "none" }}>
+          <Link
+            href="/imprint/"
+            target="_blank"
+            sx={{ mx: 2, color: "inherit", textDecoration: "none" }}>
             Impressum
           </Link>
-          <Link href="/" sx={{ mx: 2, color: "inherit", textDecoration: "none" }}>
+          <Link
+            href="/privacy/"
+            target="_blank"
+            sx={{ mx: 2, color: "inherit", textDecoration: "none" }}>
             Datenschutz
           </Link>
-          <Link href="/" sx={{ mx: 2, color: "inherit", textDecoration: "none" }}>
+          <Link
+            href="/terms-of-service/"
+            target="_blank"
+            sx={{ mx: 2, color: "inherit", textDecoration: "none" }}>
             AGB
           </Link>
         </Typography>
