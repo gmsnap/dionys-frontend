@@ -5,12 +5,12 @@ import CustomChip from "./CustomChip";
 import { formatEventCategoriesSync } from "@/utils/formatEventCategories";
 import { AvailableEventCategories, EventCategories } from "@/constants/EventCategories";
 
-interface ImageUploadFieldProps {
+interface Props {
     control: any;
     errors: any;
 }
 
-const EventCategoriesField: React.FC<ImageUploadFieldProps> = ({ control, errors }) => {
+const EventCategoriesField: React.FC<Props> = ({ control, errors }) => {
     return (
         <Controller
             name="eventCategories"

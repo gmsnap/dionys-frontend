@@ -7,11 +7,13 @@ import PartnerContentLayout from '@/layouts/PartnerContentLayout';
 import useStore from '@/stores/partnerStore';
 import theme from '@/theme';
 import LocationGrid from '@/features/partners/LocationGrid';
+import EventCategoriesEditor from '@/features/partners/EventCategoriesEditor';
 
 const PartnerPage: NextPageWithLayout = () => {
     const { partnerUser, partnerLocations } = useStore();
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [locationId, setLocationId] = useState<number | null>(null);
+    const [editCategories, setEditCategories] = useState(false);
 
     useEffect(() => {
         setIsLoggedIn(!!partnerUser);
@@ -22,6 +24,77 @@ const PartnerPage: NextPageWithLayout = () => {
             <Typography variant="h6" textAlign="center">
                 Please log in to create a location.
             </Typography>
+        );
+    }
+
+    const categoriesItem =
+        <ListItem key={-1} disablePadding>
+            <ListItemButton
+                onClick={() => setEditCategories(true)}
+                sx={{
+                    pt: { xs: 0, sm: 'inherit' },
+                    pb: { xs: 0, sm: 'inherit' },
+                }}
+            >
+                <ListItemText
+                    primary="Event-Kategorien"
+                    primaryTypographyProps={{
+                        sx: {
+                            fontSize: { xs: '12px', sm: 'unset' },
+                            fontWeight: locationId == null
+                                ? 800
+                                : 'normal',
+                            color: locationId == null
+                                ? theme.palette.customColors.blue.main
+                                : theme.palette.customColors.text.tertiary,
+                        }
+                    }}
+                />
+            </ListItemButton>
+        </ListItem>;
+
+    if (editCategories) {
+        return (
+            <Box>
+                <Box sx={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    justifyContent: 'left',
+                    alignItems: 'top'
+                }}>
+                    <List sx={{
+                        mr: { xs: 1, sm: 3 },
+                        minWidth: { xs: '100px', sm: '200px', md: '250px' },
+                    }}>
+                        {categoriesItem}
+                        <ListItem key={null} disablePadding>
+                            <ListItemButton
+                                onClick={() => setEditCategories(false)}
+                                sx={{
+                                    pt: { xs: 0, sm: 'inherit' },
+                                    pb: { xs: 0, sm: 'inherit' },
+                                }}
+                            >
+                                <ListItemText
+                                    primary="Locations"
+                                    primaryTypographyProps={{
+                                        sx: {
+                                            fontSize: { xs: '12px', sm: 'unset' },
+                                            fontWeight: locationId == null
+                                                ? 800
+                                                : 'normal',
+                                            color: locationId == null
+                                                ? theme.palette.customColors.blue.main
+                                                : theme.palette.customColors.text.tertiary,
+                                        }
+                                    }}
+                                />
+                            </ListItemButton>
+                        </ListItem>
+                    </List>
+                    <EventCategoriesEditor />
+                </Box>
+            </Box>
         );
     }
 
@@ -57,6 +130,7 @@ const PartnerPage: NextPageWithLayout = () => {
                         mr: { xs: 1, sm: 3 },
                         minWidth: { xs: '100px', sm: '200px', md: '250px' },
                     }}>
+                        {categoriesItem}
                         <ListItem key={null} disablePadding>
                             <ListItemButton
                                 onClick={() => setLocationId(null)}

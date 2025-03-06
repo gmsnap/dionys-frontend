@@ -1,7 +1,7 @@
 import { EventCategories } from '@/constants/EventCategories';
 import { getTranslations } from '@/i18n';
 
-const staticTranslations = {
+const staticTranslations: { [key: string]: string } = {
     "business": "Business Event",
     "social": "Privates Event",
 };
@@ -31,4 +31,9 @@ export const formatEventCategoriesSync = (categories: EventCategories[]): string
         .filter((translation) => translation);
 
     return translated.length > 0 ? translated.join(", ") : "-";
+};
+
+export const formatEventCategoryStringSync = (category: string): string => {
+    const t = staticTranslations[category];
+    return t !== undefined ? t : "-";
 };

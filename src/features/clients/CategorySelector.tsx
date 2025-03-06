@@ -5,6 +5,8 @@ import { EventCategories } from '@/constants/EventCategories';
 import { formatEventCategoriesSync } from '@/utils/formatEventCategories';
 import { Frown } from 'lucide-react';
 import theme from '@/theme';
+import { fetchEventCategoriesByCompany } from '@/services/eventCategoryService';
+import { EventCategoryModel } from '@/models/EventCategoryModel';
 
 interface CategorySelectorProps {
     stepCompleted: () => void,
@@ -45,6 +47,31 @@ const CategorySelector = ({
 
     useEffect(() => {
         if (!location?.eventCategories) {
+            return;
+        }
+
+        const setModels = async (companyId: number) => {
+            const models =
+                await fetchEventCategoriesByCompany(
+                    companyId,
+                    undefined,
+                    undefined
+                );
+            if (models) {
+                const cat = location.eventCategories.map((category) => ({
+                    name: category as EventCategories,
+                    image:
+                        models.filter((m: EventCategoryModel) => {
+                            return m.categoryKey == category as string
+                        })?.[0]?.image
+                        ?? `/category-${category}.jpg`
+                }));
+                setEventCategories(cat);
+            }
+        };
+
+        if (location.companyId) {
+            setModels(location.companyId);
             return;
         }
         const cat = location.eventCategories.map((category) => ({
