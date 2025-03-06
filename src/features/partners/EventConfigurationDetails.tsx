@@ -76,16 +76,22 @@ const EventConfigurationDetails = ({
             ))}
 
             <Typography sx={{ fontWeight: 'bold', mt: 2 }}>Total: {formatPrice(calculateTotalPrice(model))}</Typography>
-
-            <Typography variant="h5" sx={{ mt: 2 }}>Unternehmen</Typography>
-            <Typography>{getCompanyName(model)}</Typography>
-            <Typography>{getCompanyStreet(model)}</Typography>
-            <Typography>{getCompanyCity(model)}</Typography>
-            <Typography>{model.booker?.email ?? 'no email'}</Typography>
+            {model.booker && (<>
+                <Typography variant="h5" sx={{ mt: 2 }}>Kontaktdaten</Typography>
+                <Typography>{model.booker.givenName} {model.booker.familyName}</Typography>
+                <Typography>{model.booker.email}</Typography>
+                <Typography>Tel.: {model.booker.phoneNumber}</Typography>
+                {model.booker.bookingCompany && <>
+                    <Typography variant="h5" sx={{ mt: 2 }}>Unternehmen</Typography>
+                    <Typography>{getCompanyName(model)}</Typography>
+                    <Typography>{getCompanyStreet(model)}</Typography>
+                    <Typography>{getCompanyCity(model)}</Typography>
+                </>}
+            </>)}
 
             <Typography variant="h5" sx={{ mt: 2 }}>Kommentar</Typography>
             <Typography>{model.notes}</Typography>
-        </Box>
+        </Box >
     );
 };
 
