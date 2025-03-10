@@ -48,9 +48,9 @@ export const EventPackageValidationSchema = yup.object().shape({
         .min(1, 'Paketkategorie muss ein gültiger Wert sein'),
     price: yup
         .number()
-        .typeError('Preis / Tag muss eine Zahl sein')
-        .positive('Preis / Tag muss positiv sein')
-        .required('Preis / Tag ist erforderlich'),
+        .typeError('Preis muss eine Zahl sein')
+        .positive('Preis muss positiv sein')
+        .required('Preis ist erforderlich'),
     priceType: yup
         .string()
         .required('Preis-Type ist erforderlich')

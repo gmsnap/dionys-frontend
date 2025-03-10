@@ -173,7 +173,11 @@ const LocationGrid = ({ sx, selectHandler }: LocationGridProps) => {
             ))}
 
             {/* Add Button (+) */}
-            <Grid2 key={-1} size={{ xs: 12, sm: 6, md: 4, lg: 4, xl: 3 }} display="flex">
+            <Grid2
+                key={-1}
+                size={locations.length === 0 ? 12 : { xs: 12, sm: 6, md: 4, lg: 4, xl: 3 }}
+                display="flex"
+            >
                 <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%' }}>
                     <GridAddItem
                         id={-1}

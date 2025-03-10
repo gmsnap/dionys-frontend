@@ -138,6 +138,25 @@ const CategorySelector = ({
                                 pointerEvents: 'none',
                             }}
                         />
+
+                        {/* Darkening Overlay */}
+                        <Box
+                            className="overlay"
+                            sx={{
+                                backgroundColor: "#000000",
+                                opacity: 0.5,
+                                width: "100%",
+                                height: "100%",
+                                position: "absolute",
+                                top: 0,
+                                left: 0,
+                                transition: "opacity 0.53s ease",
+                                "&:hover": {
+                                    opacity: 0.25,
+                                },
+                            }}
+                        />
+
                         {/* Text Overlay */}
                         <Typography
                             variant="h6"
@@ -146,9 +165,10 @@ const CategorySelector = ({
                                 top: '50%',
                                 left: '50%',
                                 transform: 'translate(-50%, -50%)',
-                                opacity: 0.75,
+                                opacity: 0.85,
                                 fontWeight: 'normal',
                                 color: 'white',
+                                pointerEvents: "none",
                             }}
                         >
                             {formatEventCategoriesSync([category.name as EventCategories])}

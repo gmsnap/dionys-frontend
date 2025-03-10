@@ -101,16 +101,57 @@ const PartnerPage: NextPageWithLayout = () => {
     if ((!partnerLocations || partnerLocations.length == 0) &&
         locationId !== 0) {
         return (
-            <Box sx={{
-                width: '100%',
-                mt: 10,
-            }}>
-                <Typography variant="h5" textAlign="center">
-                    Erstellen Sie Ihre  erste Location:
-                </Typography>
-                <LocationGrid
-                    selectHandler={setLocationId}
-                    sx={{ width: '100%', justifyContent: 'center' }} />
+            <Box>
+                <Box sx={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    justifyContent: 'left',
+                    alignItems: 'top'
+                }}>
+                    <List sx={{
+                        mr: { xs: 1, sm: 3 },
+                        minWidth: { xs: '100px', sm: '200px', md: '250px' },
+                    }}>
+                        {categoriesItem}
+                        <ListItem key={null} disablePadding>
+                            <ListItemButton
+                                onClick={() => setEditCategories(false)}
+                                sx={{
+                                    pt: { xs: 0, sm: 'inherit' },
+                                    pb: { xs: 0, sm: 'inherit' },
+                                }}
+                            >
+                                <ListItemText
+                                    primary="Locations"
+                                    primaryTypographyProps={{
+                                        sx: {
+                                            fontSize: { xs: '12px', sm: 'unset' },
+                                            fontWeight: locationId == null
+                                                ? 800
+                                                : 'normal',
+                                            color: locationId == null
+                                                ? theme.palette.customColors.blue.main
+                                                : theme.palette.customColors.text.tertiary,
+                                        }
+                                    }}
+                                />
+                            </ListItemButton>
+                        </ListItem>
+                    </List>
+
+                    <Box sx={{
+                        width: '50%',
+                        mt: 10,
+                    }}>
+                        <Typography variant="h5" textAlign="center">
+                            Erstellen Sie Ihre erste Location
+                        </Typography>
+                        <LocationGrid
+                            selectHandler={setLocationId}
+                            sx={{ width: '100%', justifyContent: 'center' }} />
+                    </Box>
+
+                </Box>
             </Box>
         );
     }
