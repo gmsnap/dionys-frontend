@@ -3,6 +3,7 @@ export type PriceTypes =
     "once" |
     "hour" |
     "person" |
+    "consumption" |
     "none";
 
 export const AvailablePriceTypes = [
@@ -10,5 +11,6 @@ export const AvailablePriceTypes = [
     "once",
     "hour",
     "person",
+    "consumption",
     "none",
 ];

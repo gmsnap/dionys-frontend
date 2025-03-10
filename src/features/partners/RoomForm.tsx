@@ -44,9 +44,9 @@ const roomValidationSchema = yup.object().shape({
         .required('Quadratmeter sind erforderlich'),
     price: yup
         .number()
-        .typeError('Preis / Tag muss eine Zahl sein')
-        .positive('Preis / Tag muss positiv sein')
-        .required('Preis / Tag ist erforderlich'),
+        .typeError('Preis muss eine Zahl sein')
+        .positive('Preis muss positiv sein')
+        .required('Preis ist erforderlich'),
     priceType: yup
         .string()
         .required('Preis-Typ ist erforderlich')
@@ -406,7 +406,7 @@ const RoomForm = ({
                         <Grid2 size={{ sm: controlWidth }}>
                             <Grid2 container alignItems="top">
                                 <Grid2 size={{ xs: labelWidth }}>
-                                    <Typography variant="label">Preis / Tag</Typography>
+                                    <Typography variant="label">Preis</Typography>
                                 </Grid2>
                                 <Grid2 size={{ xs: 12, sm: 4 }}>
                                     <PriceInput

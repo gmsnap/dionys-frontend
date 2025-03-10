@@ -1,4 +1,4 @@
-import { AvailablePriceTypes, PriceTypes } from "@/constants/PriceTypes";
+import { PriceTypes } from "@/constants/PriceTypes";
 
 export const formatPrice = (price: number): string => {
   return new Intl.NumberFormat('de-DE', {
@@ -14,6 +14,7 @@ const staticTranslations = {
   "once": "einmalig",
   "hour": "pro Stunde",
   "person": "pro Person",
+  "consumption": "Mindestverzehr",
   "none": "kostenlos",
 };
 
