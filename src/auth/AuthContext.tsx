@@ -13,6 +13,12 @@ interface AuthContextType {
         familyName: string,
     ) => Promise<any>;
     confirmSignUp2: (email: string, verificationCode: string) => Promise<any>;
+    forgotPassword: (email: string) => Promise<any>;
+    confirmPassword: (
+        email: string,
+        code: string,
+        newPassword: string
+    ) => Promise<any>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -25,7 +31,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         logout,
         signUp2,
         confirmSignUp2,
-        getCurrentUser2
+        getCurrentUser2,
+        forgotPassword,
+        confirmPassword,
     } = useAuth();
 
     // Call `getCurrentUser2` on provider mount
@@ -45,6 +53,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 logout,
                 signUp2,
                 confirmSignUp2,
+                forgotPassword,
+                confirmPassword,
             }}
         >
             {children}

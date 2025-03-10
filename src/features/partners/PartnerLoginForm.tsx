@@ -165,6 +165,17 @@ const PartnerLoginForm: React.FC = ({ }) => {
                                     Registrieren
                                 </Link>
                             </Typography>
+                            <Typography variant="body1" sx={{ mt: 2 }}>
+                                <Link
+                                    href="/partner/recovery"
+                                    sx={{
+                                        fontWeight: 'bold',
+                                        color: theme.palette.customColors.blue.main
+                                    }}
+                                >
+                                    Passwort vergessen?
+                                </Link>
+                            </Typography>
                         </Box>
                     </>
             )}

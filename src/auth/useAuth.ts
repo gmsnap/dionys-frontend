@@ -4,7 +4,9 @@ import {
     signUp,
     fetchAuthSession,
     signIn,
-    confirmSignUp
+    confirmSignUp,
+    resetPassword,
+    confirmResetPassword,
 } from '@aws-amplify/auth';
 import { useState, useCallback } from 'react';
 
@@ -115,7 +117,7 @@ export const useAuth = () => {
         familyName: string,
     ) => {
         try {
-            const { nextStep } = await signUp({
+            const { userId, nextStep } = await signUp({
                 username: email,
                 password,
                 options: {
@@ -127,6 +129,7 @@ export const useAuth = () => {
                 },
             });
             console.log('Signup successful:', nextStep);
+            console.log('Signup userId:', userId);
         } catch (error) {
             if (error instanceof Error) {
                 console.error("Signup error: ", error?.message);
@@ -152,6 +155,39 @@ export const useAuth = () => {
         }
     }
 
+    const forgotPassword = async (email: string) => {
+        try {
+            const { isPasswordReset, nextStep } = await resetPassword({
+                username: email
+            });
+            console.log('forgotPassword result:', nextStep);
+            return;
+        } catch (error) {
+            if (error instanceof Error) {
+                console.error("Error: ", error?.message);
+                throw (error?.message || 'Failed to initiate passwort reset');
+            }
+            throw ('Unknow error');
+        }
+    }
+
+    const confirmPassword = async (email: string, code: string, newPassword: string) => {
+        try {
+            await confirmResetPassword({
+                confirmationCode: code,
+                username: email,
+                newPassword: newPassword
+            });
+            return;
+        } catch (error) {
+            if (error instanceof Error) {
+                console.error("Error: ", error?.message);
+                throw (error?.message || 'Failed to initiate passwort reset');
+            }
+            throw ('Unknow error');
+        }
+    }
+
     return {
         authUser,
         setAuthUser,
@@ -161,5 +197,7 @@ export const useAuth = () => {
         signUp2,
         confirmSignUp2,
         getCurrentUser2,
+        forgotPassword,
+        confirmPassword,
     };
 };

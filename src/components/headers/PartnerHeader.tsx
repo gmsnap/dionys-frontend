@@ -36,6 +36,11 @@ const Header: FC = () => {
     const [userPanelAnchorEl, setUserPanelAnchorEl] = useState<null | HTMLElement>(null);
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
+    const publicPartnerRoutes: string[] = [
+        '/partner/register',
+        '/partner/recovery',
+    ];
+
     const menuItems = [
         { label: 'Events', link: '/partner/events' },
         { label: 'Locations', link: '/partner/location' },
@@ -90,7 +95,7 @@ const Header: FC = () => {
     useEffect(() => {
         if (!authLoading &&
             !authUser &&
-            router.pathname !== '/partner/register') {
+            (!router.pathname || !publicPartnerRoutes.includes(router.pathname))) {
             router.push('/partner');
             return;
         }
@@ -121,7 +126,10 @@ const Header: FC = () => {
             setIsPaymentOverlayOpen(false);
             return;
         }
-        if (!partnerUser?.company?.subscription) {
+        if (!partnerUser?.company?.subscription &&
+            !(partnerUser?.email?.endsWith("@dionys.ai") ||
+                partnerUser?.email?.endsWith("@pingponglabs.de") ||
+                partnerUser?.email?.indexOf("gregor.matte") > -1)) {
             setIsPaymentOverlayOpen(true);
             return;
         }
@@ -273,12 +281,13 @@ const Header: FC = () => {
                                         backgroundColor: 'transparent',
                                     }}
                                 >
-                                    <Button
+                                    {authUser && <Button
                                         onClick={handleOpenOverlay}
                                         sx={{ mb: 1, width: '100%', color: 'inherit' }}
                                     >
                                         Einstellungen
-                                    </Button>
+                                    </Button>}
+
                                     <Box sx={{ width: '100%', alignItems: 'center' }}>
                                         {logoutButton}
                                     </Box>
@@ -353,12 +362,12 @@ const Header: FC = () => {
                             display: 'flex',
                             flexDirection: 'column',
                             alignItems: 'center',
-                            justifyContent: { xs: 'center', md: 'flex-start' },
+                            justifyContent: { xs: 'center', },
                             gap: 6,
                             backgroundColor: '#fff',
                             pl: '20px',
                             pr: '20px',
-                            pt: { xs: '0px', md: '20%' },
+                            pt: { xs: '0px', },
                             borderRadius: '16px',
                             width: 'calc(100% - 100px)',
                             height: 'calc(100% - 100px)',
