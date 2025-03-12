@@ -42,7 +42,7 @@ const Header: FC = () => {
     ];
 
     const menuItems = [
-        { label: 'Events', link: '/partner/events' },
+        { label: 'Dashboard', link: '/partner/events' },
         { label: 'Locations', link: '/partner/location' },
         { label: 'Räume', link: '/partner/rooms' },
         { label: 'Pakete', link: '/partner/packages' },

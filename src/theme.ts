@@ -65,6 +65,7 @@ const theme = createTheme({
         primary: {
             main: '#000000',
             contrastText: '#FFFFFF',
+            light: '#AAAAAA',
         },
         secondary: {
             main: customColors.blue.main,
