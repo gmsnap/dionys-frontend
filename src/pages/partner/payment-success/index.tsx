@@ -5,11 +5,8 @@ import { Box, Button, Typography } from '@mui/material';
 import router from "next/router";
 import PartnerContentLayout from '@/layouts/PartnerContentLayout';
 import { CircleCheckBig } from 'lucide-react';
-import { useHeaderContext } from '@/components/headers/PartnerHeaderContext';
 
 const PartnerPage: NextPageWithLayout = () => {
-    const { setIsOverlayOpen } = useHeaderContext();
-
     return (
         <Box sx={{
             display: 'flex',
@@ -25,16 +22,9 @@ const PartnerPage: NextPageWithLayout = () => {
                 <Button
                     variant="contained"
                     color="primary"
-                    onClick={() => router.push('/partner/events')}
+                    onClick={() => router.push('/partner/location')}
                 >
-                    Zu meinen Events
-                </Button>
-                <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={() => setIsOverlayOpen(true)}
-                >
-                    Profil bearbeiten
+                    Jetzt Location anlegen
                 </Button>
             </Box>
         </Box>
