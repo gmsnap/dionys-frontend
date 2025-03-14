@@ -1,8 +1,8 @@
 import { PackageCategories } from "@/constants/PackageCategories";
 
 const staticTranslations = {
-    "catering": "Catering",
-    "equipment": "Equipment",
+    "catering": "Food & Beverage",
+    "equipment": "Look & Feel",
 };
 
 export const formatPackageCategory = (category: PackageCategories): string => {
