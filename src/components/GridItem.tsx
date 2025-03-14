@@ -43,7 +43,7 @@ const GridItem: React.FC<GridItemProps> = (
                 sx={{
                     width: '100%',
                     height: '250px',
-                    objectFit: 'fill',
+                    objectFit: 'cover',
                     borderTopLeftRadius: '16px',
                     borderTopRightRadius: '16px',
                     margin: 0,

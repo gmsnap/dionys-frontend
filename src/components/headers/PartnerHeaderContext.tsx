@@ -5,6 +5,8 @@ interface HeaderContextType {
     setIsOverlayOpen: (isOpen: boolean) => void;
     isPaymentOverlayOpen: boolean;
     setIsPaymentOverlayOpen: (isOpen: boolean) => void;
+    isOnboardingOverlayOpen: boolean;
+    setIsOnboardingOverlayOpen: (isOpen: boolean) => void;
 }
 
 const HeaderContext = createContext<HeaderContextType | undefined>(undefined);
@@ -20,6 +22,7 @@ export const useHeaderContext = () => {
 export const HeaderProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [isOverlayOpen, setIsOverlayOpen] = useState(false);
     const [isPaymentOverlayOpen, setIsPaymentOverlayOpen] = useState(false);
+    const [isOnboardingOverlayOpen, setIsOnboardingOverlayOpen] = useState(false);
 
     return (
         <HeaderContext.Provider value={{
@@ -27,6 +30,8 @@ export const HeaderProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             setIsOverlayOpen,
             isPaymentOverlayOpen,
             setIsPaymentOverlayOpen,
+            isOnboardingOverlayOpen,
+            setIsOnboardingOverlayOpen,
         }}>
             {children}
         </HeaderContext.Provider>

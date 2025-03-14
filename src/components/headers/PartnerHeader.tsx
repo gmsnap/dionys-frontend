@@ -23,6 +23,7 @@ import CircleInitials from '../CircleInitials';
 import { useHeaderContext } from './PartnerHeaderContext';
 import PaymentComponent from '@/features/partners/PaymentComponent';
 import { createPartnerUser } from '@/services/partnerService';
+import OnboardingAssistant from '@/features/partners/OnboardingAssistant';
 
 const Header: FC = () => {
     const theme = useTheme();
@@ -30,6 +31,7 @@ const Header: FC = () => {
     const { authUser, logout, authLoading } = useAuthContext();
     const { isOverlayOpen, setIsOverlayOpen } = useHeaderContext();
     const { isPaymentOverlayOpen, setIsPaymentOverlayOpen } = useHeaderContext();
+    const { isOnboardingOverlayOpen, setIsOnboardingOverlayOpen } = useHeaderContext();
     const { partnerUser, setPartnerUser } = useStore();
 
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -44,8 +46,9 @@ const Header: FC = () => {
     const menuItems = [
         { label: 'Dashboard', link: '/partner/events' },
         { label: 'Locations', link: '/partner/location' },
-        { label: 'Räume', link: '/partner/rooms' },
-        { label: 'Pakete', link: '/partner/packages' },
+        { label: 'Rooms & Tables', link: '/partner/rooms' },
+        { label: 'Food & Beverage', link: '/partner/food' },
+        { label: 'Look & Feel', link: '/partner/lookandfeel' },
         //{ label: 'Equipment', link: '/partner/equipment' },
         //{ label: 'Personal', link: '/partner/personnel' },
         //{ label: 'Catering', link: '/partner/catering' },
@@ -124,13 +127,27 @@ const Header: FC = () => {
     useEffect(() => {
         if (!partnerUser) {
             setIsPaymentOverlayOpen(false);
+            setIsOnboardingOverlayOpen(false);
             return;
         }
-        if (!partnerUser?.company?.subscription &&
-            !(partnerUser?.email?.endsWith("@dionys.ai") ||
-                partnerUser?.email?.endsWith("@pingponglabs.de") ||
-                partnerUser?.email?.indexOf("gregor.matte") > -1)) {
+
+        if (!partnerUser.company?.subscription &&
+            !(partnerUser.email?.endsWith("@dionys.ai") ||
+                partnerUser.email?.endsWith("@pingponglabs.de") ||
+                partnerUser.email?.indexOf("gregor.matte") > -1)) {
             setIsPaymentOverlayOpen(true);
+            setIsOnboardingOverlayOpen(false);
+            return;
+        }
+
+        if (!partnerUser.company || !(
+            partnerUser.company.companyName &&
+            partnerUser.company.address?.streetAddress &&
+            partnerUser.company.address?.city &&
+            partnerUser.company.address?.postalCode
+        )) {
+            setIsPaymentOverlayOpen(false);
+            setIsOnboardingOverlayOpen(true);
             return;
         }
     }, [partnerUser]);
@@ -298,8 +315,8 @@ const Header: FC = () => {
                 </Toolbar>
             </AppBar>
 
-            {/* Overlay */}
-            {isOverlayOpen && (
+            {/* Settings Overlay (Desktop) */}
+            {isOverlayOpen && !isMobile && (
                 <Box
                     sx={{
                         position: 'fixed',
@@ -339,7 +356,31 @@ const Header: FC = () => {
                 </Box>
             )}
 
-            {/* Overlay */}
+            {/* Settings Overlay (Mobile) */}
+            {isOverlayOpen && isMobile && (
+                <Box
+                    onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside
+                    sx={{
+                        position: 'fixed',
+                        left: 0,
+                        width: '100vw',
+                        height: '100vh',
+                        backgroundColor: '#fff',
+                        zIndex: 1300,
+                        padding: '20px',
+                    }}
+                >
+                    <IconButton
+                        sx={{ position: 'absolute', top: '10px', right: '10px' }}
+                        onClick={handleCloseOverlay}
+                    >
+                        <X />
+                    </IconButton>
+                    <PartnerSettings />
+                </Box>
+            )}
+
+            {/* Payment Overlay */}
             {isPaymentOverlayOpen && (
                 <Box
                     sx={{
@@ -385,6 +426,55 @@ const Header: FC = () => {
                         </Typography>
                         <PaymentComponent />
                         {logoutButton}
+                    </Box>
+                </Box>
+            )}
+
+            {/* Onboarding Overlay */}
+            {isOnboardingOverlayOpen && (
+                <Box
+                    sx={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        width: '100vw',
+                        height: '100vh',
+                        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        zIndex: 1301,
+                        padding: { xs: 0, sm: '50px' },
+                    }}
+                >
+                    <Box
+                        onClick={(e) => e.stopPropagation()}
+                        sx={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: { xs: 'center', },
+                            gap: 6,
+                            backgroundColor: '#fff',
+                            pl: '20px',
+                            pr: '20px',
+                            pt: { xs: '0px', },
+                            borderRadius: '16px',
+                            width: 'calc(100% - 100px)',
+                            height: 'calc(100% - 100px)',
+                            boxShadow: theme.shadows[5],
+                            position: 'relative',
+                        }}
+                    >
+                        <Typography sx={{
+                            textAlign: 'center',
+                            ml: { xs: 0, sm: 8 },
+                            mr: { xs: 0, sm: 8 },
+                        }}
+                        >
+                            Willkommen bei Dionys
+                        </Typography>
+                        <OnboardingAssistant />
                     </Box>
                 </Box>
             )}

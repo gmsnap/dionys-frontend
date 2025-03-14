@@ -333,19 +333,13 @@ const PartnerCompanyForm: React.FC = () => {
                                 <Typography variant="label">Stadt</Typography>
                             </Grid2>
                             <Grid2 size={{ xs: 12, sm: 8 }}>
-                                <Select
+                                <TextField
                                     name="address.city"
                                     value={formData.address.city}
-                                    onChange={handleCityChange}
+                                    onChange={handleChange}
                                     fullWidth
                                     variant="outlined"
-                                >
-                                    {AvailableCities.map((city: City) => (
-                                        <MenuItem key={city.value} value={city.value}>
-                                            {city.label}
-                                        </MenuItem>
-                                    ))}
-                                </Select>
+                                />
                             </Grid2>
                         </Grid2>
                     </Grid2>

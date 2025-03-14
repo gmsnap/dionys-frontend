@@ -53,7 +53,7 @@ const PartnerContentLayout: React.FC<PartnerContentLayoutProps> = ({
                 sx={{
                     // Ensure content starts below the non-transparent header
                     //marginTop: `${theme.layout.headerHeight}px`,
-                    marginTop: 10,
+                    marginTop: { xs: 5, md: 10 },
                     ml: { xs: 0, sm: 4 },
                     mr: { xs: 0, sm: 4 },
                 }}

@@ -45,7 +45,9 @@ const roomValidationSchema = yup.object().shape({
     price: yup
         .number()
         .typeError('Preis muss eine Zahl sein')
-        .positive('Preis muss positiv sein')
+        .min(0, 'Preis darf nicht negativ sein')
+        .nullable()
+        .transform(value => (value === null || value === '') ? undefined : value)
         .required('Preis ist erforderlich'),
     priceType: yup
         .string()
