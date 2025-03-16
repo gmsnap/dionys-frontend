@@ -16,7 +16,7 @@ import {
     subWeeks,
 } from "date-fns"
 import { de } from "date-fns/locale"
-import { Button, Container, Typography, Box, Paper, Stack, IconButton, Tooltip, Badge, Grid2 } from "@mui/material"
+import { Button, Container, Typography, Box, Paper, Stack, IconButton, Tooltip, Badge, Grid2, useMediaQuery, useTheme } from "@mui/material"
 import { ChevronLeft, ChevronRight, CalendarIcon as Calendar1, CalendarDays } from "lucide-react"
 import theme from "@/theme"
 
@@ -40,6 +40,7 @@ type ViewType = "month" | "week"
 const hours = Array.from({ length: 24 }, (_, i) => i)
 
 export default function EventCalendar({ events, onDateRangeChange }: EventCalendarProps) {
+    const theme = useTheme();
     // Set initial date to current date
     const [currentDate, setCurrentDate] = useState(new Date())
     const [view, setView] = useState<ViewType>("week") // Default to week view for time-based display
@@ -47,6 +48,8 @@ export default function EventCalendar({ events, onDateRangeChange }: EventCalend
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [currentTime, setCurrentTime] = useState(new Date())
     const timeIndicatorRef = useRef<NodeJS.Timeout | null>(null)
+
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
     // Update current time every minute
     useEffect(() => {
@@ -120,7 +123,7 @@ export default function EventCalendar({ events, onDateRangeChange }: EventCalend
 
     // Format the header text based on current view
     const getHeaderText = () => {
-        if (view === "month") {
+        if (isMobile || view === "month") {
             return format(currentDate, "MMMM yyyy", { locale: de })
         } else {
             const weekStart = startOfWeek(currentDate)
@@ -177,53 +180,97 @@ export default function EventCalendar({ events, onDateRangeChange }: EventCalend
 
     return (
         <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-            <Paper elevation={3} sx={{ p: 3 }}>
-                {/* Calendar Header */}
-                <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
-                    <Stack direction="row" spacing={1} alignItems="center">
-                        <Button variant="contained" onClick={goToToday}>
-                            Heute
-                        </Button>
-                        <IconButton onClick={prevPeriod}>
-                            <ChevronLeft color={theme.palette.customColors.blue.main} />
-                        </IconButton>
-                        <IconButton onClick={nextPeriod}>
-                            <ChevronRight color={theme.palette.customColors.blue.main} />
-                        </IconButton>
-                        <Typography variant="h5" sx={{ ml: 2 }}>
-                            {getHeaderText()}
-                        </Typography>
-                    </Stack>
+            <Paper elevation={isMobile ? 0 : 3} sx={{ p: isMobile ? 0 : 3 }}>
 
-                    <Stack direction="row" spacing={2}>
-                        <Stack direction="row" spacing={1}>
-                            <Button
-                                variant={view === "month" ? "contained" : "outlined"}
-                                onClick={() => setView("month")}
-                                startIcon={
+                {/* Calendar Header (Desktop) */}
+                {!isMobile &&
+                    <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
+                        <Stack direction="row" spacing={1} alignItems="center">
+                            <Button variant="contained" onClick={goToToday}>
+                                Heute
+                            </Button>
+                            <IconButton onClick={prevPeriod}>
+                                <ChevronLeft color={theme.palette.customColors.blue.main} />
+                            </IconButton>
+                            <IconButton onClick={nextPeriod}>
+                                <ChevronRight color={theme.palette.customColors.blue.main} />
+                            </IconButton>
+                            <Typography variant="h5" sx={{ ml: 2 }}>
+                                {getHeaderText()}
+                            </Typography>
+                        </Stack>
+
+                        <Stack direction="row" spacing={2}>
+                            <Stack direction="row" spacing={1}>
+                                <Button
+                                    variant={view === "month" ? "contained" : "outlined"}
+                                    onClick={() => setView("month")}
+                                    startIcon={
+                                        <CalendarDays
+                                            color={view === "month"
+                                                ? 'white'
+                                                : theme.palette.customColors.blue.main}
+                                        />}
+                                >
+                                    Monat
+                                </Button>
+                                <Button
+                                    variant={view === "week" ? "contained" : "outlined"}
+                                    onClick={() => setView("week")}
+                                    startIcon={
+                                        <Calendar1
+                                            color={view === "week"
+                                                ? 'white'
+                                                : theme.palette.customColors.blue.main}
+                                        />}
+                                >
+                                    Woche
+                                </Button>
+                            </Stack>
+                        </Stack>
+                    </Stack>
+                }
+
+                {/* Calendar Header (Mobile) */}
+                {isMobile &&
+                    <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
+                        <Stack direction="row" spacing={1} alignItems="center">
+                            <IconButton onClick={prevPeriod}>
+                                <ChevronLeft color={theme.palette.customColors.blue.main} />
+                            </IconButton>
+                            <IconButton onClick={nextPeriod}>
+                                <ChevronRight color={theme.palette.customColors.blue.main} />
+                            </IconButton>
+                            <Typography variant="h5" sx={{ ml: 2 }}>
+                                {getHeaderText()}
+                            </Typography>
+                        </Stack>
+                        <Stack direction="row" spacing={2}>
+                            <Stack direction="row" spacing={1}>
+                                <Button
+                                    variant={view === "month" ? "contained" : "outlined"}
+                                    onClick={() => setView("month")}
+                                >
                                     <CalendarDays
                                         color={view === "month"
                                             ? 'white'
                                             : theme.palette.customColors.blue.main}
-                                    />}
-                            >
-                                Monat
-                            </Button>
-                            <Button
-                                variant={view === "week" ? "contained" : "outlined"}
-                                onClick={() => setView("week")}
-                                startIcon={
+                                    />
+                                </Button>
+                                <Button
+                                    variant={view === "week" ? "contained" : "outlined"}
+                                    onClick={() => setView("week")}
+                                >
                                     <Calendar1
                                         color={view === "week"
                                             ? 'white'
                                             : theme.palette.customColors.blue.main}
-                                    />}
-                            >
-                                Woche
-                            </Button>
+                                    />
+                                </Button>
+                            </Stack>
                         </Stack>
                     </Stack>
-                </Stack>
+                }
 
                 {view === "month" ? (
                     // Monthly view
@@ -396,7 +443,7 @@ export default function EventCalendar({ events, onDateRangeChange }: EventCalend
                                             }}
                                         >
                                             <Typography variant="body2" sx={{ fontWeight: "bold" }}>
-                                                {format(day, "EEE", { locale: de })}
+                                                {format(day, isMobile ? "EEEEE" : "EEE", { locale: de })}
                                             </Typography>
                                             <Typography
                                                 variant="body2"
