@@ -5,7 +5,6 @@ import { Alert, Box, Button, CircularProgress, Link, TextField, Typography } fro
 import useStore from '@/stores/partnerStore';
 import { useAuthContext } from '@/auth/AuthContext';
 import ConfirmSignup from "../admins/ConfirmSignup";
-import { useSetLocationByCurrentPartner } from "@/services/locationService";
 import theme from "@/theme";
 import { useHeaderContext } from "@/components/headers/PartnerHeaderContext";
 import router from "next/router";
@@ -21,8 +20,6 @@ const PartnerLoginForm: React.FC = ({ }) => {
     const [error, setError] = useState("");
 
     const { partnerUser } = useStore();
-
-    useSetLocationByCurrentPartner();
 
     const handleLogin = async () => {
         setIsLoading(true);
@@ -129,6 +126,9 @@ const PartnerLoginForm: React.FC = ({ }) => {
                             fullWidth
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') handleLogin();
+                            }}
                             sx={{ mb: 2 }}
                         />
                         <TextField
@@ -138,6 +138,9 @@ const PartnerLoginForm: React.FC = ({ }) => {
                             fullWidth
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') handleLogin();
+                            }}
                             sx={{ mb: 2 }}
                         />
                         <Button

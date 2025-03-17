@@ -24,6 +24,9 @@ import { useHeaderContext } from './PartnerHeaderContext';
 import PaymentComponent from '@/features/partners/PaymentComponent';
 import { createPartnerUser } from '@/services/partnerService';
 import OnboardingAssistant from '@/features/partners/OnboardingAssistant';
+import { useSetLocationByCurrentPartner } from '@/services/locationService';
+import { hasSubscription } from '@/services/paymentService';
+import { onboardingCompleted } from '@/services/onboardingService';
 
 const Header: FC = () => {
     const theme = useTheme();
@@ -33,6 +36,7 @@ const Header: FC = () => {
     const { isPaymentOverlayOpen, setIsPaymentOverlayOpen } = useHeaderContext();
     const { isOnboardingOverlayOpen, setIsOnboardingOverlayOpen } = useHeaderContext();
     const { partnerUser, setPartnerUser } = useStore();
+    const { partnerLocations } = useStore();
 
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [userPanelAnchorEl, setUserPanelAnchorEl] = useState<null | HTMLElement>(null);
@@ -87,6 +91,12 @@ const Header: FC = () => {
         setIsOverlayOpen(false);
     };
 
+    const handleCloseOnboarding = () => {
+        setIsOnboardingOverlayOpen(false);
+    };
+
+    useSetLocationByCurrentPartner();
+
     // Close overlay on route change
     useEffect(() => {
         handleUserPanelClose();
@@ -131,26 +141,20 @@ const Header: FC = () => {
             return;
         }
 
-        if (!partnerUser.company?.subscription &&
-            !(partnerUser.email?.endsWith("@dionys.ai") ||
-                partnerUser.email?.endsWith("@pingponglabs.de") ||
-                partnerUser.email?.indexOf("gregor.matte") > -1)) {
+        if (!hasSubscription(partnerUser)) {
             setIsPaymentOverlayOpen(true);
             setIsOnboardingOverlayOpen(false);
             return;
         }
 
-        if (!partnerUser.company || !(
-            partnerUser.company.companyName &&
-            partnerUser.company.address?.streetAddress &&
-            partnerUser.company.address?.city &&
-            partnerUser.company.address?.postalCode
-        )) {
+        /*if (partnerUser &&
+            partnerLocations &&
+            !onboardingCompleted(partnerUser, partnerLocations)
+        ) {
             setIsPaymentOverlayOpen(false);
             setIsOnboardingOverlayOpen(true);
-            return;
-        }
-    }, [partnerUser]);
+        }*/
+    }, [partnerUser, partnerLocations]);
 
     const logoutButton = <Button
         variant="contained"
@@ -230,7 +234,8 @@ const Header: FC = () => {
                                     {menuItems.map((item, index) => (
                                         <MuiMenuItem
                                             key={index}
-                                            onClick={() => {
+                                            onClick={(e) => {
+                                                e.stopPropagation();
                                                 router.push(item.link);
                                                 handleMenuClose();
                                             }}
@@ -431,7 +436,7 @@ const Header: FC = () => {
             )}
 
             {/* Onboarding Overlay */}
-            {isOnboardingOverlayOpen && (
+            {isOnboardingOverlayOpen && !isMobile && (
                 <Box
                     sx={{
                         position: 'fixed',
@@ -443,9 +448,11 @@ const Header: FC = () => {
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        zIndex: 1301,
+                        alignContent: 'top',
+                        zIndex: 11,
                         padding: { xs: 0, sm: '50px' },
                     }}
+                    onClick={handleCloseOnboarding}
                 >
                     <Box
                         onClick={(e) => e.stopPropagation()}
@@ -453,7 +460,7 @@ const Header: FC = () => {
                             display: 'flex',
                             flexDirection: 'column',
                             alignItems: 'center',
-                            justifyContent: { xs: 'center', },
+                            justifyContent: { xs: 'flex-start', },
                             gap: 6,
                             backgroundColor: '#fff',
                             pl: '20px',
@@ -466,16 +473,50 @@ const Header: FC = () => {
                             position: 'relative',
                         }}
                     >
-                        <Typography sx={{
-                            textAlign: 'center',
-                            ml: { xs: 0, sm: 8 },
-                            mr: { xs: 0, sm: 8 },
-                        }}
+                        <Box
+                            sx={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: 4,
+                                mt: 1,
+                                maxWidth: '85%'
+                            }}
                         >
-                            Willkommen bei Dionys
-                        </Typography>
-                        <OnboardingAssistant />
+                            <Typography sx={{
+                                textAlign: 'center',
+                                ml: { xs: 0, sm: 8 },
+                                mr: { xs: 0, sm: 8 }, mt: 10
+                            }}
+                            >
+                                Jetzt die letzten Einrichtungsschritte erledigen
+                            </Typography>
+                            <OnboardingAssistant />
+                        </Box>
                     </Box>
+                </Box>
+            )}
+
+            {/* Onboarding Overlay (Mobile) */}
+            {isOnboardingOverlayOpen && isMobile && (
+                <Box
+                    onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside
+                    sx={{
+                        position: 'fixed',
+                        left: 0,
+                        width: '100vw',
+                        height: '100vh',
+                        backgroundColor: '#fff',
+                        zIndex: 1300,
+                        padding: '20px',
+                    }}
+                >
+                    <IconButton
+                        sx={{ position: 'absolute', top: '10px', right: '10px' }}
+                        onClick={handleCloseOnboarding}
+                    >
+                        <X />
+                    </IconButton>
+                    <OnboardingAssistant sx={{ mt: 5 }} />
                 </Box>
             )}
 

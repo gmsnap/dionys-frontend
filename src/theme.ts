@@ -178,6 +178,7 @@ const theme = createTheme({
                     textTransform: 'none',
                     boxShadow: 'none',
                     backgroundColor: '#FFFFFF',
+                    minHeight: 28,
                 },
                 outlinedPrimary: {
                     border: `1px solid ${customColors.blue.main}`,

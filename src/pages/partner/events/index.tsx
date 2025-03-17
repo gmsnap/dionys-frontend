@@ -4,16 +4,24 @@ import { Box, Button, List, ListItem, ListItemButton, ListItemText, Typography }
 import PartnerLayout from '@/layouts/PartnerLayout';
 import PartnerContentLayout from '@/layouts/PartnerContentLayout';
 import useStore from '@/stores/partnerStore';
+import { useHeaderContext } from "@/components/headers/PartnerHeaderContext";
 import { fetchEventConfigurationsByCompany } from '@/services/eventConfigurationService';
 import { EventConfigurationModel } from '@/models/EventConfigurationModel';
 import EventConfigurationDetails from '@/features/partners/EventConfigurationDetails';
 import EventCalendar, { CalendarEvent } from '@/features/partners/EventCalendar';
 import theme from '@/theme';
 import { CalendarIcon, List as ListIcon } from 'lucide-react';
+import { formatEventCategoryStringSync } from '@/utils/formatEventCategories';
+import { onboardingCompleted } from '@/services/onboardingService';
+import OnboardingIndicator from '@/features/partners/OnboardingIndicator';
 
 const PartnerPage: NextPageWithLayout = () => {
     const { partnerUser } = useStore();
+    const { partnerLocations } = useStore();
+    const { setIsOnboardingOverlayOpen } = useHeaderContext();
+
     const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [showOnboarding, setShowOnboarding] = useState(false);
     const [eventConfs, setEventConfs] = useState<EventConfigurationModel[] | null>(null);
     const [selectedConf, setSelectedConf] = useState<EventConfigurationModel | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -66,13 +74,29 @@ const PartnerPage: NextPageWithLayout = () => {
         }
         const events: CalendarEvent[] = eventConfs.map((e): CalendarEvent => ({
             id: e.id,
-            title: e.eventCategory ?? '',
+            title: `${formatEventCategoryStringSync(e.eventCategory ?? '')}  (ID-${e.id})`,
             start: e.date ? new Date(e.date) : new Date(),
             end: e.endDate ? new Date(e.endDate) : new Date(),
+            persons: e.persons ?? 0,
+            location: e.location?.title ?? '?',
+            rooms: e.rooms && e.rooms.length > 0
+                ? e.rooms.map((r) => r.name)
+                : [],
             color: theme.palette.customColors.blue.contrast,
         }));
         setCalendarEvents(events);
     }, [eventConfs]);
+
+    useEffect(() => {
+        if (partnerUser &&
+            partnerLocations &&
+            onboardingCompleted(partnerUser, partnerLocations)
+        ) {
+            setShowOnboarding(false);
+            return;
+        }
+        setShowOnboarding(true);
+    }, [partnerUser, partnerLocations]);
 
     if (!partnerUser) {
         return (
@@ -103,7 +127,96 @@ const PartnerPage: NextPageWithLayout = () => {
 
     return (
         <Box>
-            <Box sx={{ display: 'flex', flexDirection: 'row', gap: 1, ml: 2, mb: 5 }}>
+            {/* Onboarding with Headline */}
+            {showOnboarding && (
+                <>
+                    {/* Headline */}
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            flexDirection: 'row',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                        }}>
+                        <Typography
+                            variant='h3'
+                            sx={{
+                                fontFamily: "'Arial', sans-serif",
+                                ml: 3,
+                            }}
+                        >
+                            Onboarding
+                        </Typography>
+                    </Box>
+                    <Box
+                        sx={{
+                            borderTop: (theme) => `1px solid ${theme.palette.customColors.blue.halfdark}`,
+                            width: '100%',
+                            mt: 3,
+                        }}
+                    />
+                    <Box
+                        sx={{
+                            mt: { xs: 4, md: 4 },
+                            display: 'flex',
+                            flexDirection: 'row',
+                            justifyItems: 'center',
+                            gap: 1,
+                            ml: 2,
+                            mb: 6,
+                        }}
+                    >
+                        <Box
+                            sx={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: 1,
+                            }}>
+                            <Typography>Jetzt die letzten Einrichtungsschritte erledigen</Typography>
+                            <OnboardingIndicator
+                                sx={{ cursor: 'pointer', }}
+                                onClick={() => setIsOnboardingOverlayOpen(true)}
+                            />
+                        </Box>
+                    </Box>
+                </>
+            )}
+
+            {/* Content with Headline */}
+            <>
+                <Box
+                    sx={{
+                        display: 'flex',
+                        flexDirection: 'row',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                    }}>
+                    <Typography
+                        variant='h3'
+                        sx={{
+                            fontFamily: "'Arial', sans-serif",
+                            ml: 3,
+                        }}
+                    >
+                        Dashboard
+                    </Typography>
+                </Box>
+                <Box
+                    sx={{
+                        borderTop: (theme) => `1px solid ${theme.palette.customColors.blue.halfdark}`,
+                        width: '100%',
+                        mt: 3,
+                    }}
+                />
+            </>
+            <Box sx={{
+                mt: { xs: 5, md: 10 },
+                display: 'flex',
+                flexDirection: 'row',
+                gap: 1,
+                ml: 2,
+                mb: 5
+            }}>
                 <Button
                     variant='contained'
                     onClick={(e) => { e.preventDefault(); setCurrenTab(1); }}
@@ -201,7 +314,7 @@ const PartnerPage: NextPageWithLayout = () => {
 PartnerPage.getLayout = function getLayout(page: ReactElement) {
     return (
         <PartnerLayout>
-            <PartnerContentLayout title='Dashboard'>
+            <PartnerContentLayout>
                 {page}
             </PartnerContentLayout>
         </PartnerLayout>

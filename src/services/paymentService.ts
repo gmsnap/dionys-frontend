@@ -1,3 +1,5 @@
+import { PartnerUserModel } from "@/models/PartnerUserModel";
+
 const baseUrl = process.env.NEXT_PUBLIC_API_URL;
 export const subscriptionsUrl = `${baseUrl}/partner/subscriptions/`;
 
@@ -57,4 +59,17 @@ export const createCheckoutSession = async (
         console.error('Error creating Event Package:', error);
         onError?.();
     }
+};
+
+export const hasSubscription = (partnerUser: PartnerUserModel): boolean => {
+    if (!partnerUser) {
+        return false;
+    }
+
+    return (
+        !!partnerUser.company?.subscription ||
+        partnerUser.email?.endsWith("@dionys.ai") ||
+        partnerUser.email?.endsWith("@pingponglabs.de") ||
+        partnerUser.email?.includes("gregor.matte")
+    );
 };

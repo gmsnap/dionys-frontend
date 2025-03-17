@@ -10,7 +10,9 @@ import {
     FormControl,
     Select,
     MenuItem,
-    FormHelperText
+    FormHelperText,
+    SxProps,
+    Theme
 } from '@mui/material';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Save } from 'lucide-react';
@@ -38,18 +40,24 @@ interface FormProps {
     packageId: number;
     locationId: number | null;
     companyId: number;
+    submitButtonCaption?: string;
     created?: (id: number) => void;
     updated?: (id: number) => void;
     deleted?: (id: number) => void;
+    packageCategory?: PackageCategories;
+    sx?: SxProps<Theme>;
 }
 
 const EventPackageForm = ({
     packageId,
     locationId,
     companyId,
+    submitButtonCaption,
     created,
     updated,
-    deleted
+    deleted,
+    packageCategory,
+    sx
 }: FormProps) => {
     const { authUser } = useAuthContext();
 
@@ -59,6 +67,11 @@ const EventPackageForm = ({
     const [success, setSuccess] = useState(false);
     const [responseMessage, setResponseMessage] = useState("");
 
+    const defaultValues = {
+        ...createEmptyEventPackageModel(0),
+        ...(packageCategory !== undefined && { packageCategory: packageCategory }),
+    };
+
     const {
         control,
         handleSubmit,
@@ -67,7 +80,7 @@ const EventPackageForm = ({
         watch,
         formState: { errors },
     } = useForm({
-        defaultValues: createEmptyEventPackageModel(0),
+        defaultValues,
         resolver: yupResolver(EventPackageValidationSchema),
     });
 
@@ -281,7 +294,7 @@ const EventPackageForm = ({
     const isPriceInputDisabled = priceTypeValue === "none";
 
     return (
-        <Box sx={{ height: "100vh", }}>
+        <Box sx={{ height: "100vh", ...sx }}>
             <Typography variant="h5"
                 sx={{ mb: 2, color: 'primary.main' }}>
                 Allgemein
@@ -533,7 +546,7 @@ const EventPackageForm = ({
                                     },
                                 }}
                             >
-                                {isSubmitting ? 'Speichern...' : 'Speichern'}
+                                {submitButtonCaption || "Speichern"}
                                 <Box component="span" sx={{ ml: 1 }}>
                                     <Save className="icon" width={16} height={16} />
                                 </Box>

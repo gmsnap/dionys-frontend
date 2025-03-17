@@ -7,18 +7,19 @@ import {
     Grid2,
     Switch,
     FormControlLabel,
-    Select,
-    MenuItem,
-    SelectChangeEvent,
 } from "@mui/material";
 import useStore from "@/stores/partnerStore";
 import router from "next/router";
 import { fetchCompanyById, updatePartnerCompany } from "@/services/partnerService";
-import City, { AvailableCities } from "@/models/City";
 import BillingAddressFields from "./BillingAddressFields";
 import { useAuthContext } from "@/auth/AuthContext";
 
-const PartnerCompanyForm: React.FC = () => {
+interface Props {
+    submitButtonCaption?: string;
+    onComplete?: (id: number) => void;
+}
+
+const PartnerCompanyForm = ({ submitButtonCaption, onComplete }: Props) => {
     const { authUser } = useAuthContext();
     const { partnerUser, setPartnerUser } = useStore();
 
@@ -34,6 +35,7 @@ const PartnerCompanyForm: React.FC = () => {
     });
 
     const [billingToggle, setBillingToggle] = useState(true);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState(false);
 
@@ -61,34 +63,6 @@ const PartnerCompanyForm: React.FC = () => {
                 }
             } else {
                 return { ...prevData, [name]: value };
-            }
-        });
-    };
-
-    const handleCityChange = (event: SelectChangeEvent) => {
-        const { name, value } = event.target;
-
-        if (!name) return; // If name is undefined, do nothing
-
-        const keys = name.split('.'); // Split nested keys, e.g., 'address.city' -> ['address', 'city']
-
-        setFormData((prevState: any) => {
-            if (keys.length === 1) {
-                // Handle top-level fields
-                return {
-                    ...prevState,
-                    [keys[0]]: value,
-                };
-            } else {
-                // Handle nested fields
-                const [objectKey, propertyKey] = keys;
-                return {
-                    ...prevState,
-                    [objectKey]: {
-                        ...prevState[objectKey],
-                        [propertyKey]: value, // Update only the specific nested field
-                    },
-                };
             }
         });
     };
@@ -122,9 +96,22 @@ const PartnerCompanyForm: React.FC = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
+        setIsSubmitting(true);
+
         if (!formData.companyName) {
-            setError("Company Name is required.");
+            setError("Firmenname ist erforderlich.");
             setSuccess(false);
+            setIsSubmitting(false);
+            return;
+        }
+
+        if (!formData.address?.city ||
+            !formData.address?.streetAddress ||
+            !formData.address?.country ||
+            !formData.address?.postalCode) {
+            setError("Die Adresse ist noch nicht vollständig.");
+            setSuccess(false);
+            setIsSubmitting(false);
             return;
         }
 
@@ -132,12 +119,14 @@ const PartnerCompanyForm: React.FC = () => {
             if (!partnerUser || !authUser) {
                 setError("Please login.");
                 setSuccess(false);
+                setIsSubmitting(false);
                 return;
             }
 
             if (!partnerUser?.companyId) {
                 setError("Invalid Company.");
                 setSuccess(false);
+                setIsSubmitting(false);
                 return;
             }
 
@@ -157,6 +146,7 @@ const PartnerCompanyForm: React.FC = () => {
                         });
                         setError(null);
                         setSuccess(true);
+                        onComplete?.(updatedCompany.id);
                     }
                 },
                 (message) => {
@@ -169,6 +159,8 @@ const PartnerCompanyForm: React.FC = () => {
             console.error("Error updating company:", err);
             setError("Failed to update company. Please try again.");
             setSuccess(false);
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -395,15 +387,16 @@ const PartnerCompanyForm: React.FC = () => {
                         <BillingAddressFields formData={formData} handleChange={handleChange} />}
 
                     {/* Submit */}
-                    <Grid2 size={{ xs: 12, }} sx={{ mt: 3 }}>
+                    <Grid2 size={{ xs: 12, }} sx={{ mt: 3, mb: 12 }}>
                         <Box sx={{ display: "flex", flexDirection: "column", }}>
                             <Button
                                 type="submit"
                                 variant="contained"
                                 color="primary"
+                                disabled={isSubmitting}
                                 sx={{ maxWidth: { xs: '100%', md: 150 } }}
                             >
-                                Speichern
+                                {submitButtonCaption || "Speichern"}
                             </Button>
                             {error && <Typography sx={{ color: "red", mt: 2 }}>{error}</Typography>}
                             {success && (
