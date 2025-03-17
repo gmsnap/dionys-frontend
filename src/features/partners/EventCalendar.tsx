@@ -16,9 +16,24 @@ import {
     subWeeks,
 } from "date-fns"
 import { de } from "date-fns/locale"
-import { Button, Container, Typography, Box, Paper, Stack, IconButton, Tooltip, Badge, Grid2, useMediaQuery, useTheme } from "@mui/material"
-import { ChevronLeft, ChevronRight, CalendarIcon as Calendar1, CalendarDays } from "lucide-react"
-import theme from "@/theme"
+import {
+    Button,
+    Container,
+    Typography,
+    Box,
+    Paper,
+    Stack,
+    IconButton,
+    Tooltip,
+    Badge,
+    Grid2,
+    useMediaQuery,
+    useTheme,
+    Modal,
+    Fade,
+    Backdrop,
+} from "@mui/material"
+import { ChevronLeft, ChevronRight, CalendarIcon as Calendar1, CalendarDays, X } from "lucide-react"
 
 // Updated event type with start and end times
 export interface CalendarEvent {
@@ -26,6 +41,9 @@ export interface CalendarEvent {
     title: string
     start: Date // Start time
     end: Date // End time
+    persons: number,
+    location: string,
+    rooms: string[],
     color: string
 }
 
@@ -40,7 +58,7 @@ type ViewType = "month" | "week"
 const hours = Array.from({ length: 24 }, (_, i) => i)
 
 export default function EventCalendar({ events, onDateRangeChange }: EventCalendarProps) {
-    const theme = useTheme();
+    const theme = useTheme()
     // Set initial date to current date
     const [currentDate, setCurrentDate] = useState(new Date())
     const [view, setView] = useState<ViewType>("week") // Default to week view for time-based display
@@ -49,7 +67,7 @@ export default function EventCalendar({ events, onDateRangeChange }: EventCalend
     const [currentTime, setCurrentTime] = useState(new Date())
     const timeIndicatorRef = useRef<NodeJS.Timeout | null>(null)
 
-    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+    const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
 
     // Update current time every minute
     useEffect(() => {
@@ -165,6 +183,11 @@ export default function EventCalendar({ events, onDateRangeChange }: EventCalend
         setIsModalOpen(true)
     }
 
+    const handleCloseModal = () => {
+        setIsModalOpen(false)
+        setSelectedEvent(null)
+    }
+
     const days = getDaysToDisplay()
     const weekDays = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"] // German weekday abbreviations
 
@@ -176,14 +199,13 @@ export default function EventCalendar({ events, onDateRangeChange }: EventCalend
                 end: days[days.length - 1],
             })
         }
-    }, [currentDate, view, onDateRangeChange])
+    }, [currentDate, view])
 
     return (
         <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
             <Paper elevation={isMobile ? 0 : 3} sx={{ p: isMobile ? 0 : 3 }}>
-
                 {/* Calendar Header (Desktop) */}
-                {!isMobile &&
+                {!isMobile && (
                     <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
                         <Stack direction="row" spacing={1} alignItems="center">
                             <Button variant="contained" onClick={goToToday}>
@@ -205,34 +227,24 @@ export default function EventCalendar({ events, onDateRangeChange }: EventCalend
                                 <Button
                                     variant={view === "month" ? "contained" : "outlined"}
                                     onClick={() => setView("month")}
-                                    startIcon={
-                                        <CalendarDays
-                                            color={view === "month"
-                                                ? 'white'
-                                                : theme.palette.customColors.blue.main}
-                                        />}
+                                    startIcon={<CalendarDays color={view === "month" ? "white" : theme.palette.customColors.blue.main} />}
                                 >
                                     Monat
                                 </Button>
                                 <Button
                                     variant={view === "week" ? "contained" : "outlined"}
                                     onClick={() => setView("week")}
-                                    startIcon={
-                                        <Calendar1
-                                            color={view === "week"
-                                                ? 'white'
-                                                : theme.palette.customColors.blue.main}
-                                        />}
+                                    startIcon={<Calendar1 color={view === "week" ? "white" : theme.palette.customColors.blue.main} />}
                                 >
                                     Woche
                                 </Button>
                             </Stack>
                         </Stack>
                     </Stack>
-                }
+                )}
 
                 {/* Calendar Header (Mobile) */}
-                {isMobile &&
+                {isMobile && (
                     <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
                         <Stack direction="row" spacing={1} alignItems="center">
                             <IconButton onClick={prevPeriod}>
@@ -247,30 +259,16 @@ export default function EventCalendar({ events, onDateRangeChange }: EventCalend
                         </Stack>
                         <Stack direction="row" spacing={2}>
                             <Stack direction="row" spacing={1}>
-                                <Button
-                                    variant={view === "month" ? "contained" : "outlined"}
-                                    onClick={() => setView("month")}
-                                >
-                                    <CalendarDays
-                                        color={view === "month"
-                                            ? 'white'
-                                            : theme.palette.customColors.blue.main}
-                                    />
+                                <Button variant={view === "month" ? "contained" : "outlined"} onClick={() => setView("month")}>
+                                    <CalendarDays color={view === "month" ? "white" : theme.palette.customColors.blue.main} />
                                 </Button>
-                                <Button
-                                    variant={view === "week" ? "contained" : "outlined"}
-                                    onClick={() => setView("week")}
-                                >
-                                    <Calendar1
-                                        color={view === "week"
-                                            ? 'white'
-                                            : theme.palette.customColors.blue.main}
-                                    />
+                                <Button variant={view === "week" ? "contained" : "outlined"} onClick={() => setView("week")}>
+                                    <Calendar1 color={view === "week" ? "white" : theme.palette.customColors.blue.main} />
                                 </Button>
                             </Stack>
                         </Stack>
                     </Stack>
-                }
+                )}
 
                 {view === "month" ? (
                     // Monthly view
@@ -390,25 +388,26 @@ export default function EventCalendar({ events, onDateRangeChange }: EventCalend
                             <Box sx={{ height: "50px", borderBottom: 1, borderColor: "divider" }}></Box>
 
                             {/* Hour labels - 24 hour format */}
-                            {hours.map((hour) => (
-                                hour < 23 && (
-                                    <Box
-                                        key={hour}
-                                        sx={{
-                                            height: "40px",
-                                            display: "flex",
-                                            alignItems: "center",
-                                            justifyContent: "center",
-                                            borderBottom: 1,
-                                            borderColor: "divider",
-                                            fontSize: "0.75rem",
-                                            color: "text.secondary",
-                                        }}
-                                    >
-                                        {(hour + 1).toString().padStart(2, "0")}:00
-                                    </Box>
-                                )
-                            ))}
+                            {hours.map(
+                                (hour) =>
+                                    hour < 23 && (
+                                        <Box
+                                            key={hour}
+                                            sx={{
+                                                height: "40px",
+                                                display: "flex",
+                                                alignItems: "center",
+                                                justifyContent: "center",
+                                                borderBottom: 1,
+                                                borderColor: "divider",
+                                                fontSize: "0.75rem",
+                                                color: "text.secondary",
+                                            }}
+                                        >
+                                            {(hour + 1).toString().padStart(2, "0")}:00
+                                        </Box>
+                                    ),
+                            )}
                         </Box>
 
                         {/* Days columns */}
@@ -545,6 +544,131 @@ export default function EventCalendar({ events, onDateRangeChange }: EventCalend
                     </Box>
                 )}
             </Paper>
+
+            {/* Event Details Modal */}
+            <Modal
+                open={isModalOpen}
+                onClose={handleCloseModal}
+                closeAfterTransition
+                slots={{ backdrop: Backdrop }}
+                slotProps={{
+                    backdrop: {
+                        timeout: 500,
+                    },
+                }}
+            >
+                <Fade in={isModalOpen}>
+                    <Box
+                        sx={{
+                            position: "absolute",
+                            top: "50%",
+                            left: "50%",
+                            transform: "translate(-50%, -50%)",
+                            width: isMobile ? "100%" : 400,
+                            height: isMobile ? "100%" : "auto",
+                            maxHeight: isMobile ? "100%" : "80vh",
+                            bgcolor: "background.paper",
+                            boxShadow: 24,
+                            p: 4,
+                            borderRadius: isMobile ? 0 : 2,
+                            overflow: "auto",
+                        }}
+                    >
+                        {/* Close button - only visible on mobile */}
+                        {isMobile && (
+                            <IconButton
+                                onClick={handleCloseModal}
+                                sx={{
+                                    position: "absolute",
+                                    top: 8,
+                                    right: 8,
+                                    zIndex: 1,
+                                }}
+                            >
+                                <X />
+                            </IconButton>
+                        )}
+
+                        {selectedEvent && (
+                            <>
+                                <Box
+                                    sx={{
+                                        width: "100%",
+                                        height: "8px",
+                                        bgcolor: selectedEvent.color,
+                                        position: "absolute",
+                                        top: 0,
+                                        left: 0,
+                                        right: 0,
+                                    }}
+                                />
+                                <Typography variant="h5" component="h2" sx={{ mb: 2, mt: isMobile ? 4 : 1 }}>
+                                    {selectedEvent.title}
+                                </Typography>
+                                <Stack spacing={2}>
+                                    <Box>
+                                        <Typography variant="subtitle2" color="text.secondary">
+                                            Datum
+                                        </Typography>
+                                        <Typography variant="body1">
+                                            {format(selectedEvent.start, "EEEE, d. MMMM yyyy", { locale: de })}
+                                        </Typography>
+                                    </Box>
+                                    <Box>
+                                        <Typography variant="subtitle2" color="text.secondary">
+                                            Zeit
+                                        </Typography>
+                                        <Typography variant="body1">
+                                            {format(selectedEvent.start, "HH:mm", { locale: de })} -{" "}
+                                            {format(selectedEvent.end, "HH:mm", { locale: de })}
+                                        </Typography>
+                                    </Box>
+                                    <Box>
+                                        <Typography variant="subtitle2" color="text.secondary">
+                                            Dauer
+                                        </Typography>
+                                        <Typography variant="body1">
+                                            {Math.round((selectedEvent.end.getTime() - selectedEvent.start.getTime()) / (1000 * 60))} Minuten
+                                        </Typography>
+                                    </Box>
+                                    <Box>
+                                        <Typography variant="subtitle2" color="text.secondary">
+                                            Personen
+                                        </Typography>
+                                        <Typography variant="body1">
+                                            {selectedEvent.persons}
+                                        </Typography>
+                                    </Box>
+                                    <Box>
+                                        <Typography variant="subtitle2" color="text.secondary">
+                                            Location
+                                        </Typography>
+                                        <Typography variant="body1">
+                                            {selectedEvent.location}
+                                        </Typography>
+                                    </Box>
+                                    <Box>
+                                        <Typography variant="subtitle2" color="text.secondary">
+                                            Rooms & Tables
+                                        </Typography>
+                                        <Typography variant="body1">
+                                            {selectedEvent.rooms.map((r, i) => <Typography key={i} variant="body1">{r}</Typography>)}{' '}
+                                        </Typography>
+                                    </Box>
+                                </Stack>
+
+                                {!isMobile && (
+                                    <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 4 }}>
+                                        <Button onClick={handleCloseModal} variant="outlined">
+                                            Schließen
+                                        </Button>
+                                    </Box>
+                                )}
+                            </>
+                        )}
+                    </Box>
+                </Fade>
+            </Modal>
         </Container>
     )
 }
