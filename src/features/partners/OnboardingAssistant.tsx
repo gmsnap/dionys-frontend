@@ -1,12 +1,12 @@
 import type React from "react"
 import { useEffect, useRef, useState, type ReactNode } from "react"
-import { Box, Button, List, ListItem, ListItemButton, ListItemText, SxProps, Theme, Typography, useMediaQuery, useTheme } from "@mui/material"
+import { Box, Button, Fade, IconButton, List, ListItem, ListItemButton, ListItemText, Modal, SxProps, Theme, Typography, useMediaQuery, useTheme } from "@mui/material"
 import useStore from "@/stores/partnerStore"
 import PartnerCompanyForm from "./PartnerCompanyForm"
 import CreateLocationForm from "./CreateLocationForm"
 import RoomForm from "./RoomForm"
-import { CircleCheck } from "lucide-react"
-import { companyCompleted, locationCompleted, roomsCompleted } from "@/services/onboardingService"
+import { CircleCheck, CircleCheckBig, X } from "lucide-react"
+import { companyCompleted, roomsCompleted } from "@/services/onboardingService"
 import { fetchEventPackagesByCompany } from "@/services/eventPackageService"
 import { EventPackageModel } from "@/models/EventPackageModel"
 import EventPackageForm from "./EventPackageForm"
@@ -68,7 +68,7 @@ const OnboardingAssistant = ({ sx }: OnboardingAssistantProps) => {
 
     const { authUser } = useAuthContext();
     const { partnerUser, partnerLocations } = useStore()
-    const { setIsOnboardingOverlayOpen } = useHeaderContext();
+    const { isOnboardingOverlayOpen, setIsOnboardingOverlayOpen } = useHeaderContext();
 
     const [companyId, setCompanyId] = useState<number | null>(null)
     const [locationId, setLocationId] = useState<number | null>(null)
@@ -80,7 +80,8 @@ const OnboardingAssistant = ({ sx }: OnboardingAssistantProps) => {
     const [foodCompleted, setFoodCompleted] = useState(0);
     const [lookPackages, setLookPackages] = useState<EventPackageModel[] | null>(null);
     const [lookCompleted, setLookCompleted] = useState(0);
-    const [selectedItem, setSelectedItem] = useState(0)
+    const [selectedItem, setSelectedItem] = useState(0);
+    const [isModalOpen, setIsModalOpen] = useState(false)
 
     const scrollableBoxRef = useRef<HTMLDivElement>(null);
 
@@ -88,6 +89,14 @@ const OnboardingAssistant = ({ sx }: OnboardingAssistantProps) => {
     const [menuData, setMenuData] = useState<MenuItem[]>([])
 
     const nextStep = () => {
+        console.log("A B ", selectedItem, isOnboardingOverlayOpen)
+        if (selectedItem == 0 &&
+            (isOnboardingOverlayOpen != null && isOnboardingOverlayOpen > 0)) {
+            if (menuData[isOnboardingOverlayOpen]?.completed === false) {
+                setSelectedItem(isOnboardingOverlayOpen);
+                return;
+            }
+        }
         const firstItemIndex = menuData.findIndex(item => !item.completed);
         if (firstItemIndex !== -1) {
             setSelectedItem(firstItemIndex);
@@ -104,12 +113,15 @@ const OnboardingAssistant = ({ sx }: OnboardingAssistantProps) => {
     }
 
     const fetchEventPackages = async (companyId: number) => {
-        const fetchedPackages = await fetchEventPackagesByCompany(companyId) as EventPackageModel[] | null
+        const fetchedPackages =
+            await fetchEventPackagesByCompany(companyId) as EventPackageModel[] | null;
+
         setFoodPackages(
             fetchedPackages?.filter((p: EventPackageModel) => {
                 return p.packageCategory === "catering";
             }) || []
         );
+
         setLookPackages(
             fetchedPackages?.filter((p: EventPackageModel) => {
                 return p.packageCategory === "equipment";
@@ -182,10 +194,7 @@ const OnboardingAssistant = ({ sx }: OnboardingAssistantProps) => {
         }
 
         // Location
-        if (!partnerLocations || !locationCompleted(partnerLocations) || locationCompletedState != 2) {
-            if (locationCompletedState == 0) {
-                setLocationCompletedState(1);
-            }
+        if (locationCompletedState == 1) {
             items.push(
                 {
                     label: "Location",
@@ -293,7 +302,7 @@ const OnboardingAssistant = ({ sx }: OnboardingAssistantProps) => {
                 {
                     label: "Food & Beverage",
                     content: null,
-                    completed: foodCompleted == 2,
+                    completed: true,
                 }
             );
         }
@@ -334,7 +343,7 @@ const OnboardingAssistant = ({ sx }: OnboardingAssistantProps) => {
                 {
                     label: "Look & Feel",
                     content: null,
-                    completed: lookCompleted == 2,
+                    completed: true,
                 }
             );
         }
@@ -348,11 +357,11 @@ const OnboardingAssistant = ({ sx }: OnboardingAssistantProps) => {
                             <Typography variant="h3" sx={{ textAlign: 'left', mb: 3 }}>
                                 DIONYS einbetten
                             </Typography>
-                            <LocationEmbedCode idCode={idCode} sx={{ maxWidth: '84%' }} />
+                            <LocationEmbedCode idCode={idCode} sx={{ maxWidth: { xs: '100%', sm: '84%' } }} />
                             <StepNextButton
                                 title={'Fertig'}
                                 disabled={lookCompleted == 1}
-                                callback={() => { setIsOnboardingOverlayOpen(false); }}
+                                callback={() => { setIsModalOpen(true); }}
                             />
                         </Box>
                     ),
@@ -394,12 +403,23 @@ const OnboardingAssistant = ({ sx }: OnboardingAssistantProps) => {
 
     useEffect(() => {
         if (partnerLocations && partnerLocations.length > 0) {
-            setLocationId(partnerLocations[0].id);
+            const firstId = partnerLocations[0].id;
+            if (firstId > 0) {
+                setLocationId(firstId);
+                if (locationCompletedState == 0) {
+                    setLocationCompletedState(2);
+                }
+                return;
+            }
         }
+        setLocationCompletedState(1);
     }, [partnerLocations])
 
     useEffect(() => {
-        if (locationId && locationId > 0) {
+        if (locationId === null) {
+            return;
+        }
+        if (locationId > 0) {
             fetchLocationEmbedCode(locationId);
         }
     }, [locationId])
@@ -500,6 +520,61 @@ const OnboardingAssistant = ({ sx }: OnboardingAssistantProps) => {
                     </Box>
                 </Box>
             )}
+            <Modal
+                open={isModalOpen}
+            >
+                <Fade in={isModalOpen}>
+                    <Box
+                        sx={{
+                            position: "absolute",
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            top: "50%",
+                            left: "50%",
+                            transform: "translate(-50%, -50%)",
+                            width: isMobile ? "100%" : "50%",
+                            height: isMobile ? "100%" : "50%",
+                            maxHeight: isMobile ? "100%" : "80vh",
+                            bgcolor: "background.paper",
+                            boxShadow: 24,
+                            p: 4,
+                            borderRadius: isMobile ? 0 : 2,
+                            overflow: "auto",
+                        }}
+                    >
+                        {/* Close button - only visible on mobile */}
+                        {isMobile && (
+                            <IconButton
+                                onClick={() => { setIsOnboardingOverlayOpen(null); }}
+                                sx={{
+                                    position: "absolute",
+                                    top: 8,
+                                    right: 8,
+                                    zIndex: 1,
+                                }}
+                            >
+                                <X />
+                            </IconButton>
+                        )}
+
+                        <CircleCheckBig size={120} color='#002A58' />
+
+                        <Typography variant="h5" sx={{ mt: 10, textAlign: 'center' }}>
+                            Geschafft! <br /> Ab jetzt beantworten wir deine Event Anfragen! <br />
+                            <span role="img" aria-label="party">🎉</span>
+                        </Typography>
+
+                        <Button
+                            variant="contained"
+                            sx={{ mt: 5 }}
+                            onClick={() => { setIsOnboardingOverlayOpen(null); }}
+                        >Okay</Button>
+
+                    </Box>
+                </Fade>
+            </Modal>
         </Box>
     )
 }

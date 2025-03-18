@@ -14,7 +14,7 @@ import {
 import { FC, useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import router from 'next/router';
-import { CircleUserRound, MenuIcon, X } from 'lucide-react';
+import { CircleCheckBig, CircleUserRound, MenuIcon, X } from 'lucide-react';
 import MenuItem from '../MenuItem';
 import PartnerSettings from '@/features/partners/PartnerSettings';
 import { useAuthContext } from '@/auth/AuthContext';
@@ -26,7 +26,6 @@ import { createPartnerUser } from '@/services/partnerService';
 import OnboardingAssistant from '@/features/partners/OnboardingAssistant';
 import { useSetLocationByCurrentPartner } from '@/services/locationService';
 import { hasSubscription } from '@/services/paymentService';
-import { onboardingCompleted } from '@/services/onboardingService';
 
 const Header: FC = () => {
     const theme = useTheme();
@@ -92,7 +91,7 @@ const Header: FC = () => {
     };
 
     const handleCloseOnboarding = () => {
-        setIsOnboardingOverlayOpen(false);
+        setIsOnboardingOverlayOpen(null);
     };
 
     useSetLocationByCurrentPartner();
@@ -137,13 +136,13 @@ const Header: FC = () => {
     useEffect(() => {
         if (!partnerUser) {
             setIsPaymentOverlayOpen(false);
-            setIsOnboardingOverlayOpen(false);
+            setIsOnboardingOverlayOpen(null);
             return;
         }
 
         if (!hasSubscription(partnerUser)) {
             setIsPaymentOverlayOpen(true);
-            setIsOnboardingOverlayOpen(false);
+            setIsOnboardingOverlayOpen(null);
             return;
         }
 
@@ -421,13 +420,14 @@ const Header: FC = () => {
                             position: 'relative',
                         }}
                     >
+                        <CircleCheckBig size={120} color='#002A58' />
                         <Typography sx={{
                             textAlign: 'center',
                             ml: { xs: 0, sm: 8 },
                             mr: { xs: 0, sm: 8 },
                         }}
                         >
-                            Dein Login war erfolgreich. <br />Bitte hinterlege deine Zahlungsdaten:
+                            Dein Login war erfolgreich. <br />Bitte wähle dein Abo:
                         </Typography>
                         <PaymentComponent />
                         {logoutButton}
@@ -436,7 +436,7 @@ const Header: FC = () => {
             )}
 
             {/* Onboarding Overlay */}
-            {isOnboardingOverlayOpen && !isMobile && (
+            {isOnboardingOverlayOpen != null && !isMobile && (
                 <Box
                     sx={{
                         position: 'fixed',
@@ -497,7 +497,7 @@ const Header: FC = () => {
             )}
 
             {/* Onboarding Overlay (Mobile) */}
-            {isOnboardingOverlayOpen && isMobile && (
+            {isOnboardingOverlayOpen != null && isMobile && (
                 <Box
                     onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside
                     sx={{

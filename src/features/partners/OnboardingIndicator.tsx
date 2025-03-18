@@ -13,12 +13,31 @@ interface MenuItem {
 
 interface OnboardingIndicatorProps {
     sx?: object;
-    onClick?: () => void;
+    onClick?: (index: number) => void;
 }
 
 const OnboardingIndicator = ({ sx, onClick }: OnboardingIndicatorProps) => {
     const { partnerUser, partnerLocations } = useStore();
     const [menuData, setMenuData] = useState<MenuItem[]>([]);
+    const [foodPackages, setFoodPackages] = useState<EventPackageModel[] | null>(null);
+    const [lookPackages, setLookPackages] = useState<EventPackageModel[] | null>(null);
+
+    const fetchEventPackages = async (companyId: number) => {
+        const fetchedPackages =
+            await fetchEventPackagesByCompany(companyId) as EventPackageModel[] | null;
+
+        setFoodPackages(
+            fetchedPackages?.filter((p: EventPackageModel) => {
+                return p.packageCategory === "catering";
+            }) || []
+        );
+
+        setLookPackages(
+            fetchedPackages?.filter((p: EventPackageModel) => {
+                return p.packageCategory === "equipment";
+            }) || []
+        );
+    }
 
     useEffect(() => {
         if (!partnerUser) return;
@@ -28,12 +47,18 @@ const OnboardingIndicator = ({ sx, onClick }: OnboardingIndicatorProps) => {
             { label: "Unternehmen", ok: companyCompleted(partnerUser) },
             { label: "Location", ok: locationCompleted(partnerLocations) },
             { label: "Rooms & Tables", ok: roomsCompleted(partnerLocations) },
-            { label: "Food & Beverage", ok: locationCompleted(partnerLocations) },
-            { label: "Look & Feel", ok: locationCompleted(partnerLocations) },
+            { label: "Food & Beverage", ok: foodPackages != null && foodPackages.length > 0 },
+            { label: "Look & Feel", ok: lookPackages != null && lookPackages.length > 0 },
             { label: "DIONYS auf die eigene Homepage kopieren", ok: false },
         ];
         setMenuData(items);
-    }, [partnerUser, partnerLocations]);
+    }, [partnerUser, partnerLocations, foodPackages, lookPackages]);
+
+    useEffect(() => {
+        if (partnerUser?.companyId && partnerUser.companyId > 0) {
+            fetchEventPackages(partnerUser.companyId);
+        }
+    }, [partnerUser]);
 
     return (
         <Box
@@ -43,7 +68,6 @@ const OnboardingIndicator = ({ sx, onClick }: OnboardingIndicatorProps) => {
                 flexDirection: "column",
                 alignItems: "start"
             }}
-            onClick={() => onClick?.()}
         >
             {menuData.map((item, index) => (
                 <Box
@@ -52,8 +76,11 @@ const OnboardingIndicator = ({ sx, onClick }: OnboardingIndicatorProps) => {
                         display: "flex",
                         alignItems: "center",
                         position: "relative",
-                        minHeight: 46
-                    }}>
+                        minHeight: 46,
+                        cursor: menuData[index].ok ? 'auto' : 'pointer',
+                    }}
+                    onClick={menuData[index].ok ? undefined : () => onClick?.(index - 1)}
+                >
                     {/* Vertical line */}
                     {index > 0 && (
                         <Box

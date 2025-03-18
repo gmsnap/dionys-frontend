@@ -155,9 +155,11 @@ const PartnerPage: NextPageWithLayout = () => {
                             mt: 3,
                         }}
                     />
+
+                    {/* Onboarding Component */}
                     <Box
                         sx={{
-                            mt: { xs: 4, md: 4 },
+                            mt: { xs: 5, md: 10 },
                             display: 'flex',
                             flexDirection: 'row',
                             justifyItems: 'center',
@@ -174,8 +176,7 @@ const PartnerPage: NextPageWithLayout = () => {
                             }}>
                             <Typography>Jetzt die letzten Einrichtungsschritte erledigen</Typography>
                             <OnboardingIndicator
-                                sx={{ cursor: 'pointer', }}
-                                onClick={() => setIsOnboardingOverlayOpen(true)}
+                                onClick={(i) => setIsOnboardingOverlayOpen(i)}
                             />
                         </Box>
                     </Box>

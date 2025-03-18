@@ -50,7 +50,6 @@ const EventCategoriesField: React.FC<Props> = ({ control, errors }) => {
                             select: {
                                 renderValue: () => <Box>Kategorie hinzufügen</Box>,
                                 displayEmpty: true,
-                                style: { zIndex: 100300 },
                             },
                         }}
                         error={!!errors.eventCategories}
