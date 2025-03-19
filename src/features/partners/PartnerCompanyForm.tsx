@@ -27,7 +27,7 @@ const PartnerCompanyForm = ({ submitButtonCaption, onComplete }: Props) => {
         companyName: "",
         companyRegistrationNumber: "",
         companyTaxId: "",
-        contactEmail: "",
+        contactEmail: partnerUser?.email ?? "",
         phoneNumber: "",
         address: { city: "", streetAddress: "", postalCode: "", country: "" },
         billingAddress: { city: "", streetAddress: "", postalCode: "", country: "" },

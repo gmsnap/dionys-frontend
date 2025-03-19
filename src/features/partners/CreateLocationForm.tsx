@@ -382,7 +382,7 @@ const LocationForm = ({ locationId, submitButtonCaption, locationCreated }: Loca
                         <Grid2 size={{ xs: 12, sm: controlWidth }}>
                             <Grid2 container alignItems="top">
                                 <Grid2 size={{ xs: 12, sm: 4 }}>
-                                    <Typography variant="label">Lage (z.B. Stadteil)</Typography>
+                                    <Typography variant="label">Lage (z.B. Stadtteil)</Typography>
                                 </Grid2>
                                 <Grid2 size={{ xs: 12, sm: 8 }}>
                                     <Controller

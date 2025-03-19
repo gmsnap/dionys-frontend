@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Box, Typography } from "@mui/material";
-import { CheckCircle, Circle, CircleCheck } from "lucide-react";
+import { Circle, CircleCheck } from "lucide-react";
 import useStore from "@/stores/partnerStore";
 import { companyCompleted, locationCompleted, roomsCompleted } from "@/services/onboardingService";
 import { fetchEventPackagesByCompany } from "@/services/eventPackageService";

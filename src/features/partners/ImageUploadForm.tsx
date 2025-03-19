@@ -133,7 +133,8 @@ const ImageUploadForm: React.FC<ImageUploadFormProps> = ({
                     </Box>
                 ) : (
                     <Typography variant="body1" color="text.secondary">
-                        Noch keine Bilder vorhanden
+                        Noch keine Bilder.<br />
+                        <b>Bitte lade mindestens ein Bild hoch.</b>
                     </Typography>
                 )}
             </Box>
@@ -169,7 +170,7 @@ const ImageUploadForm: React.FC<ImageUploadFormProps> = ({
                     </Grid2>
                 ))}
                 {/* Add Image Button */}
-                <Grid2 size={{ xs: 6 }} sx={{ maxHeight: 100, height: "100%" }}>
+                <Grid2 size={{ xs: 12, sm: 5 }} sx={{ maxHeight: 100, height: "100%" }}>
                     <Button
                         component="label"
                         fullWidth
@@ -179,6 +180,7 @@ const ImageUploadForm: React.FC<ImageUploadFormProps> = ({
                             justifyContent: "center",
                             width: "100%",
                             height: "100%",
+                            minHeight: 60,
                             backgroundColor: theme.palette.customColors.textBackground.halfdark,
                             borderRadius: "8px",
                             '&:hover': {
@@ -190,6 +192,7 @@ const ImageUploadForm: React.FC<ImageUploadFormProps> = ({
                             '&:hover .icon': {
                                 color: '#000000',
                             },
+                            mb: 4,
                         }}
                     >
                         {uploading ?

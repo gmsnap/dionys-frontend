@@ -1,6 +1,21 @@
 import type React from "react"
 import { useEffect, useRef, useState, type ReactNode } from "react"
-import { Box, Button, Fade, IconButton, List, ListItem, ListItemButton, ListItemText, Modal, SxProps, Theme, Typography, useMediaQuery, useTheme } from "@mui/material"
+import {
+    Box,
+    Button,
+    Fade,
+    IconButton,
+    List,
+    ListItem,
+    ListItemButton,
+    ListItemText,
+    Modal,
+    SxProps,
+    Theme,
+    Typography,
+    useMediaQuery,
+    useTheme
+} from "@mui/material"
 import useStore from "@/stores/partnerStore"
 import PartnerCompanyForm from "./PartnerCompanyForm"
 import CreateLocationForm from "./CreateLocationForm"
@@ -25,7 +40,7 @@ interface MenuItem {
 
 interface StepNextButtonProps {
     title?: string;
-    disabled?: boolean
+    disabled?: boolean;
     callback: () => void;
 }
 
@@ -58,6 +73,11 @@ const StepNextButton = ({ title, disabled, callback }: StepNextButtonProps) => {
     );
 }
 
+interface ModelProperties {
+    content: ReactNode;
+    onClose: () => void;
+}
+
 interface OnboardingAssistantProps {
     sx?: SxProps<Theme>;
 }
@@ -81,7 +101,8 @@ const OnboardingAssistant = ({ sx }: OnboardingAssistantProps) => {
     const [lookPackages, setLookPackages] = useState<EventPackageModel[] | null>(null);
     const [lookCompleted, setLookCompleted] = useState(0);
     const [selectedItem, setSelectedItem] = useState(0);
-    const [isModalOpen, setIsModalOpen] = useState(false)
+    const [userSelect, setUserSelect] = useState(false);
+    const [modalContent, setModalContent] = useState<ModelProperties | null>(null);
 
     const scrollableBoxRef = useRef<HTMLDivElement>(null);
 
@@ -89,13 +110,15 @@ const OnboardingAssistant = ({ sx }: OnboardingAssistantProps) => {
     const [menuData, setMenuData] = useState<MenuItem[]>([])
 
     const nextStep = () => {
-        console.log("A B ", selectedItem, isOnboardingOverlayOpen)
         if (selectedItem == 0 &&
             (isOnboardingOverlayOpen != null && isOnboardingOverlayOpen > 0)) {
             if (menuData[isOnboardingOverlayOpen]?.completed === false) {
                 setSelectedItem(isOnboardingOverlayOpen);
                 return;
             }
+        }
+        if (!userSelect) {
+            return;
         }
         const firstItemIndex = menuData.findIndex(item => !item.completed);
         if (firstItemIndex !== -1) {
@@ -158,6 +181,87 @@ const OnboardingAssistant = ({ sx }: OnboardingAssistantProps) => {
         }
     };
 
+    const handleLocationCompleted = () => {
+        setUserSelect(true);
+        setModalContent({
+            content: (
+                <>
+                    <Typography variant="h5" sx={{ mt: 10, textAlign: 'center' }}>
+                        Location erfolgreich erstellt! <br />
+                        <span role="img" aria-label="party">🎉</span>
+                    </Typography>
+
+                    <Button
+                        variant="contained"
+                        sx={{ mt: 5 }}
+                        onClick={() => {
+                            setLocationCompletedState(2);
+                            setModalContent(null);
+                        }}
+                    >
+                        Jetzt Raum erstellen
+                    </Button>
+                </>
+            ),
+            onClose: () => {
+                setLocationCompletedState(2);
+                setModalContent(null);
+            }
+        });
+    }
+
+    const handleRoomCompleted = () => {
+        setUserSelect(true);
+        setModalContent({
+            content: (
+                <>
+                    <Typography variant="h5" sx={{ mt: 10, textAlign: 'center' }}>
+                        Raum erfolgreich erstellt! <br />
+                        <span role="img" aria-label="party">🎉</span>
+                    </Typography>
+
+                    <Button
+                        variant="contained"
+                        sx={{ mt: 5 }}
+                        onClick={() => {
+                            setRoomCompleted(2);
+                            setModalContent(null);
+                        }}
+                    >
+                        Jetzt optionale Pakete erstellen
+                    </Button>
+                </>
+            ),
+            onClose: () => {
+                setRoomCompleted(2);
+                setModalContent(null);
+            }
+        });
+    }
+
+    const handleCodeCompleted = () => {
+        setUserSelect(true);
+        setModalContent({
+            content: (
+                <>
+                    <Typography variant="h5" sx={{ mt: 10, textAlign: 'center' }}>
+                        Geschafft! <br /> Ab jetzt beantworten wir deine Event Anfragen! <br />
+                        <span role="img" aria-label="party">🎉</span>
+                    </Typography>
+
+                    <Button
+                        variant="contained"
+                        sx={{ mt: 5 }}
+                        onClick={() => { setIsOnboardingOverlayOpen(null); }}
+                    >
+                        Okay
+                    </Button>
+                </>
+            ),
+            onClose: () => { setIsOnboardingOverlayOpen(null); }
+        });
+    }
+
     useEffect(() => {
         nextStep();
     }, [menuData])
@@ -178,7 +282,7 @@ const OnboardingAssistant = ({ sx }: OnboardingAssistantProps) => {
                     content: <PartnerCompanyForm
                         key="company"
                         submitButtonCaption="Weiter"
-                        onComplete={nextStep}
+                        onComplete={() => { setUserSelect(true); nextStep(); }}
                     />,
                     completed: false,
                 }
@@ -199,7 +303,7 @@ const OnboardingAssistant = ({ sx }: OnboardingAssistantProps) => {
                 {
                     label: "Location",
                     content: (
-                        <Box sx={{ mr: 2 }}>
+                        <Box sx={{ mr: 2, position: 'relative' }}>
                             <Typography variant="h3" sx={{ textAlign: 'left', mb: 3 }}>
                                 Location hinzufügen
                             </Typography>
@@ -207,10 +311,10 @@ const OnboardingAssistant = ({ sx }: OnboardingAssistantProps) => {
                                 key="location"
                                 locationId={0}
                                 locationCreated={setLocationId}
-                            />,
+                            />
                             <StepNextButton
                                 disabled={!locationId || locationId < 1}
-                                callback={() => { setLocationCompletedState(2) }}
+                                callback={handleLocationCompleted}
                             />
                         </Box>
                     ),
@@ -249,7 +353,7 @@ const OnboardingAssistant = ({ sx }: OnboardingAssistantProps) => {
                             />
                             <StepNextButton
                                 disabled={roomCompleted < 1}
-                                callback={() => { setRoomCompleted(2) }}
+                                callback={handleRoomCompleted}
                             />
                         </Box>
                     ),
@@ -290,7 +394,7 @@ const OnboardingAssistant = ({ sx }: OnboardingAssistantProps) => {
                             <StepNextButton
                                 title={foodCompleted == 0 ? 'Überspringen' : 'Weiter'}
                                 disabled={foodCompleted == 1}
-                                callback={() => { setFoodCompleted(2) }}
+                                callback={() => { setUserSelect(true); setFoodCompleted(2); }}
                             />
                         </Box>
                     ),
@@ -331,7 +435,7 @@ const OnboardingAssistant = ({ sx }: OnboardingAssistantProps) => {
                             <StepNextButton
                                 title={lookCompleted == 0 ? 'Überspringen' : 'Weiter'}
                                 disabled={lookCompleted == 1}
-                                callback={() => { setLookCompleted(2) }}
+                                callback={() => { setUserSelect(true); setLookCompleted(2); }}
                             />
                         </Box>
                     ),
@@ -361,7 +465,7 @@ const OnboardingAssistant = ({ sx }: OnboardingAssistantProps) => {
                             <StepNextButton
                                 title={'Fertig'}
                                 disabled={lookCompleted == 1}
-                                callback={() => { setIsModalOpen(true); }}
+                                callback={handleCodeCompleted}
                             />
                         </Box>
                     ),
@@ -520,10 +624,8 @@ const OnboardingAssistant = ({ sx }: OnboardingAssistantProps) => {
                     </Box>
                 </Box>
             )}
-            <Modal
-                open={isModalOpen}
-            >
-                <Fade in={isModalOpen}>
+            <Modal open={modalContent != null}>
+                <Fade in={modalContent != null}>
                     <Box
                         sx={{
                             position: "absolute",
@@ -547,7 +649,7 @@ const OnboardingAssistant = ({ sx }: OnboardingAssistantProps) => {
                         {/* Close button - only visible on mobile */}
                         {isMobile && (
                             <IconButton
-                                onClick={() => { setIsOnboardingOverlayOpen(null); }}
+                                onClick={modalContent?.onClose}
                                 sx={{
                                     position: "absolute",
                                     top: 8,
@@ -561,17 +663,7 @@ const OnboardingAssistant = ({ sx }: OnboardingAssistantProps) => {
 
                         <CircleCheckBig size={120} color='#002A58' />
 
-                        <Typography variant="h5" sx={{ mt: 10, textAlign: 'center' }}>
-                            Geschafft! <br /> Ab jetzt beantworten wir deine Event Anfragen! <br />
-                            <span role="img" aria-label="party">🎉</span>
-                        </Typography>
-
-                        <Button
-                            variant="contained"
-                            sx={{ mt: 5 }}
-                            onClick={() => { setIsOnboardingOverlayOpen(null); }}
-                        >Okay</Button>
-
+                        {modalContent?.content}
                     </Box>
                 </Fade>
             </Modal>
@@ -579,5 +671,5 @@ const OnboardingAssistant = ({ sx }: OnboardingAssistantProps) => {
     )
 }
 
-export default OnboardingAssistant
+export default OnboardingAssistant;
 
