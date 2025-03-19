@@ -5,7 +5,8 @@ import { useAuthContext } from '@/auth/AuthContext';
 import theme from '@/theme';
 
 interface ConfirmSignupProps {
-    email: string | null;
+    email: string;
+    password: string;
 }
 
 interface ConfirmSignupInputs {
@@ -13,7 +14,7 @@ interface ConfirmSignupInputs {
     verificationCode: string;
 }
 
-const ConfirmSignup: React.FC<ConfirmSignupProps> = ({ email }) => {
+const ConfirmSignup: React.FC<ConfirmSignupProps> = ({ email, password }) => {
     const { confirmSignUp2 } = useAuthContext();
     const {
         control,
@@ -35,7 +36,7 @@ const ConfirmSignup: React.FC<ConfirmSignupProps> = ({ email }) => {
         setFailed(false);
 
         try {
-            await confirmSignUp2(data.email, data.verificationCode);
+            await confirmSignUp2(data.email, password, data.verificationCode);
             setSuccess(true);
         } catch (error) {
             setFailed(true);

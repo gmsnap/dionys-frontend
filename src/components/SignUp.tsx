@@ -11,7 +11,11 @@ interface SignUpFormInputs {
     familyName: string;
 }
 
-export const SignUp: React.FC = () => {
+interface Props {
+    onSuccess?: (usernmae: string, password: string) => void;
+}
+
+export const SignUp = ({ onSuccess }: Props) => {
     const { control, handleSubmit, formState: { errors, isSubmitting } } = useForm<SignUpFormInputs>();
     const [formError, setFormError] = React.useState<string | null>(null);
     const [success, setSuccess] = React.useState(false);
@@ -29,6 +33,7 @@ export const SignUp: React.FC = () => {
             console.log('Signup result:', result);
             setSuccess(true);
             setFormError(null);
+            onSuccess?.(data.email, data.password);
         } catch (err) {
             if (err instanceof Error) {
                 setFormError(err.message);

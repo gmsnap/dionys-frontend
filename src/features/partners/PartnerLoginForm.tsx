@@ -8,8 +8,13 @@ import ConfirmSignup from "../admins/ConfirmSignup";
 import theme from "@/theme";
 import { useHeaderContext } from "@/components/headers/PartnerHeaderContext";
 import router from "next/router";
+import { hasSubscription } from "@/services/paymentService";
 
-const PartnerLoginForm: React.FC = ({ }) => {
+interface Props {
+    credentials?: { username: string, password: string };
+}
+
+const PartnerLoginForm = ({ credentials }: Props) => {
     const { authUser, login, logout } = useAuthContext();
     const { setIsOverlayOpen } = useHeaderContext();
 
@@ -26,8 +31,10 @@ const PartnerLoginForm: React.FC = ({ }) => {
         setError("");
 
         try {
+            const usr = credentials?.username ?? username;
+            const pwd = credentials?.password ?? password;
             // Sign in with Amplify Auth
-            const result = await login(username, password);
+            const result = await login(usr, pwd);
             if (result?.status === 'confirm') {
                 setConfirmForm(true);
             }
@@ -51,11 +58,15 @@ const PartnerLoginForm: React.FC = ({ }) => {
     };
 
     useEffect(() => {
-        if (partnerUser) {
-            if (partnerUser.company?.subscription) {
-                router.push("/partner/events");
-                return;
-            }
+        if (credentials) {
+            handleLogin();
+        }
+    }, [credentials]);
+
+    useEffect(() => {
+        if (partnerUser && hasSubscription(partnerUser)) {
+            router.push("/partner/events");
+            return;
         }
     }, [partnerUser]);
 
@@ -114,7 +125,10 @@ const PartnerLoginForm: React.FC = ({ }) => {
                 </>
             ) : (
                 confirmForm ?
-                    <ConfirmSignup email={username} /> :
+                    <ConfirmSignup
+                        email={credentials?.username ?? username}
+                        password={credentials?.password ?? password}
+                    /> :
                     <>
                         <Typography variant="h6" align="center" sx={{ mb: 6 }}>
                             Partner Login
