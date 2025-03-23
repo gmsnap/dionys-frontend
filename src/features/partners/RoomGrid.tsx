@@ -33,52 +33,17 @@ const RoomGrid = ({ sx, rooms, addButton = true, selectHandler, roomsChanged }: 
                         buttons={[
                             <Button
                                 key={`${room.id}-1`}
-                                variant="outlined"
-                                color="primary"
-                                sx={{
-                                    flex: 1,
-                                    '&:hover': {
-                                        borderColor: '#000000',
-                                        backgroundColor: '#000000',
-                                        color: '#ffffff',
-                                    },
-                                    '.icon': {
-                                        color: '#000000',
-                                    },
-                                    '&:hover .icon': {
-                                        color: '#ffffff',
-                                    },
-                                    lineHeight: 0,
-                                }}
+                                variant="edit"
                                 onClick={() => { selectHandler?.(room.id); }}
                             >
                                 Bearbeiten
-                                <Box
-                                    component="span" sx={{ ml: 1, }}
-                                >
+                                <Box component="span" sx={{ ml: 1, }}>
                                     <Pencil className="icon" width={12} height={12} />
                                 </Box>
                             </Button>,
                             <Button
                                 key={`${room.id}-2`}
-                                variant="outlined"
-                                sx={{
-                                    flex: 1,
-                                    color: '#ff0000',
-                                    borderColor: '#ff0000',
-                                    '&:hover': {
-                                        borderColor: '#ff0000',
-                                        backgroundColor: '#ff0000',
-                                        color: '#ffffff',
-                                    },
-                                    '.icon': {
-                                        color: '#ff0000',
-                                    },
-                                    '&:hover .icon': {
-                                        color: '#ffffff',
-                                    },
-                                    lineHeight: 0,
-                                }}
+                                variant="delete"
                                 onClick={
                                     () => handleDeleteRoom(room.id, () => roomsChanged?.())
                                 }
