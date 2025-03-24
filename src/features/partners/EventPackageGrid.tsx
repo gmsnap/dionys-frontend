@@ -8,6 +8,7 @@ import { EventPackageModel } from '@/models/EventPackageModel';
 import { PriceTypes } from '@/constants/PriceTypes';
 import { handleDeleteEventPackage } from '@/services/eventPackageService';
 import theme from '@/theme';
+import { useAuthContext } from '@/auth/AuthContext';
 
 interface EventPackageGridProps {
     sx?: SxProps<Theme>;
@@ -18,6 +19,8 @@ interface EventPackageGridProps {
 }
 
 const EventPackageGrid = ({ sx, eventPackages, addButton = true, selectHandler, eventPackagesChanged }: EventPackageGridProps) => {
+    const { authUser } = useAuthContext();
+
     return (
         <Grid2 container spacing={5} alignItems="stretch" sx={{ ...sx }}>
             {eventPackages.map((p) => (
@@ -52,7 +55,11 @@ const EventPackageGrid = ({ sx, eventPackages, addButton = true, selectHandler, 
                                 key={`${p.id}-2`}
                                 variant="delete"
                                 onClick={
-                                    () => handleDeleteEventPackage(p.id, () => eventPackagesChanged?.())
+                                    () => handleDeleteEventPackage(
+                                        authUser?.idToken ?? "",
+                                        p.id,
+                                        () => eventPackagesChanged?.()
+                                    )
                                 }
                             >
                                 Löschen

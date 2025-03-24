@@ -65,6 +65,7 @@ export const fetchEventPackagesByCompany = async (
 }
 
 export const handleDeleteEventPackage = async (
+    idToken: string,
     id: number,
     onSuccess: () => void,
     forceDelete = false
@@ -77,7 +78,12 @@ export const handleDeleteEventPackage = async (
 
         const response = await fetch(`${partnerPackagesBaseUrl}/${id}?force=${forceDelete}`, {
             method: 'DELETE',
-        });
+            headers: {
+                Authorization: `Bearer ${idToken}`,
+                "Content-Type": "application/json",
+            },
+        }
+        );
 
         if (response.ok) {
             console.log('Event Package deleted successfully');

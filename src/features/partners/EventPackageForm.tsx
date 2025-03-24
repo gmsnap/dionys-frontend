@@ -45,6 +45,7 @@ interface FormProps {
     updated?: (id: number) => void;
     deleted?: (id: number) => void;
     packageCategory?: PackageCategories;
+    imagesChanged?: (images: string[]) => void;
     sx?: SxProps<Theme>;
 }
 
@@ -57,6 +58,7 @@ const EventPackageForm = ({
     updated,
     deleted,
     packageCategory,
+    imagesChanged,
     sx
 }: FormProps) => {
     const { authUser } = useAuthContext();
@@ -236,6 +238,10 @@ const EventPackageForm = ({
             setValue("maxPersons", null)
         }
     }, [packageId, setValue])
+
+    useEffect(() => {
+        imagesChanged?.(images);
+    }, [images]);
 
     const onSubmit = async (data: any) => {
         setIsSubmitting(true);
@@ -555,8 +561,11 @@ const EventPackageForm = ({
                             {packageId > 0 &&
                                 <DeleteButton
                                     isDisabled={isSubmitting}
-                                    onDelete={() => handleDeleteEventPackage(packageId,
-                                        () => deleted?.(packageId))}
+                                    onDelete={() => handleDeleteEventPackage(
+                                        authUser?.idToken ?? "",
+                                        packageId,
+                                        () => deleted?.(packageId))
+                                    }
                                 />
                             }
                         </Grid2>
