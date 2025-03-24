@@ -14,7 +14,7 @@ import {
 import { FC, useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import router from 'next/router';
-import { CircleUserRound, MenuIcon, X } from 'lucide-react';
+import { CircleCheckBig, CircleUserRound, MenuIcon, X } from 'lucide-react';
 import MenuItem from '../MenuItem';
 import PartnerSettings from '@/features/partners/PartnerSettings';
 import { useAuthContext } from '@/auth/AuthContext';
@@ -23,6 +23,9 @@ import CircleInitials from '../CircleInitials';
 import { useHeaderContext } from './PartnerHeaderContext';
 import PaymentComponent from '@/features/partners/PaymentComponent';
 import { createPartnerUser } from '@/services/partnerService';
+import OnboardingAssistant from '@/features/partners/OnboardingAssistant';
+import { useSetLocationByCurrentPartner } from '@/services/locationService';
+import { hasSubscription } from '@/services/paymentService';
 
 const Header: FC = () => {
     const theme = useTheme();
@@ -30,7 +33,9 @@ const Header: FC = () => {
     const { authUser, logout, authLoading } = useAuthContext();
     const { isOverlayOpen, setIsOverlayOpen } = useHeaderContext();
     const { isPaymentOverlayOpen, setIsPaymentOverlayOpen } = useHeaderContext();
+    const { isOnboardingOverlayOpen, setIsOnboardingOverlayOpen } = useHeaderContext();
     const { partnerUser, setPartnerUser } = useStore();
+    const { partnerLocations } = useStore();
 
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [userPanelAnchorEl, setUserPanelAnchorEl] = useState<null | HTMLElement>(null);
@@ -42,10 +47,11 @@ const Header: FC = () => {
     ];
 
     const menuItems = [
-        { label: 'Events', link: '/partner/events' },
+        { label: 'Dashboard', link: '/partner/events' },
         { label: 'Locations', link: '/partner/location' },
-        { label: 'Räume', link: '/partner/rooms' },
-        { label: 'Pakete', link: '/partner/packages' },
+        { label: 'Rooms & Tables', link: '/partner/rooms' },
+        { label: 'Food & Beverage', link: '/partner/food' },
+        { label: 'Look & Feel', link: '/partner/lookandfeel' },
         //{ label: 'Equipment', link: '/partner/equipment' },
         //{ label: 'Personal', link: '/partner/personnel' },
         //{ label: 'Catering', link: '/partner/catering' },
@@ -83,6 +89,12 @@ const Header: FC = () => {
     const handleCloseOverlay = () => {
         setIsOverlayOpen(false);
     };
+
+    const handleCloseOnboarding = () => {
+        setIsOnboardingOverlayOpen(null);
+    };
+
+    useSetLocationByCurrentPartner();
 
     // Close overlay on route change
     useEffect(() => {
@@ -124,16 +136,24 @@ const Header: FC = () => {
     useEffect(() => {
         if (!partnerUser) {
             setIsPaymentOverlayOpen(false);
+            setIsOnboardingOverlayOpen(null);
             return;
         }
-        if (!partnerUser?.company?.subscription &&
-            !(partnerUser?.email?.endsWith("@dionys.ai") ||
-                partnerUser?.email?.endsWith("@pingponglabs.de") ||
-                partnerUser?.email?.indexOf("gregor.matte") > -1)) {
+
+        if (!hasSubscription(partnerUser)) {
             setIsPaymentOverlayOpen(true);
+            setIsOnboardingOverlayOpen(null);
             return;
         }
-    }, [partnerUser]);
+
+        /*if (partnerUser &&
+            partnerLocations &&
+            !onboardingCompleted(partnerUser, partnerLocations)
+        ) {
+            setIsPaymentOverlayOpen(false);
+            setIsOnboardingOverlayOpen(true);
+        }*/
+    }, [partnerUser, partnerLocations]);
 
     const logoutButton = <Button
         variant="contained"
@@ -213,7 +233,8 @@ const Header: FC = () => {
                                     {menuItems.map((item, index) => (
                                         <MuiMenuItem
                                             key={index}
-                                            onClick={() => {
+                                            onClick={(e) => {
+                                                e.stopPropagation();
                                                 router.push(item.link);
                                                 handleMenuClose();
                                             }}
@@ -298,8 +319,8 @@ const Header: FC = () => {
                 </Toolbar>
             </AppBar>
 
-            {/* Overlay */}
-            {isOverlayOpen && (
+            {/* Settings Overlay (Desktop) */}
+            {isOverlayOpen && !isMobile && (
                 <Box
                     sx={{
                         position: 'fixed',
@@ -339,7 +360,31 @@ const Header: FC = () => {
                 </Box>
             )}
 
-            {/* Overlay */}
+            {/* Settings Overlay (Mobile) */}
+            {isOverlayOpen && isMobile && (
+                <Box
+                    onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside
+                    sx={{
+                        position: 'fixed',
+                        left: 0,
+                        width: '100vw',
+                        height: '100vh',
+                        backgroundColor: '#fff',
+                        zIndex: 1300,
+                        padding: '20px',
+                    }}
+                >
+                    <IconButton
+                        sx={{ position: 'absolute', top: '10px', right: '10px' }}
+                        onClick={handleCloseOverlay}
+                    >
+                        <X />
+                    </IconButton>
+                    <PartnerSettings />
+                </Box>
+            )}
+
+            {/* Payment Overlay */}
             {isPaymentOverlayOpen && (
                 <Box
                     sx={{
@@ -375,17 +420,103 @@ const Header: FC = () => {
                             position: 'relative',
                         }}
                     >
+                        <CircleCheckBig size={120} color='#002A58' />
                         <Typography sx={{
                             textAlign: 'center',
                             ml: { xs: 0, sm: 8 },
                             mr: { xs: 0, sm: 8 },
                         }}
                         >
-                            Dein Login war erfolgreich. <br />Bitte hinterlege deine Zahlungsdaten:
+                            Dein Login war erfolgreich. <br />Bitte wähle dein Abo:
                         </Typography>
                         <PaymentComponent />
                         {logoutButton}
                     </Box>
+                </Box>
+            )}
+
+            {/* Onboarding Overlay */}
+            {isOnboardingOverlayOpen != null && !isMobile && (
+                <Box
+                    sx={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        width: '100vw',
+                        height: '100vh',
+                        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        alignContent: 'top',
+                        zIndex: 11,
+                        padding: { xs: 0, sm: '50px' },
+                    }}
+                    onClick={handleCloseOnboarding}
+                >
+                    <Box
+                        onClick={(e) => e.stopPropagation()}
+                        sx={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: { xs: 'flex-start', },
+                            gap: 6,
+                            backgroundColor: '#fff',
+                            pl: '20px',
+                            pr: '20px',
+                            pt: { xs: '0px', },
+                            borderRadius: '16px',
+                            width: 'calc(100% - 100px)',
+                            height: 'calc(100% - 100px)',
+                            boxShadow: theme.shadows[5],
+                            position: 'relative',
+                        }}
+                    >
+                        <Box
+                            sx={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: 4,
+                                mt: 1,
+                                maxWidth: '85%'
+                            }}
+                        >
+                            <Typography sx={{
+                                textAlign: 'center',
+                                ml: { xs: 0, sm: 8 },
+                                mr: { xs: 0, sm: 8 }, mt: 10
+                            }}
+                            >
+                                Jetzt die letzten Einrichtungsschritte erledigen
+                            </Typography>
+                            <OnboardingAssistant />
+                        </Box>
+                    </Box>
+                </Box>
+            )}
+
+            {/* Onboarding Overlay (Mobile) */}
+            {isOnboardingOverlayOpen != null && isMobile && (
+                <Box
+                    onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside
+                    sx={{
+                        position: 'fixed',
+                        left: 0,
+                        width: '100vw',
+                        height: '100vh',
+                        backgroundColor: '#fff',
+                        zIndex: 1300,
+                        padding: '20px',
+                    }}
+                >
+                    <IconButton
+                        sx={{ position: 'absolute', top: '10px', right: '10px' }}
+                        onClick={handleCloseOnboarding}
+                    >
+                        <X />
+                    </IconButton>
+                    <OnboardingAssistant sx={{ mt: 5 }} />
                 </Box>
             )}
 

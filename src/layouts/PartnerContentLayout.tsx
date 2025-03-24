@@ -1,5 +1,5 @@
 import React, { ReactNode } from 'react';
-import { Box, Typography, useTheme } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 
 interface PartnerContentLayoutProps {
     title?: string;
@@ -12,14 +12,15 @@ const PartnerContentLayout: React.FC<PartnerContentLayoutProps> = ({
     children,
     controls
 }) => {
-    const theme = useTheme();
+    const hasTitle = title && title.length > 0;
+
     return (
         <Box
             sx={{
                 pt: 6,
             }}
         >
-            {title && title.length > 0 &&
+            {hasTitle &&
                 <>
                     <Box
                         sx={{
@@ -53,7 +54,7 @@ const PartnerContentLayout: React.FC<PartnerContentLayoutProps> = ({
                 sx={{
                     // Ensure content starts below the non-transparent header
                     //marginTop: `${theme.layout.headerHeight}px`,
-                    marginTop: 10,
+                    marginTop: hasTitle ? { xs: 5, md: 10 } : 0,
                     ml: { xs: 0, sm: 4 },
                     mr: { xs: 0, sm: 4 },
                 }}

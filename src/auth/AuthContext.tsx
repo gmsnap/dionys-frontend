@@ -12,7 +12,7 @@ interface AuthContextType {
         givenName: string,
         familyName: string,
     ) => Promise<any>;
-    confirmSignUp2: (email: string, verificationCode: string) => Promise<any>;
+    confirmSignUp2: (email: string, password: string, verificationCode: string) => Promise<any>;
     forgotPassword: (email: string) => Promise<any>;
     confirmPassword: (
         email: string,

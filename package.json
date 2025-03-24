@@ -18,6 +18,7 @@
     "@mui/x-date-pickers": "^7.22.2",
     "@types/amplify": "^1.1.28",
     "aws-amplify": "^6.10.3",
+    "date-fns": "^4.1.0",
     "dayjs": "^1.11.13",
     "dotenv": "^16.4.7",
     "framer-motion": "^12.4.2",

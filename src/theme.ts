@@ -65,6 +65,7 @@ const theme = createTheme({
         primary: {
             main: '#000000',
             contrastText: '#FFFFFF',
+            light: '#AAAAAA',
         },
         secondary: {
             main: customColors.blue.main,
@@ -177,6 +178,7 @@ const theme = createTheme({
                     textTransform: 'none',
                     boxShadow: 'none',
                     backgroundColor: '#FFFFFF',
+                    minHeight: 28,
                 },
                 outlinedPrimary: {
                     border: `1px solid ${customColors.blue.main}`,
@@ -202,6 +204,50 @@ const theme = createTheme({
                     borderRadius: 0,
                 },
             },
+            variants: [
+                {
+                    props: { variant: 'edit' },
+                    style: ({ theme }) => ({
+                        flex: 1,
+                        color: customColors.blue.main,
+                        border: `1px solid ${customColors.blue.main}`,
+                        fontWeight: 700,
+                        '&:hover': {
+                            borderColor: customColors.blue.main,
+                            backgroundColor: customColors.blue.main,
+                            color: '#ffffff',
+                        },
+                        '.icon': {
+                            color: customColors.blue.main,
+                        },
+                        '&:hover .icon': {
+                            color: '#ffffff',
+                        },
+                        lineHeight: 0,
+                    }),
+                },
+                {
+                    props: { variant: 'delete' },
+                    style: ({ theme }) => ({
+                        flex: 1,
+                        color: '#ff0000',
+                        border: `1px solid #ff0000`,
+                        fontWeight: 700,
+                        '&:hover': {
+                            borderColor: '#ff0000',
+                            backgroundColor: '#ff0000',
+                            color: '#ffffff',
+                        },
+                        '.icon': {
+                            color: '#ff0000',
+                        },
+                        '&:hover .icon': {
+                            color: '#ffffff',
+                        },
+                        lineHeight: 0,
+                    }),
+                },
+            ],
         },
         MuiListItem: {
             styleOverrides: {

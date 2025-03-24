@@ -1,10 +1,14 @@
-import { ReactElement } from 'react';
+import { ReactElement, useState } from 'react';
 import { Box } from '@mui/material';
 import { SignUp } from '@/components/SignUp';
 import PartnerLayout from '@/layouts/PartnerLayout';
 import { NextPageWithLayout } from '@/types/page';
+import PartnerLoginForm from '@/features/partners/PartnerLoginForm';
 
 const RegisterPage: NextPageWithLayout = () => {
+    const [username, setUsername] = useState<string | null>(null);
+    const [password, setPassword] = useState<string | null>(null);
+
     return (
         <Box
             display="flex"
@@ -23,7 +27,14 @@ const RegisterPage: NextPageWithLayout = () => {
                     alignItems: 'center',
                 }}
             >
-                <SignUp />
+                {username && password
+                    ? (<PartnerLoginForm credentials={{ username, password }} />)
+                    : (
+                        <SignUp onSuccess={(username, password) => {
+                            setUsername(username);
+                            setPassword(password);
+                        }} />
+                    )}
             </Box>
             <Box
                 sx={{

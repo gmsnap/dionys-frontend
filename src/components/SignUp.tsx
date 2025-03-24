@@ -11,7 +11,11 @@ interface SignUpFormInputs {
     familyName: string;
 }
 
-export const SignUp: React.FC = () => {
+interface Props {
+    onSuccess?: (usernmae: string, password: string) => void;
+}
+
+export const SignUp = ({ onSuccess }: Props) => {
     const { control, handleSubmit, formState: { errors, isSubmitting } } = useForm<SignUpFormInputs>();
     const [formError, setFormError] = React.useState<string | null>(null);
     const [success, setSuccess] = React.useState(false);
@@ -29,6 +33,7 @@ export const SignUp: React.FC = () => {
             console.log('Signup result:', result);
             setSuccess(true);
             setFormError(null);
+            onSuccess?.(data.email, data.password);
         } catch (err) {
             if (err instanceof Error) {
                 setFormError(err.message);
@@ -43,7 +48,7 @@ export const SignUp: React.FC = () => {
     return (
         <Box sx={{ maxWidth: 600, mx: 'auto', mt: 8, px: 2 }}>
             <Typography variant="h6" align="center" sx={{ mb: 6 }}>
-                Als Partner registrieren
+                Jetzt registrieren
             </Typography>
             <form onSubmit={handleSubmit(onSubmit)}>
                 <Grid2 container spacing={2} alignItems="center">

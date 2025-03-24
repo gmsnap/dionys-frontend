@@ -139,13 +139,17 @@ export const useAuth = () => {
         }
     };
 
-    const confirmSignUp2 = async (email: string, verificationCode: string) => {
+    const confirmSignUp2 = async (
+        email: string,
+        password: string,
+        verificationCode: string,
+    ) => {
         try {
             const { isSignUpComplete, nextStep } = await confirmSignUp({
                 username: email,
                 confirmationCode: verificationCode
             });
-            return;
+            return await login(email, password);
         } catch (error) {
             if (error instanceof Error) {
                 console.error("Confirmation error: ", error?.message);

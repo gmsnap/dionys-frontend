@@ -11,13 +11,10 @@ import {
     Typography,
     CircularProgress,
     Grid2,
-    Tooltip,
-    IconButton,
-    Link,
     FormControlLabel,
     Switch,
 } from "@mui/material";
-import { ClipboardCheck, Save, SquareArrowOutUpRight } from "lucide-react";
+import { Save } from "lucide-react";
 import { CreateLocationResponse } from "@/types/geolocation";
 import { EventCategories } from "@/constants/EventCategories";
 import useStore from '@/stores/partnerStore';
@@ -26,11 +23,9 @@ import ImageUploadField from "./ImageUploadField";
 import { fetchLocationById, storePartnerLocations } from "@/services/locationService";
 import { formatEventCategoriesSync } from "@/utils/formatEventCategories";
 import ImmutableItemList from "./ImmutableItemList";
-import { Clipboard } from 'lucide-react';
 import { useAuthContext } from "@/auth/AuthContext";
-import theme from "@/theme";
 import BillingAddressFields from "./BillingAddressFields2";
-import CityField from "./CityField";
+import LocationEmbedCode from "./LocationEmbedCode";
 
 // Validation schema
 const locationValidationSchema = yup.object().shape({
@@ -110,10 +105,11 @@ const locationValidationSchema = yup.object().shape({
 
 interface LocationFormProps {
     locationId: number;
+    submitButtonCaption?: string;
     locationCreated?: (id: number) => void;
 }
 
-const LocationForm = ({ locationId, locationCreated }: LocationFormProps) => {
+const LocationForm = ({ locationId, submitButtonCaption, locationCreated }: LocationFormProps) => {
     const { authUser } = useAuthContext();
 
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -124,9 +120,6 @@ const LocationForm = ({ locationId, locationCreated }: LocationFormProps) => {
     const [billingToggle, setBillingToggle] = useState(true);
     const [eventCategories, setEventCategories] = useState<string[]>([]);
     const [idCode, setIdCode] = useState<string | null>(null);
-    const [domain, setDomain] = useState<string | null>(null);
-    const [copied, setCopied] = useState(false);
-    const contentRef = useRef<HTMLDivElement | null>(null);
 
     const { partnerLocations, partnerUser } = useStore();
 
@@ -221,16 +214,6 @@ const LocationForm = ({ locationId, locationCreated }: LocationFormProps) => {
         }
     };
 
-    const copyToClipboard = () => {
-        if (contentRef.current) {
-            const textToCopy = contentRef.current.innerText;
-            navigator.clipboard.writeText(textToCopy).then(() => {
-                setCopied(true);
-                setTimeout(() => setCopied(false), 2000);
-            });
-        }
-    };
-
     // Fetch location data
     useEffect(() => {
         if (!authUser) {
@@ -311,10 +294,6 @@ const LocationForm = ({ locationId, locationCreated }: LocationFormProps) => {
 
     }, [locationId]);
 
-    useEffect(() => {
-        setDomain(window.location.hostname);
-    }, []);
-
     if (isLoading) {
         return (
             <Box sx={{ maxWidth: 600, mx: "auto", mt: 4, p: 2, textAlign: "center" }}>
@@ -378,7 +357,24 @@ const LocationForm = ({ locationId, locationCreated }: LocationFormProps) => {
                         {/* City */}
                         <Grid2 size={{ xs: 12, sm: controlWidth }}>
                             <Grid2 container alignItems="top">
-                                <CityField fieldName={"city"} errorObject={errors.city} />
+                                <Grid2 size={{ xs: 12, sm: 4 }}>
+                                    <Typography variant="label">Stadt</Typography>
+                                </Grid2>
+                                <Grid2 size={{ xs: 12, sm: 8 }}>
+                                    <Controller
+                                        name="city"
+                                        control={control}
+                                        render={({ field }) => (
+                                            <TextField
+                                                {...field}
+                                                fullWidth
+                                                variant="outlined"
+                                                error={!!errors.city}
+                                                helperText={errors.city?.message}
+                                            />
+                                        )}
+                                    />
+                                </Grid2>
                             </Grid2>
                         </Grid2>
 
@@ -386,7 +382,7 @@ const LocationForm = ({ locationId, locationCreated }: LocationFormProps) => {
                         <Grid2 size={{ xs: 12, sm: controlWidth }}>
                             <Grid2 container alignItems="top">
                                 <Grid2 size={{ xs: 12, sm: 4 }}>
-                                    <Typography variant="label">Lage (z.B. Stadteil)</Typography>
+                                    <Typography variant="label">Lage (z.B. Stadtteil)</Typography>
                                 </Grid2>
                                 <Grid2 size={{ xs: 12, sm: 8 }}>
                                     <Controller
@@ -498,7 +494,7 @@ const LocationForm = ({ locationId, locationCreated }: LocationFormProps) => {
                                     },
                                 }}
                             >
-                                {isSubmitting ? "Speichern..." : "Location Speichern"}
+                                {submitButtonCaption || "Speichern"}
                                 <Box component="span" sx={{ ml: 1 }}>
                                     <Save className="icon" width={16} height={16} />
                                 </Box>
@@ -548,79 +544,22 @@ const LocationForm = ({ locationId, locationCreated }: LocationFormProps) => {
                 </Box>
             )}
 
-            {idCode && domain &&
-                (<Box
-                    sx={{
-                        mt: 5,
-                        mb: 4,
-                    }}
-                >
+            {idCode &&
+                <Box sx={{
+                    mt: 5,
+                    mb: 4,
+                }}>
                     <Typography
                         variant="h5"
                         sx={{
                             color: 'primary.main',
-                            mb: 1,
+                            mb: 2,
                         }}>
                         Einbettung dieser Location
                     </Typography>
-
-                    <Link
-                        href={`${process.env.NEXT_PUBLIC_EMBED_PREVIEW_URL}/index.html?code=${idCode}`}
-                        target="_blank"
-                        variant="body2"
-                        sx={{
-                            fontSize: '14px',
-                            color: theme.palette.customColors.blue.main,
-                        }}
-                    > {'Vorschau der Einbettung '}
-                        <SquareArrowOutUpRight
-                            size={16}
-                            color={theme.palette.customColors.blue.main} />
-                    </Link>
-
-                    <Typography variant="body2"
-                        sx={{
-                            color: 'primary.main',
-                            mt: 2,
-                        }}>
-                        Um Ihren Kunden die Möglichkeit zu bieten,
-                        eine Angebotsanfrage für diese Location über Ihre Website zu stellen,
-                        kopieren und fügen Sie den folgenden Code in Ihre Website ein:
-                    </Typography>
-                    <Box sx={{ position: 'relative', display: 'inline-block' }}>
-                        <Tooltip title={copied ? 'Copied!' : 'Copy'}>
-                            <IconButton
-                                onClick={copyToClipboard}
-                                sx={{
-                                    position: 'absolute',
-                                    top: 0,
-                                    right: 0,
-                                    color: '#555',
-                                }}
-                            >
-                                {copied ? <ClipboardCheck size={16} /> : <Clipboard size={16} />}
-                            </IconButton>
-                        </Tooltip>
-                        <Typography
-                            ref={contentRef}
-                            sx={{
-                                fontFamily: 'monospace',
-                                fontSize: '12px',
-                                color: '#555',
-                                padding: 2,
-                                border: '1px solid #ddd',
-                                overflowX: 'auto',
-                                overflowWrap: 'anywhere',
-                                borderRadius: '4px',
-                            }}
-                        >
-                            &lt;div id=&quot;configurator-container&quot;&gt;&lt;/div&gt;
-                            <br />
-                            &lt;script src=&quot;https://{domain}/assets/embed.js?code={idCode}&quot;&gt;&lt;/script&gt;
-                        </Typography>
-                    </Box>
+                    <LocationEmbedCode idCode={idCode} />
                 </Box>
-                )}
+            }
         </Box >
     );
 };

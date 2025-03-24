@@ -8,6 +8,7 @@ import { EventPackageModel } from '@/models/EventPackageModel';
 import { PriceTypes } from '@/constants/PriceTypes';
 import { handleDeleteEventPackage } from '@/services/eventPackageService';
 import theme from '@/theme';
+import { useAuthContext } from '@/auth/AuthContext';
 
 interface EventPackageGridProps {
     sx?: SxProps<Theme>;
@@ -18,6 +19,8 @@ interface EventPackageGridProps {
 }
 
 const EventPackageGrid = ({ sx, eventPackages, addButton = true, selectHandler, eventPackagesChanged }: EventPackageGridProps) => {
+    const { authUser } = useAuthContext();
+
     return (
         <Grid2 container spacing={5} alignItems="stretch" sx={{ ...sx }}>
             {eventPackages.map((p) => (
@@ -38,23 +41,7 @@ const EventPackageGrid = ({ sx, eventPackages, addButton = true, selectHandler, 
                         buttons={[
                             <Button
                                 key={`${p.id}-1`}
-                                variant="outlined"
-                                color="primary"
-                                sx={{
-                                    flex: 1,
-                                    '&:hover': {
-                                        borderColor: '#000000',
-                                        backgroundColor: '#000000',
-                                        color: '#ffffff',
-                                    },
-                                    '.icon': {
-                                        color: '#000000',
-                                    },
-                                    '&:hover .icon': {
-                                        color: '#ffffff',
-                                    },
-                                    lineHeight: 0,
-                                }}
+                                variant="edit"
                                 onClick={() => { selectHandler?.(p.id); }}
                             >
                                 Bearbeiten
@@ -66,26 +53,13 @@ const EventPackageGrid = ({ sx, eventPackages, addButton = true, selectHandler, 
                             </Button>,
                             <Button
                                 key={`${p.id}-2`}
-                                variant="outlined"
-                                sx={{
-                                    flex: 1,
-                                    color: '#ff0000',
-                                    borderColor: '#ff0000',
-                                    '&:hover': {
-                                        borderColor: '#ff0000',
-                                        backgroundColor: '#ff0000',
-                                        color: '#ffffff',
-                                    },
-                                    '.icon': {
-                                        color: '#ff0000',
-                                    },
-                                    '&:hover .icon': {
-                                        color: '#ffffff',
-                                    },
-                                    lineHeight: 0,
-                                }}
+                                variant="delete"
                                 onClick={
-                                    () => handleDeleteEventPackage(p.id, () => eventPackagesChanged?.())
+                                    () => handleDeleteEventPackage(
+                                        authUser?.idToken ?? "",
+                                        p.id,
+                                        () => eventPackagesChanged?.()
+                                    )
                                 }
                             >
                                 Löschen

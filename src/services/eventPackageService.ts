@@ -35,17 +35,17 @@ export const fetchEventPackages = async (
 
 export const fetchEventPackagesByCompany = async (
     companyId: number,
-    setIsLoading: (loading: boolean) => void,
-    setError: (error: string | null) => void
+    setIsLoading?: (loading: boolean) => void,
+    setError?: (error: string | null) => void
 ): Promise<any> => {
     try {
-        setIsLoading(true);
+        setIsLoading?.(true);
 
         const response =
             await fetch(`${packagesBaseUrl}/company/${companyId}`);
 
         if (response.status === 404) {
-            setIsLoading(false);
+            setIsLoading?.(false);
             return [];
         }
 
@@ -54,17 +54,18 @@ export const fetchEventPackagesByCompany = async (
         }
 
         const result = await response.json();
-        setError(null);
+        setError?.(null);
         return result || [];
     } catch (err) {
-        setError(err instanceof Error ? err.message : 'An unknown error occurred');
+        setError?.(err instanceof Error ? err.message : 'An unknown error occurred');
         return null;
     } finally {
-        setIsLoading(false);
+        setIsLoading?.(false);
     }
 }
 
 export const handleDeleteEventPackage = async (
+    idToken: string,
     id: number,
     onSuccess: () => void,
     forceDelete = false
@@ -77,7 +78,12 @@ export const handleDeleteEventPackage = async (
 
         const response = await fetch(`${partnerPackagesBaseUrl}/${id}?force=${forceDelete}`, {
             method: 'DELETE',
-        });
+            headers: {
+                Authorization: `Bearer ${idToken}`,
+                "Content-Type": "application/json",
+            },
+        }
+        );
 
         if (response.ok) {
             console.log('Event Package deleted successfully');

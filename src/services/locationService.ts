@@ -141,7 +141,7 @@ export const useSetLocationByCurrentPartner = () => {
     useEffect(() => {
         const setLocation = async () => {
             if (partnerUser?.companyId) {
-                const locations = await fetchLocationsByCompanyId(partnerUser.companyId, null, null);
+                const locations = await fetchLocationsByCompanyId(partnerUser.companyId, null, null, true);
                 if (locations) {
                     setPartnerLocations(locations);
                     return;
@@ -164,7 +164,7 @@ export const storePartnerLocations = (onComplete?: () => void) => {
     }
 
     const runFetch = async (companyId: number) => {
-        const locations = await fetchLocationsByCompanyId(companyId, null, null);
+        const locations = await fetchLocationsByCompanyId(companyId, null, null, true);
         if (locations) {
             useStore.getState().setPartnerLocations(locations);
         }

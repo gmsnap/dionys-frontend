@@ -5,12 +5,16 @@ import { Alert, Box, Button, CircularProgress, Link, TextField, Typography } fro
 import useStore from '@/stores/partnerStore';
 import { useAuthContext } from '@/auth/AuthContext';
 import ConfirmSignup from "../admins/ConfirmSignup";
-import { useSetLocationByCurrentPartner } from "@/services/locationService";
 import theme from "@/theme";
 import { useHeaderContext } from "@/components/headers/PartnerHeaderContext";
 import router from "next/router";
+import { hasSubscription } from "@/services/paymentService";
 
-const PartnerLoginForm: React.FC = ({ }) => {
+interface Props {
+    credentials?: { username: string, password: string };
+}
+
+const PartnerLoginForm = ({ credentials }: Props) => {
     const { authUser, login, logout } = useAuthContext();
     const { setIsOverlayOpen } = useHeaderContext();
 
@@ -22,15 +26,15 @@ const PartnerLoginForm: React.FC = ({ }) => {
 
     const { partnerUser } = useStore();
 
-    useSetLocationByCurrentPartner();
-
     const handleLogin = async () => {
         setIsLoading(true);
         setError("");
 
         try {
+            const usr = credentials?.username ?? username;
+            const pwd = credentials?.password ?? password;
             // Sign in with Amplify Auth
-            const result = await login(username, password);
+            const result = await login(usr, pwd);
             if (result?.status === 'confirm') {
                 setConfirmForm(true);
             }
@@ -54,11 +58,15 @@ const PartnerLoginForm: React.FC = ({ }) => {
     };
 
     useEffect(() => {
-        if (partnerUser) {
-            if (partnerUser.company?.subscription) {
-                router.push("/partner/events");
-                return;
-            }
+        if (credentials) {
+            handleLogin();
+        }
+    }, [credentials]);
+
+    useEffect(() => {
+        if (partnerUser && hasSubscription(partnerUser)) {
+            router.push("/partner/events");
+            return;
         }
     }, [partnerUser]);
 
@@ -70,42 +78,9 @@ const PartnerLoginForm: React.FC = ({ }) => {
                         {authUser.givenName} {authUser.familyName}
                     </Typography>
                     <Typography variant="h5">{partnerUser?.company?.companyName ?? ""}</Typography>
-                    {!(partnerUser?.company?.companyName && partnerUser?.company?.address?.streetAddress) && (
-                        <>
-                            {
-                                isLoading ? (
-                                    <Box sx={{ width: '100%' }}>
-                                        <CircularProgress size={16} color="secondary" />
-                                    </Box>
-                                ) : (
-                                    <Typography variant="body2" sx={{
-                                        display: 'flex',
-                                        flexDirection: { xs: 'column', sm: 'row' },
-                                        justifyContent: 'center',
-                                        fontSize: '16px',
-                                        fontWeight: 700,
-                                        overflow: 'hidden',
-                                        whiteSpace: 'nowrap',
-                                        color: theme.palette.customColors.blue.main,
-                                        mt: 2,
-                                        mb: 2,
-                                    }}>
-                                        Bitte vervollständigen Sie das&nbsp;
-                                        <Link
-                                            component="button"
-                                            onClick={() => setIsOverlayOpen(true)}
-                                            sx={{
-                                                fontWeight: 'bold',
-                                                color: theme.palette.customColors.blue.main
-                                            }}
-                                        >
-                                            {' '}Profil Ihres Unternehmens.
-                                        </Link>
-                                    </Typography>
-                                )
-                            }
-                        </>
-                    )}
+                    <Box sx={{ width: '100%' }}>
+                        <CircularProgress size={16} color="secondary" />
+                    </Box>
                     <Button
                         variant="contained"
                         color="primary"
@@ -117,7 +92,10 @@ const PartnerLoginForm: React.FC = ({ }) => {
                 </>
             ) : (
                 confirmForm ?
-                    <ConfirmSignup email={username} /> :
+                    <ConfirmSignup
+                        email={credentials?.username ?? username}
+                        password={credentials?.password ?? password}
+                    /> :
                     <>
                         <Typography variant="h6" align="center" sx={{ mb: 6 }}>
                             Partner Login
@@ -129,6 +107,9 @@ const PartnerLoginForm: React.FC = ({ }) => {
                             fullWidth
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') handleLogin();
+                            }}
                             sx={{ mb: 2 }}
                         />
                         <TextField
@@ -138,6 +119,9 @@ const PartnerLoginForm: React.FC = ({ }) => {
                             fullWidth
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') handleLogin();
+                            }}
                             sx={{ mb: 2 }}
                         />
                         <Button

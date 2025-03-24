@@ -8,9 +8,10 @@ import {
     TextField,
     InputAdornment,
     FormControl,
-    InputLabel,
     Select,
-    MenuItem
+    MenuItem,
+    SxProps,
+    Theme
 } from '@mui/material';
 import { createEmptyRoomModel, RoomModel } from '@/models/RoomModel';
 import * as yup from 'yup';
@@ -45,7 +46,9 @@ const roomValidationSchema = yup.object().shape({
     price: yup
         .number()
         .typeError('Preis muss eine Zahl sein')
-        .positive('Preis muss positiv sein')
+        .min(0, 'Preis darf nicht negativ sein')
+        .nullable()
+        .transform(value => (value === null || value === '') ? undefined : value)
         .required('Preis ist erforderlich'),
     priceType: yup
         .string()
@@ -82,18 +85,24 @@ interface RoomFormProps {
     roomId: number;
     locationId: number | null;
     companyId: number;
+    submitButtonCaption?: string;
     roomCreated?: (id: number) => void;
     roomUpdated?: (id: number) => void;
     roomDeleted?: (id: number) => void;
+    imagesChanged?: (images: string[]) => void;
+    sx?: SxProps<Theme>;
 }
 
 const RoomForm = ({
     roomId,
     locationId,
     companyId,
+    submitButtonCaption,
     roomCreated,
     roomUpdated,
-    roomDeleted
+    roomDeleted,
+    imagesChanged,
+    sx
 }: RoomFormProps) => {
     const { authUser } = useAuthContext();
 
@@ -253,6 +262,10 @@ const RoomForm = ({
         }
     }, [roomId]);
 
+    useEffect(() => {
+        imagesChanged?.(images);
+    }, [images]);
+
     const onSubmit = async (data: any) => {
         setIsSubmitting(true);
         setError(null);
@@ -311,7 +324,7 @@ const RoomForm = ({
         'Räume: Raum hinzufügen';
 
     return (
-        <Box sx={{ height: "100vh", }}>
+        <Box sx={{ height: "100vh", ...sx }}>
             <Typography variant="h5"
                 sx={{ mb: 2, color: 'primary.main' }}>
                 Allgemein
@@ -568,7 +581,7 @@ const RoomForm = ({
                                     },
                                 }}
                             >
-                                {isSubmitting ? 'Speichern...' : 'Speichern'}
+                                {submitButtonCaption || "Speichern"}
                                 <Box component="span" sx={{ ml: 1 }}>
                                     <Save className="icon" width={16} height={16} />
                                 </Box>
