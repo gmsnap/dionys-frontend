@@ -78,42 +78,9 @@ const PartnerLoginForm = ({ credentials }: Props) => {
                         {authUser.givenName} {authUser.familyName}
                     </Typography>
                     <Typography variant="h5">{partnerUser?.company?.companyName ?? ""}</Typography>
-                    {!(partnerUser?.company?.companyName && partnerUser?.company?.address?.streetAddress) && (
-                        <>
-                            {
-                                isLoading ? (
-                                    <Box sx={{ width: '100%' }}>
-                                        <CircularProgress size={16} color="secondary" />
-                                    </Box>
-                                ) : (
-                                    <Typography variant="body2" sx={{
-                                        display: 'flex',
-                                        flexDirection: { xs: 'column', sm: 'row' },
-                                        justifyContent: 'center',
-                                        fontSize: '16px',
-                                        fontWeight: 700,
-                                        overflow: 'hidden',
-                                        whiteSpace: 'nowrap',
-                                        color: theme.palette.customColors.blue.main,
-                                        mt: 2,
-                                        mb: 2,
-                                    }}>
-                                        Bitte vervollständigen Sie das&nbsp;
-                                        <Link
-                                            component="button"
-                                            onClick={() => setIsOverlayOpen(true)}
-                                            sx={{
-                                                fontWeight: 'bold',
-                                                color: theme.palette.customColors.blue.main
-                                            }}
-                                        >
-                                            {' '}Profil Ihres Unternehmens.
-                                        </Link>
-                                    </Typography>
-                                )
-                            }
-                        </>
-                    )}
+                    <Box sx={{ width: '100%' }}>
+                        <CircularProgress size={16} color="secondary" />
+                    </Box>
                     <Button
                         variant="contained"
                         color="primary"
