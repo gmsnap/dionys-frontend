@@ -28,3 +28,10 @@ declare module '@mui/material/Typography' {
         label: true;
     }
 }
+
+declare module '@mui/material/Button' {
+    interface ButtonPropsVariantOverrides {
+        delete: true;
+        edit: true;
+    }
+}
