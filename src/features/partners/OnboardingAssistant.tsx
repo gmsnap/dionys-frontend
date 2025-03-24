@@ -97,8 +97,10 @@ const OnboardingAssistant = ({ sx }: OnboardingAssistantProps) => {
     const [roomId, setRoomId] = useState<number>(0)
     const [roomCompleted, setRoomCompleted] = useState(0);
     const [foodPackages, setFoodPackages] = useState<EventPackageModel[] | null>(null);
-    const [foodCompleted, setFoodCompleted] = useState(0);
+    const [foodPackageId, setFoodPackageId] = useState<number>(0);
+    const [foodCompleted, setFoodCompleted] = useState<number>(0);
     const [lookPackages, setLookPackages] = useState<EventPackageModel[] | null>(null);
+    const [lookPackageId, setLookPackageId] = useState<number>(0);
     const [lookCompleted, setLookCompleted] = useState(0);
     const [selectedItem, setSelectedItem] = useState(0);
     const [userSelect, setUserSelect] = useState(false);
@@ -117,12 +119,15 @@ const OnboardingAssistant = ({ sx }: OnboardingAssistantProps) => {
                 return;
             }
         }
+
         if (!userSelect) {
             return;
         }
-        const firstItemIndex = menuData.findIndex(item => !item.completed);
-        if (firstItemIndex !== -1) {
-            setSelectedItem(firstItemIndex);
+
+        const nextItemIndex =
+            menuData.findIndex((item, index) => !item.completed && index >= selectedItem);
+        if (nextItemIndex !== -1) {
+            setSelectedItem(nextItemIndex);
         }
     }
 
@@ -228,7 +233,7 @@ const OnboardingAssistant = ({ sx }: OnboardingAssistantProps) => {
                             setModalContent(null);
                         }}
                     >
-                        Jetzt optionale Pakete erstellen
+                        Jetzt Pakete erstellen
                     </Button>
                 </>
             ),
@@ -254,7 +259,7 @@ const OnboardingAssistant = ({ sx }: OnboardingAssistantProps) => {
                         sx={{ mt: 5 }}
                         onClick={() => { setIsOnboardingOverlayOpen(null); }}
                     >
-                        Okay
+                        Zur Startseite
                     </Button>
                 </>
             ),
@@ -370,7 +375,7 @@ const OnboardingAssistant = ({ sx }: OnboardingAssistantProps) => {
             );
         }
 
-        if (!foodPackages || foodPackages.length == 0) {
+        if (foodCompleted == 0 && (!foodPackages || foodPackages.length == 0) || foodCompleted != 3) {
             items.push(
                 {
                     label: "Food & Beverage",
@@ -381,12 +386,21 @@ const OnboardingAssistant = ({ sx }: OnboardingAssistantProps) => {
                             </Typography>
                             <EventPackageForm
                                 key={"p1"}
-                                packageId={0}
+                                packageId={foodPackageId}
                                 locationId={locationId}
                                 companyId={partnerUser.companyId}
                                 submitButtonCaption="Paket speichern"
-                                created={(id: number) => {
-                                    //
+                                created={(id: number) => { setFoodCompleted(1); setFoodPackageId(id); }}
+                                imagesChanged={(images) => {
+                                    const hasImages = images && images.length > 0;
+                                    if (foodCompleted == 1 && hasImages) {
+                                        setFoodCompleted(2);
+                                        return;
+                                    }
+                                    if (foodCompleted == 2 && !hasImages) {
+                                        setFoodCompleted(1);
+                                        return;
+                                    }
                                 }}
                                 packageCategory={"catering" as PackageCategories}
                                 sx={{ height: '100%' }}
@@ -394,11 +408,14 @@ const OnboardingAssistant = ({ sx }: OnboardingAssistantProps) => {
                             <StepNextButton
                                 title={foodCompleted == 0 ? 'Überspringen' : 'Weiter'}
                                 disabled={foodCompleted == 1}
-                                callback={() => { setUserSelect(true); setFoodCompleted(2); }}
+                                callback={() => {
+                                    setUserSelect(true);
+                                    setFoodCompleted(3);
+                                }}
                             />
                         </Box>
                     ),
-                    completed: foodCompleted == 2,
+                    completed: foodCompleted == 3,
                 }
             );
         } else {
@@ -411,7 +428,7 @@ const OnboardingAssistant = ({ sx }: OnboardingAssistantProps) => {
             );
         }
 
-        if (!lookPackages || lookPackages.length == 0) {
+        if (lookCompleted == 0 && (!lookPackages || lookPackages.length == 0) || lookCompleted != 3) {
             items.push(
                 {
                     label: "Look & Feel",
@@ -422,12 +439,21 @@ const OnboardingAssistant = ({ sx }: OnboardingAssistantProps) => {
                             </Typography>
                             <EventPackageForm
                                 key={"p2"}
-                                packageId={0}
+                                packageId={lookPackageId}
                                 locationId={locationId}
                                 companyId={partnerUser.companyId}
                                 submitButtonCaption="Paket speichern"
-                                created={(id: number) => {
-                                    //
+                                created={(id: number) => { setLookCompleted(1); setLookPackageId(id); }}
+                                imagesChanged={(images) => {
+                                    const hasImages = images && images.length > 0;
+                                    if (lookCompleted == 1 && hasImages) {
+                                        setLookCompleted(2);
+                                        return;
+                                    }
+                                    if (lookCompleted == 2 && !hasImages) {
+                                        setLookCompleted(1);
+                                        return;
+                                    }
                                 }}
                                 packageCategory={"equipment" as PackageCategories}
                                 sx={{ height: '100%' }}
@@ -435,11 +461,14 @@ const OnboardingAssistant = ({ sx }: OnboardingAssistantProps) => {
                             <StepNextButton
                                 title={lookCompleted == 0 ? 'Überspringen' : 'Weiter'}
                                 disabled={lookCompleted == 1}
-                                callback={() => { setUserSelect(true); setLookCompleted(2); }}
+                                callback={() => {
+                                    setUserSelect(true);
+                                    setLookCompleted(3);
+                                }}
                             />
                         </Box>
                     ),
-                    completed: lookCompleted == 2,
+                    completed: lookCompleted == 3,
                 },
             );
         } else {

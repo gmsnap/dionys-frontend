@@ -30,20 +30,9 @@ const LocationEmbedCode = ({ idCode, sx }: Props) => {
     return (
         <Box
             sx={{
-                mt: 5,
-                mb: 4,
                 ...sx,
             }}
         >
-            <Typography
-                variant="h5"
-                sx={{
-                    color: 'primary.main',
-                    mb: 1,
-                }}>
-                Einbettung dieser Location
-            </Typography>
-
             <Link
                 href={`${process.env.NEXT_PUBLIC_EMBED_PREVIEW_URL}/index.html?code=${idCode}`}
                 target="_blank"

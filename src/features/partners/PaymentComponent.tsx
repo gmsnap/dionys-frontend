@@ -75,8 +75,9 @@ const PaymentComponent = () => {
                         variant="contained"
                         onClick={() => handleCheckout()}
                         disabled={loading}
+                        sx={{ mb: 3 }}
                     >
-                        {loading ? "Loading..." : "Zur Zahlung (monatlich)"}
+                        {loading ? "Loading..." : "Monatliche Zahlung"}
                     </Button>
                     {annualText}
                     <Button
@@ -84,7 +85,7 @@ const PaymentComponent = () => {
                         onClick={() => handleCheckout("annual")}
                         disabled={loading}
                     >
-                        {loading ? "Loading..." : "Zur Zahlung (jährlich)"}
+                        {loading ? "Loading..." : "Jährliche Zahlung"}
                     </Button>
                 </>
             }

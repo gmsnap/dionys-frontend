@@ -544,7 +544,22 @@ const LocationForm = ({ locationId, submitButtonCaption, locationCreated }: Loca
                 </Box>
             )}
 
-            {idCode && <LocationEmbedCode idCode={idCode} />}
+            {idCode &&
+                <Box sx={{
+                    mt: 5,
+                    mb: 4,
+                }}>
+                    <Typography
+                        variant="h5"
+                        sx={{
+                            color: 'primary.main',
+                            mb: 2,
+                        }}>
+                        Einbettung dieser Location
+                    </Typography>
+                    <LocationEmbedCode idCode={idCode} />
+                </Box>
+            }
         </Box >
     );
 };

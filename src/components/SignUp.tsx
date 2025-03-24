@@ -48,7 +48,7 @@ export const SignUp = ({ onSuccess }: Props) => {
     return (
         <Box sx={{ maxWidth: 600, mx: 'auto', mt: 8, px: 2 }}>
             <Typography variant="h6" align="center" sx={{ mb: 6 }}>
-                Als Partner registrieren
+                Jetzt registrieren
             </Typography>
             <form onSubmit={handleSubmit(onSubmit)}>
                 <Grid2 container spacing={2} alignItems="center">
