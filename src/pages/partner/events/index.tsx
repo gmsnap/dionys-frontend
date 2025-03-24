@@ -14,6 +14,7 @@ import { CalendarIcon, List as ListIcon } from 'lucide-react';
 import { formatEventCategoryStringSync } from '@/utils/formatEventCategories';
 import { onboardingCompleted } from '@/services/onboardingService';
 import OnboardingIndicator from '@/features/partners/OnboardingIndicator';
+import PageHeadline from '@/features/partners/PageHeadline';
 
 const PartnerPage: NextPageWithLayout = () => {
     const { partnerUser } = useStore();
@@ -184,32 +185,7 @@ const PartnerPage: NextPageWithLayout = () => {
             )}
 
             {/* Content with Headline */}
-            <>
-                <Box
-                    sx={{
-                        display: 'flex',
-                        flexDirection: 'row',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                    }}>
-                    <Typography
-                        variant='h3'
-                        sx={{
-                            fontFamily: "'Arial', sans-serif",
-                            ml: 3,
-                        }}
-                    >
-                        Dashboard
-                    </Typography>
-                </Box>
-                <Box
-                    sx={{
-                        borderTop: (theme) => `1px solid ${theme.palette.customColors.blue.halfdark}`,
-                        width: '100%',
-                        mt: 3,
-                    }}
-                />
-            </>
+            <PageHeadline title='Dashboard' />
             <Box sx={{
                 mt: { xs: 5, md: 10 },
                 display: 'flex',
