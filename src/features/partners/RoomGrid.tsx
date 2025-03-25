@@ -7,6 +7,7 @@ import GridAddItem from '@/components/GridAddItem';
 import { RoomModel } from '@/models/RoomModel';
 import { handleDeleteRoom } from '@/services/roomService';
 import theme from '@/theme';
+import { useAuthContext } from '@/auth/AuthContext';
 
 interface RoomGridProps {
     sx?: SxProps<Theme>;
@@ -17,6 +18,8 @@ interface RoomGridProps {
 }
 
 const RoomGrid = ({ sx, rooms, addButton = true, selectHandler, roomsChanged }: RoomGridProps) => {
+    const { authUser } = useAuthContext();
+
     return (
         <Grid2 container spacing={5} alignItems="stretch" sx={{ ...sx }}>
             {rooms.map((room) => (
@@ -44,8 +47,15 @@ const RoomGrid = ({ sx, rooms, addButton = true, selectHandler, roomsChanged }: 
                             <Button
                                 key={`${room.id}-2`}
                                 variant="delete"
+                                disabled={!authUser?.idToken}
                                 onClick={
-                                    () => handleDeleteRoom(room.id, () => roomsChanged?.())
+                                    () => authUser?.idToken
+                                        ? handleDeleteRoom(
+                                            authUser.idToken,
+                                            room.id,
+                                            () => roomsChanged?.()
+                                        )
+                                        : {}
                                 }
                             >
                                 Löschen

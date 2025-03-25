@@ -590,8 +590,14 @@ const RoomForm = ({
                             {roomId > 0 &&
                                 <DeleteButton
                                     isDisabled={isSubmitting}
-                                    onDelete={() => handleDeleteRoom(roomId,
-                                        () => roomDeleted?.(roomId))}
+                                    onDelete={() => authUser?.idToken
+                                        ? handleDeleteRoom(
+                                            authUser.idToken,
+                                            roomId,
+                                            () => roomDeleted?.(roomId)
+                                        )
+                                        : {}
+                                    }
                                 />
                             }
                         </Grid2>

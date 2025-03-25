@@ -14,6 +14,7 @@ import {
 } from '@/services/locationService';
 import GridAddItem from '@/components/GridAddItem';
 import theme from '@/theme';
+import { useAuthContext } from '@/auth/AuthContext';
 
 interface ListItem {
     icon: React.ReactNode;
@@ -26,6 +27,7 @@ interface LocationGridProps {
 }
 
 const LocationGrid = ({ sx, selectHandler }: LocationGridProps) => {
+    const { authUser } = useAuthContext();
     const { partnerUser } = useStore();
     const [locations, setLocations] = useState<LocationModel[]>([]);
     const [error, setError] = useState<string | null>(null);
@@ -118,15 +120,18 @@ const LocationGrid = ({ sx, selectHandler }: LocationGridProps) => {
                                 key={`${location.id}-2`}
                                 variant="delete"
                                 onClick={
-                                    () => handleDeleteLocation(
-                                        location.id,
-                                        partnerUser?.companyId ?
-                                            () => {
-                                                storePartnerLocations(() => {
-                                                    fetchLocationsFromApi(partnerUser.companyId);
-                                                });
-                                            } :
-                                            () => { })
+                                    () => authUser?.idToken
+                                        ? handleDeleteLocation(
+                                            authUser.idToken,
+                                            location.id,
+                                            partnerUser?.companyId ?
+                                                () => {
+                                                    storePartnerLocations(() => {
+                                                        fetchLocationsFromApi(partnerUser.companyId);
+                                                    });
+                                                } :
+                                                () => { })
+                                        : {}
                                 }
                             >
                                 Löschen

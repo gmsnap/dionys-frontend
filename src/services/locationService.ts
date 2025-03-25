@@ -92,8 +92,9 @@ export const fetchLocationByCode = async (
         if (setIsLoading != null) {
             setIsLoading(true);
         }
+        const includes = 'eventCategories,rooms,pricings,eventPackages';
         const response =
-            await fetch(`${locationsBaseUrl}/code/${code}?single=1&include=eventCategories,rooms,eventPackages`);
+            await fetch(`${locationsBaseUrl}/code/${code}?single=1&include=${includes}`);
         if (!response.ok) {
             throw new Error(`Error: ${response.status} ${response.statusText}`);
         }
@@ -175,6 +176,7 @@ export const storePartnerLocations = (onComplete?: () => void) => {
 };
 
 export const handleDeleteLocation = async (
+    idToken: string,
     locationId: number,
     onSuccess: () => void,
     forceDelete = false
@@ -187,6 +189,10 @@ export const handleDeleteLocation = async (
 
         const response = await fetch(`${locationsBaseUrl}/${locationId}?force=${forceDelete}`, {
             method: 'DELETE',
+            headers: {
+                Authorization: `Bearer ${idToken}`,
+                "Content-Type": "application/json"
+            },
         });
 
         if (response.ok) {

@@ -1,4 +1,5 @@
 import { PriceTypes } from "@/constants/PriceTypes";
+import { RoomPricingModel } from "./RoomPricingModel";
 
 export interface RoomModel {
     id: number;
@@ -13,6 +14,7 @@ export interface RoomModel {
     images: string[];
     eventCategories: string[];
     roomConfigurations: RoomConfigurationModel[];
+    roomPricings?: RoomPricingModel[];
 }
 
 export const createEmptyRoomModel = (locationId: number): RoomModel => ({

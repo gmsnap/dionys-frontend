@@ -24,6 +24,7 @@ import { Plus, Save, Trash2 } from "lucide-react"
 import { useEffect, useState } from "react"
 import theme from "@/theme"
 import { useAuthContext } from "@/auth/AuthContext"
+import { doPricingSlotsOverlap } from "@/utils/pricingManager"
 
 // German days of week
 const germanDaysOfWeek = [
@@ -66,7 +67,8 @@ interface Props {
 
 // Function to format price for display
 const formatPriceForDisplay = (value: number): string => {
-    return value.toFixed(2).replace(".", ",") // Using comma as decimal separator for German formatting
+    // Using comma as decimal separator for German formatting
+    return value.toFixed(2).replace(".", ",")
 }
 
 const RoomPricings = ({ roomId }: Props) => {
@@ -74,6 +76,7 @@ const RoomPricings = ({ roomId }: Props) => {
     const [pricingId, setPricingId] = useState<number | null>(null)
     const [pricings, setPricings] = useState<RoomPricingModel[] | null>(null)
     const [error, setError] = useState<string | null>(null)
+    const [slotError, setSlotError] = useState<string | null>(null)
     const [isLoading, setIsLoading] = useState<boolean>(false)
     // Track editing state for price fields
     const [editingPriceIndex, setEditingPriceIndex] = useState<number | null>(null)
@@ -165,15 +168,28 @@ const RoomPricings = ({ roomId }: Props) => {
             setError("Not authorized")
             return
         }
-        await createRoomPricing(authUser.idToken, pricing, (result) => {
-            console.log(result.id)
-            // Remove from modified rows after successful save
-            setModifiedRows((prev) => {
-                const newSet = new Set(prev)
-                newSet.delete(index)
-                return newSet
+
+        // Verify pricing does not overlap with existing pricing
+        if (Array.isArray(pricings) && pricings.length > 0) {
+            if (pricings.some((p) => p.id != pricing.id && doPricingSlotsOverlap(p, pricing))) {
+                setSlotError("Zeit-Slots dürfen sich nicht überlagern!");
+                return;
+            }
+        }
+
+        await createRoomPricing(
+            authUser.idToken,
+            pricing,
+            (result) => {
+                pricing.id = result.id;
+                // Remove from modified rows after successful save
+                setModifiedRows((prev) => {
+                    const newSet = new Set(prev)
+                    newSet.delete(index)
+                    return newSet
+                });
+                setSlotError(null);
             })
-        })
     }
 
     // Handle price field focus
@@ -233,6 +249,7 @@ const RoomPricings = ({ roomId }: Props) => {
 
     return (
         <Box sx={{ mt: 2 }}>
+            {slotError && <Typography color="error">{slotError}</Typography>}
             {pricings &&
                 pricings.map((pricing, index) => (
                     <Paper key={index} sx={{ p: 2, mb: 2 }}>

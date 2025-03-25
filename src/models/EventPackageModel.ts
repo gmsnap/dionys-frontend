@@ -1,6 +1,7 @@
 import * as yup from 'yup';
 import { AvailablePackageCategories, PackageCategories } from "@/constants/PackageCategories";
 import { PriceTypes } from '@/constants/PriceTypes';
+import { BookingPackage } from '@/utils/pricingManager';
 
 export interface EventPackageModel {
     id: number;
@@ -95,4 +96,12 @@ export const EventPackageValidationSchema = yup.object().shape({
             'Mindestens eine Kategorie notwendig',
             (value) => value != null && value.length > 0
         ),
+});
+
+export const toBookingPackage = (model: EventPackageModel): BookingPackage => ({
+    id: model.id,
+    price: model.price,
+    priceType: model.priceType as string,
+    minPersons: model.minPersons ?? 1,
+    maxPersons: model.maxPersons ?? Infinity,
 });
