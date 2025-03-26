@@ -74,7 +74,7 @@ const RoomPricings = ({ roomId }: Props) => {
     const [pricingId, setPricingId] = useState<number | null>(null)
     const [pricings, setPricings] = useState<RoomPricingModel[] | null>(null)
     const [error, setError] = useState<string | null>(null)
-    const [slotError, setSlotError] = useState<string | null>(null)
+    const [slotErrors, setSlotErrors] = useState<{ [key: number]: string | null }>({});
     const [isLoading, setIsLoading] = useState<boolean>(false)
     // Track editing state for price fields
     const [editingPriceIndex, setEditingPriceIndex] = useState<number | null>(null)
@@ -106,19 +106,30 @@ const RoomPricings = ({ roomId }: Props) => {
     }, [roomId])
 
     const handleAddPricing = () => {
-        if (!roomId) return
-        const newPricing = createEmptyRoomPricingModel(roomId)
+        if (!roomId) return;
+
+        const newPricing = createEmptyRoomPricingModel(roomId);
+
         setPricings((prev) => {
-            const newPricings = prev ? [...prev, newPricing] : [newPricing]
+            const newPricings = prev ? [...prev, newPricing] : [newPricing];
+
+            // Reset errors (assuming an errors state exists)
+            setSlotErrors((prevErrors) => {
+                const newErrors = { ...prevErrors };
+                delete newErrors[newPricings.length - 1]; // Remove any errors for the new row
+                return newErrors;
+            });
+
             // Mark the new row as modified
             setModifiedRows((prev) => {
-                const newSet = new Set(prev)
-                newSet.add(newPricings.length - 1)
-                return newSet
-            })
-            return newPricings
-        })
-    }
+                const newSet = new Set(prev);
+                newSet.add(newPricings.length - 1);
+                return newSet;
+            });
+
+            return newPricings;
+        });
+    };
 
     const handlePricingChange = (index: number, field: keyof RoomPricingModel, value: any) => {
         if (!pricings) return
@@ -170,7 +181,10 @@ const RoomPricings = ({ roomId }: Props) => {
         // Verify pricing does not overlap with existing pricing
         if (Array.isArray(pricings) && pricings.length > 0) {
             if (pricings.some((p) => p.id != pricing.id && doPricingSlotsOverlap(p, pricing))) {
-                setSlotError("Zeit-Slots dürfen sich nicht überlagern!");
+                setSlotErrors((prevErrors) => ({
+                    ...prevErrors,
+                    [index]: "Zeit-Slots dürfen sich nicht überlagern!",
+                }));
                 return;
             }
         }
@@ -179,17 +193,27 @@ const RoomPricings = ({ roomId }: Props) => {
             authUser.idToken,
             pricing,
             (result) => {
-                pricing.id = result.id;
+                if (result.id) {
+                    pricing.id = result.id;
+                }
                 // Remove from modified rows after successful save
                 setModifiedRows((prev) => {
                     const newSet = new Set(prev)
                     newSet.delete(index)
                     return newSet
                 });
-                setSlotError(null);
+                // Clear any existing errors for this row
+                setSlotErrors((prevErrors) => {
+                    const newErrors = { ...prevErrors };
+                    delete newErrors[index];
+                    return newErrors;
+                });
             },
             (errMsg) => {
-                setSlotError(errMsg ?? "Zeit-Slot konnte nicht gespeichert werden!");
+                setSlotErrors((prevErrors) => ({
+                    ...prevErrors,
+                    [index]: errMsg ?? "Zeit-Slot konnte nicht gespeichert werden!",
+                }));
             }
         );
     }
@@ -239,7 +263,6 @@ const RoomPricings = ({ roomId }: Props) => {
 
     return (
         <Box sx={{ mt: 2 }}>
-            {slotError && <Typography color="error">{slotError}</Typography>}
             {pricings &&
                 pricings.map((pricing, index) => (
                     <Paper key={index} sx={{ p: 2, mb: 2 }}>
@@ -398,6 +421,13 @@ const RoomPricings = ({ roomId }: Props) => {
                                     </IconButton>
                                 </Box>
                             </Grid2>
+
+                            {/* Show row-specific error message */}
+                            {slotErrors[index] && (
+                                <Grid2 size={{ xs: 12 }}>
+                                    <Typography color="error">{slotErrors[index]}</Typography>
+                                </Grid2>
+                            )}
                         </Grid2>
                     </Paper>
                 ))}
