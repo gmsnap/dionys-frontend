@@ -1,5 +1,3 @@
-"use client"
-
 import type React from "react"
 import { type RoomPricingModel, createEmptyRoomPricingModel } from "@/models/RoomPricingModel"
 import { createRoomPricing, deleteRoomPricing, fetchRoomPricingsByRoom } from "@/services/roomPricingService"
@@ -18,23 +16,23 @@ import {
     Paper,
     Grid2,
     InputAdornment,
-    CircularProgress,
 } from "@mui/material"
 import { Plus, Save, Trash2 } from "lucide-react"
 import { useEffect, useState } from "react"
 import theme from "@/theme"
 import { useAuthContext } from "@/auth/AuthContext"
 import { doPricingSlotsOverlap } from "@/utils/pricingManager"
+import { WaitIcon } from "@/components/WaitIcon"
 
 // German days of week
 const germanDaysOfWeek = [
-    { value: 0, label: "Sonntag" },
-    { value: 1, label: "Montag" },
-    { value: 2, label: "Dienstag" },
-    { value: 3, label: "Mittwoch" },
-    { value: 4, label: "Donnerstag" },
-    { value: 5, label: "Freitag" },
-    { value: 6, label: "Samstag" },
+    { value: 0, label: "Montag" },
+    { value: 1, label: "Dienstag" },
+    { value: 2, label: "Mittwoch" },
+    { value: 3, label: "Donnerstag" },
+    { value: 4, label: "Freitag" },
+    { value: 5, label: "Samstag" },
+    { value: 6, label: "Sonntag" },
 ]
 
 // Generate time options in 30 min steps
@@ -189,7 +187,11 @@ const RoomPricings = ({ roomId }: Props) => {
                     return newSet
                 });
                 setSlotError(null);
-            })
+            },
+            (errMsg) => {
+                setSlotError(errMsg ?? "Zeit-Slot konnte nicht gespeichert werden!");
+            }
+        );
     }
 
     // Handle price field focus
@@ -228,19 +230,7 @@ const RoomPricings = ({ roomId }: Props) => {
     }
 
     if (isLoading) {
-        return (
-            <Box
-                sx={{
-                    display: 'flex',
-                    justifyContent: 'center',
-                    width: '100%',
-                    height: '64px',
-                    mt: 5
-                }}
-            >
-                <CircularProgress size={32} color="secondary" />
-            </Box>
-        )
+        return (<WaitIcon />)
     }
 
     if (error) {

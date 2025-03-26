@@ -15,7 +15,7 @@ export interface BookingRoom {
     priceType: string;
     minPersons: number;
     maxPersons: number;
-    pricings?: PricingSlot[];
+    roomPricings?: PricingSlot[];
 };
 
 export interface BookingPackage {
@@ -41,14 +41,18 @@ const multiplyPriceByPriceType = (
     priceType: PriceTypes,
     h: number,
     p: number
-) => {
-    if (priceType === 'hour') {
-        return price * h;
-    } else if (priceType === 'person') {
-        return price * p;
+): number => {
+    switch (priceType) {
+        case 'hour':
+            return price * h;
+        case 'person':
+            return price * p;
+        case 'none':
+            return 0;
+        default:
+            return price;
     }
-    return price;
-}
+};
 
 export type PriceTypes =
     "day" |
@@ -80,7 +84,7 @@ export const calculateBooking = (booking: Booking) => {
                 persons,
                 room.price,
                 room.priceType,
-                room.pricings
+                room.roomPricings
             )
             : 0;
         return total + roomPrice;
@@ -97,6 +101,8 @@ export const calculateBooking = (booking: Booking) => {
         });
     }
 
+    //console.log("booking.packages", booking.packages)
+
     return roomsPrice + packagePrice;
 }
 
@@ -108,7 +114,7 @@ export const calculateBookingPrice = (
     basePriceType: string,
     schedules?: PricingSlot[],
 ) => {
-    console.log("start", bookingStart, "end", bookingEnd);
+    //console.log("start", bookingStart, "end", bookingEnd);
 
     let totalPrice = 0;
     let coveredRanges: { start: Date; end: Date }[] = [];

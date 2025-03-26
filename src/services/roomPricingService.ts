@@ -56,7 +56,9 @@ export const createRoomPricing = async (
             });
 
         if (!response.ok) {
-            onError?.("Failed to fetch user data");
+            const errResult = await response.json();
+            onError?.(errResult?.message ?? "Unkekannter Fehler");
+            return;
         }
 
         const result = await response.json();
