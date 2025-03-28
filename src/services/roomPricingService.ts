@@ -1,4 +1,3 @@
-import { AuthUser } from "@/auth/useAuth";
 import { RoomPricingModel } from "@/models/RoomPricingModel";
 
 const baseUrl = process.env.NEXT_PUBLIC_API_URL;

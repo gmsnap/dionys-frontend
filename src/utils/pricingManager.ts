@@ -114,69 +114,136 @@ export const calculateBookingPrice = (
     basePriceType: string,
     schedules?: PricingSlot[],
 ) => {
-    //console.log("start", bookingStart, "end", bookingEnd);
-
     let totalPrice = 0;
-    let coveredRanges: { start: Date; end: Date }[] = [];
+    const coveredRanges: { start: Date; end: Date }[] = [];
+
+    // Helper function to convert JS day (0=Sunday) to custom day (0=Monday)
+    const convertToCustomDay = (jsDay: number): number => {
+        return jsDay === 0 ? 6 : jsDay - 1; // Sunday (0) becomes 6, others shift left
+    };
 
     // Loop through schedules and apply pricing where applicable
     schedules?.forEach((schedule) => {
-        let scheduleStart = new Date(bookingStart);
-        let scheduleEnd = new Date(bookingStart);
+        // Get the booking start and end days of week (in our custom format where 0=Monday)
+        const bookingStartDay = convertToCustomDay(bookingStart.getDay());
+        const bookingEndDay = convertToCustomDay(bookingEnd.getDay());
 
-        const bookingStartDay = bookingStart.getDay(); // 0 = Sunday, 6 = Saturday
+        // Check if the booking day falls within the schedule's day range
+        let isBookingInScheduleDays = false;
 
-        // Adjust schedule dates based on `startDayOfWeek` and `endDayOfWeek`
-        const dayDifferenceStart = (schedule.startDayOfWeek - bookingStartDay + 7) % 7;
-        const dayDifferenceEnd = (schedule.endDayOfWeek - bookingStartDay + 7) % 7;
-
-        scheduleStart = addDays(scheduleStart, dayDifferenceStart);
-        scheduleEnd = addDays(scheduleEnd, dayDifferenceEnd);
-
-        // Set hours & minutes for the schedule
-        scheduleStart.setHours(
-            parseInt(schedule.startTime.split(":")[0], 10),
-            parseInt(schedule.startTime.split(":")[1], 10),
-            0
-        );
-
-        scheduleEnd.setHours(
-            parseInt(schedule.endTime.split(":")[0], 10),
-            parseInt(schedule.endTime.split(":")[1], 10),
-            0
-        );
-
-        // If the end time is before the start time, it means it crosses midnight
-        if (schedule.endDayOfWeek < schedule.startDayOfWeek ||
-            (schedule.endDayOfWeek === schedule.startDayOfWeek && schedule.endTime < schedule.startTime)) {
-            scheduleEnd = addDays(scheduleEnd, 1);
+        if (schedule.startDayOfWeek <= schedule.endDayOfWeek) {
+            // Schedule is within the same week (e.g., Mon-Wed)
+            isBookingInScheduleDays =
+                (bookingStartDay >= schedule.startDayOfWeek && bookingStartDay <= schedule.endDayOfWeek) ||
+                (bookingEndDay >= schedule.startDayOfWeek && bookingEndDay <= schedule.endDayOfWeek);
+        } else {
+            // Schedule wraps around the week (e.g., Fri-Mon)
+            isBookingInScheduleDays =
+                (bookingStartDay >= schedule.startDayOfWeek || bookingStartDay <= schedule.endDayOfWeek) ||
+                (bookingEndDay >= schedule.startDayOfWeek || bookingEndDay <= schedule.endDayOfWeek);
         }
 
-        // Find overlap between booking and schedule
-        const segmentStart = isBefore(bookingStart, scheduleStart) ? scheduleStart : bookingStart;
-        const segmentEnd = isAfter(bookingEnd, scheduleEnd) ? scheduleEnd : bookingEnd;
+        if (!isBookingInScheduleDays) {
+            return; // Skip this schedule if booking doesn't fall within its days
+        }
 
-        if (isBefore(segmentStart, segmentEnd)) {
-            const durationHours = differenceInMinutes(segmentEnd, segmentStart) / 60;
-            let price = schedule.price;
+        // For each day in the booking range, check if it falls within the schedule
+        const currentDate = new Date(bookingStart);
 
-            // Adjust price based on priceType
-            if (schedule.priceType === "person") {
-                price *= persons;
+        while (currentDate < bookingEnd) {
+            const currentDay = convertToCustomDay(currentDate.getDay());
+            let isInScheduleDays = false;
+
+            if (schedule.startDayOfWeek <= schedule.endDayOfWeek) {
+                isInScheduleDays = currentDay >= schedule.startDayOfWeek && currentDay <= schedule.endDayOfWeek;
+            } else {
+                isInScheduleDays = currentDay >= schedule.startDayOfWeek || currentDay <= schedule.endDayOfWeek;
             }
 
-            totalPrice += durationHours * price;
-            coveredRanges.push({ start: segmentStart, end: segmentEnd });
+            if (isInScheduleDays) {
+                // Create schedule start and end times for this day
+                const scheduleStart = new Date(currentDate);
+                const scheduleEnd = new Date(currentDate);
+
+                scheduleStart.setHours(
+                    parseInt(schedule.startTime.split(":")[0], 10),
+                    parseInt(schedule.startTime.split(":")[1], 10),
+                    0
+                );
+
+                scheduleEnd.setHours(
+                    parseInt(schedule.endTime.split(":")[0], 10),
+                    parseInt(schedule.endTime.split(":")[1], 10),
+                    0
+                );
+
+                // If end time is before start time, it means it crosses midnight
+                if (schedule.endTime < schedule.startTime) {
+                    scheduleEnd.setDate(scheduleEnd.getDate() + 1);
+                }
+
+                // Find overlap between booking and schedule for this day
+                const segmentStart = isBefore(bookingStart, scheduleStart) ? scheduleStart : bookingStart;
+                const segmentEnd = isAfter(bookingEnd, scheduleEnd) ? scheduleEnd : bookingEnd;
+
+                if (isBefore(segmentStart, segmentEnd)) {
+                    const durationHours = differenceInMinutes(segmentEnd, segmentStart) / 60;
+
+                    // Adjust price based on priceType
+                    if (schedule.priceType === "hour") {
+                        totalPrice += durationHours * schedule.price;
+                    } else if (schedule.priceType === "person") {
+                        totalPrice += durationHours * persons * schedule.price;
+                    } else if (schedule.priceType === "once") {
+                        totalPrice += schedule.price;
+                    }
+
+                    coveredRanges.push({ start: segmentStart, end: segmentEnd });
+                }
+            }
+
+            // Move to the next day
+            currentDate.setDate(currentDate.getDate() + 1);
+            currentDate.setHours(0, 0, 0, 0);
         }
     });
+
+    // When no covered ranges and base price type is any fix type, return base price
+    if (coveredRanges.length == 0) {
+        if (basePriceType === "once" || basePriceType === "day") {
+            return basePrice;
+        }
+        if (basePriceType === "none" || basePriceType === "consumption") {
+            return 0;
+        }
+    }
 
     // Sort covered ranges by start time
     coveredRanges.sort((a, b) => a.start.getTime() - b.start.getTime());
 
-    let unaccountedStart = bookingStart;
+    // Merge overlapping ranges
+    const mergedRanges: { start: Date; end: Date }[] = [];
+    for (const range of coveredRanges) {
+        if (mergedRanges.length === 0) {
+            mergedRanges.push(range);
+            continue;
+        }
+
+        const lastRange = mergedRanges[mergedRanges.length - 1];
+        if (isBefore(lastRange.end, range.start)) {
+            // No overlap, add as new range
+            mergedRanges.push(range);
+        } else if (isBefore(lastRange.end, range.end)) {
+            // Partial overlap, extend the last range
+            lastRange.end = range.end;
+        }
+        // If range is completely contained in lastRange, do nothing
+    }
+
+    let unaccountedStart = new Date(bookingStart);
 
     // Calculate base price for uncovered time slots
-    for (const range of coveredRanges) {
+    for (const range of mergedRanges) {
         if (isBefore(unaccountedStart, range.start)) {
             const durationHours = differenceInMinutes(range.start, unaccountedStart) / 60;
             let price = durationHours * basePrice;
@@ -185,7 +252,7 @@ export const calculateBookingPrice = (
             }
             totalPrice += price;
         }
-        unaccountedStart = range.end;
+        unaccountedStart = new Date(Math.max(unaccountedStart.getTime(), range.end.getTime()));
     }
 
     // If there's any remaining uncovered time, charge basePrice
