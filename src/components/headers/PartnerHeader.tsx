@@ -11,7 +11,7 @@ import {
     Button,
     Popover
 } from '@mui/material';
-import { FC, useEffect, useState } from 'react';
+import { FC, useEffect, useMemo, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import router from 'next/router';
 import { CircleCheckBig, CircleUserRound, MenuIcon, X } from 'lucide-react';
@@ -34,8 +34,9 @@ const Header: FC = () => {
     const { isOverlayOpen, setIsOverlayOpen } = useHeaderContext();
     const { isPaymentOverlayOpen, setIsPaymentOverlayOpen } = useHeaderContext();
     const { isOnboardingOverlayOpen, setIsOnboardingOverlayOpen } = useHeaderContext();
-    const { partnerUser, setPartnerUser } = useStore();
-    const { partnerLocations } = useStore();
+    const { setPartnerUser } = useStore();
+    const partnerUser = useStore((state) => state.partnerUser);
+    const partnerLocations = useMemo(() => useStore.getState().partnerLocations, []);
 
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [userPanelAnchorEl, setUserPanelAnchorEl] = useState<null | HTMLElement>(null);
@@ -46,17 +47,17 @@ const Header: FC = () => {
         '/partner/recovery',
     ];
 
-    const menuItems = [
-        { label: 'Dashboard', link: '/partner/events' },
-        { label: 'Locations', link: '/partner/location' },
-        { label: 'Rooms & Tables', link: '/partner/rooms' },
-        { label: 'Food & Beverage', link: '/partner/food' },
-        { label: 'Look & Feel', link: '/partner/lookandfeel' },
-        { label: 'Revenue Manager', link: '/partner/revenuemanager' },
-        //{ label: 'Equipment', link: '/partner/equipment' },
-        //{ label: 'Personal', link: '/partner/personnel' },
-        //{ label: 'Catering', link: '/partner/catering' },
-    ];
+    const menuItems = useMemo(
+        () => [
+            { label: 'Dashboard', link: '/partner/events' },
+            { label: 'Locations', link: '/partner/location' },
+            { label: 'Rooms & Tables', link: '/partner/rooms' },
+            { label: 'Food & Beverage', link: '/partner/food' },
+            { label: 'Look & Feel', link: '/partner/lookandfeel' },
+            { label: 'Revenue Manager', link: '/partner/revenuemanager' },
+        ],
+        [],
+    );
 
     const isItemSelected = (link: string): boolean => {
         return link === '/' ? pathname === '/' : pathname?.startsWith(link);
@@ -115,7 +116,15 @@ const Header: FC = () => {
     }, [authUser, authLoading]);
 
     useEffect(() => {
-        if (authUser?.username) {
+        if (authLoading) return;
+
+        if (!authUser?.username) {
+            setPartnerUser(null);
+            return;
+        }
+
+        console.log("authUser", authUser)
+        if (partnerUser === null) {
             const fetchUserData = async () => {
                 await createPartnerUser(authUser,
                     (result) => {
@@ -130,8 +139,6 @@ const Header: FC = () => {
             fetchUserData();
             return;
         }
-
-        setPartnerUser(null);
     }, [authUser]);
 
     useEffect(() => {
@@ -156,14 +163,19 @@ const Header: FC = () => {
         }*/
     }, [partnerUser, partnerLocations]);
 
-    const logoutButton = <Button
-        variant="contained"
-        color="primary"
-        onClick={authUser ? handleLogout : () => router.push('/partner')}
-        sx={{ ml: 2, mr: 2 }}
-    >
-        {authUser ? 'Logout' : 'Login'}
-    </Button>
+    const logoutButton = useMemo(
+        () => (
+            <Button
+                variant="contained"
+                color="primary"
+                onClick={authUser ? handleLogout : () => router.push('/partner')}
+                sx={{ ml: 2, mr: 2 }}
+            >
+                {authUser ? 'Logout' : 'Login'}
+            </Button>
+        ),
+        [authUser, handleLogout],
+    );
 
     return (
         <>

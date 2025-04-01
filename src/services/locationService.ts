@@ -137,9 +137,11 @@ export const fetchLocationWithRooms = async (
 };
 
 export const useSetLocationByCurrentPartner = () => {
-    const { partnerUser, setPartnerLocations } = useStore();
+    const { partnerUser, partnerLocations, setPartnerLocations } = useStore();
 
     useEffect(() => {
+        if (!partnerUser || partnerLocations) return;
+
         const setLocation = async () => {
             if (partnerUser?.companyId) {
                 const locations = await fetchLocationsByCompanyId(partnerUser.companyId, null, null, true);
@@ -152,7 +154,7 @@ export const useSetLocationByCurrentPartner = () => {
         };
 
         setLocation();
-    }, [partnerUser, setPartnerLocations]);
+    }, [partnerUser, partnerLocations]);
 };
 
 export const storePartnerLocations = (onComplete?: () => void) => {

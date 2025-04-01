@@ -58,7 +58,7 @@ const PartnerPage: NextPageWithLayout = () => {
                         router.push('/partner/events');
                     }}
                 >
-                    Jetzt Location anlegen
+                    Jetzt Location onboarden
                 </Button>
             </Box>
         </Box>

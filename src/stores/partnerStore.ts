@@ -12,11 +12,19 @@ interface StoreState {
 
 const useStore = create<StoreState>()(
     persist(
-        (set) => ({
+        (set, get) => ({
             partnerUser: null,
             partnerLocations: null,
-            setPartnerUser: (partnerUser) => set({ partnerUser }),
-            setPartnerLocations: (partnerLocations) => set({ partnerLocations }),
+            setPartnerUser: (partnerUser) => {
+                if (get().partnerUser !== partnerUser) {
+                    set({ partnerUser });
+                }
+            },
+            setPartnerLocations: (partnerLocations) => {
+                if (get().partnerLocations !== partnerLocations) {
+                    set({ partnerLocations });
+                }
+            },
         }),
         {
             // unique name for local storage

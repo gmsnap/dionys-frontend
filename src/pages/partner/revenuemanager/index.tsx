@@ -1,7 +1,7 @@
 import { ReactElement, useEffect, useState } from 'react';
 import PartnerLayout from '@/layouts/PartnerLayout';
 import type { NextPageWithLayout } from '@/types/page';
-import { Box, Typography, useMediaQuery } from '@mui/material';
+import { Box, CircularProgress, Typography, useMediaQuery } from '@mui/material';
 import PartnerContentLayout from '@/layouts/PartnerContentLayout';
 import useStore from '@/stores/partnerStore';
 import { RoomModel } from '@/models/RoomModel';
@@ -10,6 +10,7 @@ import PageHeadline from '@/features/partners/PageHeadline';
 import RoomsDropDown from '@/features/partners/RoomsDropDown';
 import RoomPricings from '@/features/partners/RoomPricings';
 import theme from '@/theme';
+import { WaitIcon } from '@/components/WaitIcon';
 
 const PartnerPage: NextPageWithLayout = () => {
     const isMobile = useMediaQuery(theme.breakpoints.down("md"))
@@ -56,7 +57,7 @@ const PartnerPage: NextPageWithLayout = () => {
         fetchRoomsFromApi();
     }, [partnerUser]);
 
-    if (!partnerLocations || partnerLocations.length == 0) {
+    if (!isLoading && (!partnerLocations || partnerLocations.length == 0)) {
         return (
             <PartnerContentLayout title='Revenue Manager'>
                 <Box sx={{
@@ -64,7 +65,7 @@ const PartnerPage: NextPageWithLayout = () => {
                     mt: 10,
                 }}>
                     <Typography variant="h5" textAlign="center">
-                        Erstellen Sie bitte zunächst eine Location.
+                        Erstelle bitte zunächst eine Location.
                     </Typography>
                 </Box>
             </PartnerContentLayout>
@@ -109,6 +110,8 @@ const PartnerPage: NextPageWithLayout = () => {
                             <RoomPricings roomId={roomId} />
                         </Box>
                     }
+
+                    {isLoading && <WaitIcon />}
                 </Box>
             </Box>
 

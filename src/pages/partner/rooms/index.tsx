@@ -11,6 +11,7 @@ import { RoomModel } from '@/models/RoomModel';
 import { fetchLocationWithRooms } from '@/services/locationService';
 import { fetchRoomsByCompany } from '@/services/roomService';
 import RoomForm from '@/features/partners/RoomForm';
+import { WaitIcon } from '@/components/WaitIcon';
 
 const PartnerPage: NextPageWithLayout = () => {
     const { partnerUser, partnerLocations } = useStore();
@@ -58,6 +59,14 @@ const PartnerPage: NextPageWithLayout = () => {
         fetchRoomsFromApi();
     }, [partnerUser, locationId]);
 
+    if (isLoading) {
+        return (
+            <PartnerContentLayout title='Räume'>
+                <WaitIcon sx={{ mt: 20 }} />
+            </PartnerContentLayout>
+        );
+    }
+
     if (!partnerLocations || partnerLocations.length == 0) {
         return (
             <PartnerContentLayout title='Räume'>
@@ -66,7 +75,7 @@ const PartnerPage: NextPageWithLayout = () => {
                     mt: 10,
                 }}>
                     <Typography variant="h5" textAlign="center">
-                        Erstellen Sie bitte zunächst eine Location.
+                        Erstelle bitte zunächst eine Location.
                     </Typography>
                 </Box>
             </PartnerContentLayout>
