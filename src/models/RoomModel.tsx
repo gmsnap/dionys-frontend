@@ -15,6 +15,9 @@ export interface RoomModel {
     eventCategories: string[];
     roomConfigurations: RoomConfigurationModel[];
     roomPricings?: RoomPricingModel[];
+    RoomsEventConfigurations?: {
+        isExclusive: boolean;
+    };
 }
 
 export const createEmptyRoomModel = (locationId: number): RoomModel => ({

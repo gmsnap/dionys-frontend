@@ -1,3 +1,5 @@
+"use client"
+
 import type React from "react"
 import { type RoomPricingModel, createEmptyRoomPricingModel } from "@/models/RoomPricingModel"
 import { createRoomPricing, deleteRoomPricing, fetchRoomPricingsByRoom } from "@/services/roomPricingService"
@@ -10,8 +12,6 @@ import {
     Select,
     TextField,
     Typography,
-    FormControlLabel,
-    Switch,
     IconButton,
     Paper,
     Grid2,
@@ -37,7 +37,7 @@ const germanDaysOfWeek = [
     { value: 4, label: "Freitag" },
     { value: 5, label: "Samstag" },
     { value: 6, label: "Sonntag" },
-];
+]
 
 const germanShortDaysOfWeek = [
     { value: 0, label: "Mo" },
@@ -47,7 +47,7 @@ const germanShortDaysOfWeek = [
     { value: 4, label: "Fr" },
     { value: 5, label: "Sa" },
     { value: 6, label: "So" },
-];
+]
 
 // Generate time options in 30 min steps
 const generateTimeOptions = () => {
@@ -72,6 +72,14 @@ const priceTypeOptions = [
     { value: "hour", label: "Fix pro Stunde" },
     { value: "person", label: "Pro Person u. Stunde" },
     { value: "once", label: "einmalig" },
+    { value: "none", label: "kostenlos" },
+]
+
+// Exclusive type options
+const exclusiveTypeOptions = [
+    { value: "none", label: "Keine" },
+    { value: "optional", label: "Optional" },
+    { value: "mandatory", label: "Pflicht" },
 ]
 
 interface Props {
@@ -82,20 +90,22 @@ interface Props {
 const formatPriceForDisplay = (value: number): string => {
     // Using comma as decimal separator for German formatting
     return value.toFixed(2).replace(".", ",")
-};
+}
 
 const RoomPricings = ({ roomId }: Props) => {
     const { authUser } = useAuthContext()
     const [pricingId, setPricingId] = useState<number | null>(null)
     const [pricings, setPricings] = useState<RoomPricingModel[] | null>(null)
     const [error, setError] = useState<string | null>(null)
-    const [slotErrors, setSlotErrors] = useState<{ [key: number]: string | null }>({});
+    const [slotErrors, setSlotErrors] = useState<{ [key: number]: string | null }>({})
     const [isLoading, setIsLoading] = useState<boolean>(false)
     // Track editing state for price fields
     const [editingPriceIndex, setEditingPriceIndex] = useState<number | null>(null)
     const [editingPriceValue, setEditingPriceValue] = useState<string>("")
     const [modifiedRows, setModifiedRows] = useState<Set<number>>(new Set())
     const [expanded, setExpanded] = useState<number | false>(false)
+    const [editingExclusivePriceIndex, setEditingExclusivePriceIndex] = useState<number | null>(null)
+    const [editingExclusivePriceValue, setEditingExclusivePriceValue] = useState<string>("")
 
     const fetchPricings = async (roomId: number, selected: number | null | undefined = undefined) => {
         try {
@@ -115,33 +125,33 @@ const RoomPricings = ({ roomId }: Props) => {
     }
 
     const handleAddPricing = () => {
-        if (!roomId) return;
+        if (!roomId) return
 
-        const newPricing = createEmptyRoomPricingModel(roomId);
+        const newPricing = createEmptyRoomPricingModel(roomId)
 
         setPricings((prev) => {
-            const newPricings = prev ? [...prev, newPricing] : [newPricing];
+            const newPricings = prev ? [...prev, newPricing] : [newPricing]
 
             // Reset errors (assuming an errors state exists)
             setSlotErrors((prevErrors) => {
-                const newErrors = { ...prevErrors };
-                delete newErrors[newPricings.length - 1]; // Remove any errors for the new row
-                return newErrors;
-            });
+                const newErrors = { ...prevErrors }
+                delete newErrors[newPricings.length - 1] // Remove any errors for the new row
+                return newErrors
+            })
 
             // Mark the new row as modified
             setModifiedRows((prev) => {
-                const newSet = new Set(prev);
-                newSet.add(newPricings.length - 1);
-                return newSet;
-            });
+                const newSet = new Set(prev)
+                newSet.add(newPricings.length - 1)
+                return newSet
+            })
 
             // Expand the new row
-            setExpanded(pricings?.length ?? 0);
+            setExpanded(pricings?.length ?? 0)
 
-            return newPricings;
-        });
-    };
+            return newPricings
+        })
+    }
 
     const handlePricingChange = (index: number, field: keyof RoomPricingModel, value: any) => {
         if (!pricings) return
@@ -196,8 +206,8 @@ const RoomPricings = ({ roomId }: Props) => {
                 setSlotErrors((prevErrors) => ({
                     ...prevErrors,
                     [index]: "Zeit-Slots dürfen sich nicht überlagern!",
-                }));
-                return;
+                }))
+                return
             }
         }
 
@@ -206,28 +216,28 @@ const RoomPricings = ({ roomId }: Props) => {
             pricing,
             (result) => {
                 if (result.id) {
-                    pricing.id = result.id;
+                    pricing.id = result.id
                 }
                 // Remove from modified rows after successful save
                 setModifiedRows((prev) => {
                     const newSet = new Set(prev)
                     newSet.delete(index)
                     return newSet
-                });
+                })
                 // Clear any existing errors for this row
                 setSlotErrors((prevErrors) => {
-                    const newErrors = { ...prevErrors };
-                    delete newErrors[index];
-                    return newErrors;
-                });
+                    const newErrors = { ...prevErrors }
+                    delete newErrors[index]
+                    return newErrors
+                })
             },
             (errMsg) => {
                 setSlotErrors((prevErrors) => ({
                     ...prevErrors,
                     [index]: errMsg ?? "Zeit-Slot konnte nicht gespeichert werden!",
-                }));
-            }
-        );
+                }))
+            },
+        )
     }
 
     // Handle price field focus
@@ -265,11 +275,52 @@ const RoomPricings = ({ roomId }: Props) => {
         setEditingPriceValue("")
     }
 
-    const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+    // Handle exclusive price field focus
+    const handleExclusivePriceFocus = (index: number) => {
+        if (!pricings) return
+        setEditingExclusivePriceIndex(index)
+        if (pricings[index].exclusivePrice !== null) {
+            setEditingExclusivePriceValue(formatPriceForDisplay(pricings[index].exclusivePrice))
+        } else {
+            setEditingExclusivePriceValue("")
+        }
+    }
+
+    // Handle exclusive price field change during editing
+    const handleExclusivePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        // Allow only numbers and comma/dot for decimal
+        const value = e.target.value.replace(/[^0-9,.]/g, "")
+        setEditingExclusivePriceValue(value)
+    }
+
+    // Handle exclusive price field blur - convert to number and update state
+    const handleExclusivePriceBlur = () => {
+        if (editingExclusivePriceIndex === null || !pricings) return
+
+        // Convert the edited value to a number
+        let numericValue = null
+        try {
+            // Replace comma with dot for parsing
+            const normalizedValue = editingExclusivePriceValue.replace(",", ".")
+            if (normalizedValue.trim() !== "") {
+                numericValue = Number.parseFloat(normalizedValue)
+                if (isNaN(numericValue)) numericValue = null
+            }
+        } catch (e) {
+            numericValue = null
+        }
+
+        // Update the pricing with the new value
+        handlePricingChange(editingExclusivePriceIndex, "exclusivePrice", numericValue)
+        setEditingExclusivePriceIndex(null)
+        setEditingExclusivePriceValue("")
+    }
+
+    const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
 
     const handleAccordionChange = (index: number) => (event: React.SyntheticEvent, isExpanded: boolean) => {
-        setExpanded(isExpanded ? index : false);
-    };
+        setExpanded(isExpanded ? index : false)
+    }
 
     useEffect(() => {
         if (!roomId) {
@@ -279,7 +330,7 @@ const RoomPricings = ({ roomId }: Props) => {
     }, [roomId])
 
     if (isLoading) {
-        return (<WaitIcon />)
+        return <WaitIcon />
     }
 
     if (error) {
@@ -290,7 +341,8 @@ const RoomPricings = ({ roomId }: Props) => {
         <Box sx={{ mt: 2 }}>
             {pricings &&
                 pricings.map((pricing, index) => (
-                    <Accordion key={index}
+                    <Accordion
+                        key={index}
                         expanded={isMobile ? expanded === index : true} // Always expanded on larger screens
                         onChange={isMobile ? handleAccordionChange(index) : undefined} // Only collapsible in xs
                         sx={{
@@ -311,9 +363,9 @@ const RoomPricings = ({ roomId }: Props) => {
                                 }}
                             >
                                 <Typography variant="subtitle1">
-                                    {germanShortDaysOfWeek.find((d) => d.value === pricing.startDayOfWeek)?.label},
-                                    {' '}{pricing.startTime.slice(0, 5)} |
-                                    {' '}{new Intl.NumberFormat('de-DE', { maximumFractionDigits: 0 }).format(pricing.price)} €
+                                    {germanShortDaysOfWeek.find((d) => d.value === pricing.startDayOfWeek)?.label},{" "}
+                                    {pricing.startTime.slice(0, 5)} |{" "}
+                                    {new Intl.NumberFormat("de-DE", { maximumFractionDigits: 0 }).format(pricing.price)} €
                                 </Typography>
                             </AccordionSummary>
                         )}
@@ -323,7 +375,7 @@ const RoomPricings = ({ roomId }: Props) => {
                             <Paper key={index} sx={{ p: 2, mb: 2 }}>
                                 <Grid2 container spacing={2} alignItems="center">
                                     {/* Day of week and time selectors */}
-                                    <Grid2 size={{ xs: 12, sm: 6, md: 1.333 }}>
+                                    <Grid2 size={{ xs: 12, sm: 6, md: 1.2 }}>
                                         <FormControl fullWidth size="small">
                                             <InputLabel>Starttag</InputLabel>
                                             <Select
@@ -340,7 +392,7 @@ const RoomPricings = ({ roomId }: Props) => {
                                         </FormControl>
                                     </Grid2>
 
-                                    <Grid2 size={{ xs: 12, sm: 6, md: 1.333 }}>
+                                    <Grid2 size={{ xs: 12, sm: 6, md: 1.2 }}>
                                         <FormControl fullWidth size="small">
                                             <InputLabel>Startzeit</InputLabel>
                                             <Select
@@ -357,7 +409,7 @@ const RoomPricings = ({ roomId }: Props) => {
                                         </FormControl>
                                     </Grid2>
 
-                                    <Grid2 size={{ xs: 12, sm: 6, md: 1.333 }}>
+                                    <Grid2 size={{ xs: 12, sm: 6, md: 1.2 }}>
                                         <FormControl fullWidth size="small">
                                             <InputLabel>Endtag</InputLabel>
                                             <Select
@@ -374,7 +426,7 @@ const RoomPricings = ({ roomId }: Props) => {
                                         </FormControl>
                                     </Grid2>
 
-                                    <Grid2 size={{ xs: 12, sm: 6, md: 1.333 }}>
+                                    <Grid2 size={{ xs: 12, sm: 6, md: 1.2 }}>
                                         <FormControl fullWidth size="small">
                                             <InputLabel>Endzeit</InputLabel>
                                             <Select
@@ -391,7 +443,7 @@ const RoomPricings = ({ roomId }: Props) => {
                                         </FormControl>
                                     </Grid2>
 
-                                    <Grid2 size={{ xs: 12, sm: 6, md: 1.333 }}>
+                                    <Grid2 size={{ xs: 12, sm: 6, md: 1.2 }}>
                                         <FormControl fullWidth size="small">
                                             <InputLabel>Preistyp</InputLabel>
                                             <Select
@@ -409,7 +461,7 @@ const RoomPricings = ({ roomId }: Props) => {
                                     </Grid2>
 
                                     {/* Price field with currency formatting */}
-                                    <Grid2 size={{ xs: 12, sm: 6, md: 1.333 }}>
+                                    <Grid2 size={{ xs: 12, sm: 6, md: 1.2 }}>
                                         <TextField
                                             fullWidth
                                             label="Preis"
@@ -426,38 +478,69 @@ const RoomPricings = ({ roomId }: Props) => {
                                         />
                                     </Grid2>
 
-                                    {/* Exclusive options */}
-                                    <Grid2 size={{ xs: 12, sm: 6, md: 1.333 }}>
-                                        <FormControlLabel
-                                            control={
-                                                <Switch
-                                                    checked={pricing.exclusivePossible}
-                                                    onChange={(e) => handlePricingChange(index, "exclusivePossible", e.target.checked)}
-                                                />
-                                            }
-                                            label={
-                                                <Typography sx={{ fontSize: { sm: "auto", md: "12px", lg: "unset" } }}>Exklusiv möglich</Typography>
-                                            }
-                                        />
+                                    {/* Exclusive type dropdown */}
+                                    <Grid2 size={{ xs: 12, sm: 6, md: 1.2 }}>
+                                        <FormControl fullWidth size="small">
+                                            <InputLabel>Exklusivität</InputLabel>
+                                            <Select
+                                                value={pricing.exclusiveType || "none"}
+                                                label="Exklusivität"
+                                                onChange={(e) => handlePricingChange(index, "exclusiveType", e.target.value)}
+                                            >
+                                                {exclusiveTypeOptions.map((type) => (
+                                                    <MenuItem key={type.value} value={type.value}>
+                                                        {type.label}
+                                                    </MenuItem>
+                                                ))}
+                                            </Select>
+                                        </FormControl>
                                     </Grid2>
 
-                                    <Grid2 size={{ xs: 12, sm: 6, md: 1.333 }}>
-                                        <FormControlLabel
-                                            control={
-                                                <Switch
-                                                    checked={pricing.exclusiveMandatory}
-                                                    onChange={(e) => handlePricingChange(index, "exclusiveMandatory", e.target.checked)}
-                                                    disabled={!pricing.exclusivePossible}
-                                                />
+                                    <Grid2 size={{ xs: 12, sm: 6, md: 1.2 }}>
+                                        <FormControl fullWidth size="small">
+                                            <InputLabel>Exklusivität Preistyp</InputLabel>
+                                            <Select
+                                                value={pricing.exclusivePriceType || ""}
+                                                label="Exklusivität Preistyp"
+                                                disabled={pricing.exclusiveType === "none" || !pricing.exclusiveType}
+                                                onChange={(e) => handlePricingChange(index, "exclusivePriceType", e.target.value)}
+                                            >
+                                                {priceTypeOptions.map((type) => (
+                                                    <MenuItem key={type.value} value={type.value}>
+                                                        {type.label}
+                                                    </MenuItem>
+                                                ))}
+                                            </Select>
+                                        </FormControl>
+                                    </Grid2>
+
+                                    {/* Exclusive Price field - only enabled when exclusiveType is not "none" */}
+                                    <Grid2 size={{ xs: 12, sm: 6, md: 1.2 }}>
+                                        <TextField
+                                            fullWidth
+                                            label="Exklusiv Preis"
+                                            size="small"
+                                            disabled={pricing.exclusiveType === "none" || !pricing.exclusiveType}
+                                            value={
+                                                editingExclusivePriceIndex === index
+                                                    ? editingExclusivePriceValue
+                                                    : pricing.exclusivePrice !== null
+                                                        ? formatPriceForDisplay(pricing.exclusivePrice)
+                                                        : ""
                                             }
-                                            label={
-                                                <Typography sx={{ fontSize: { sm: "auto", md: "12px", lg: "unset" } }}>Exklusiv Pflicht</Typography>
-                                            }
+                                            onFocus={() => handleExclusivePriceFocus(index)}
+                                            onChange={handleExclusivePriceChange}
+                                            onBlur={handleExclusivePriceBlur}
+                                            slotProps={{
+                                                input: {
+                                                    startAdornment: <InputAdornment position="start">€</InputAdornment>,
+                                                },
+                                            }}
                                         />
                                     </Grid2>
 
                                     {/* Action buttons */}
-                                    <Grid2 size={{ xs: 12, sm: 6, md: 1.333 }}>
+                                    <Grid2 size={{ xs: 12, sm: 6, md: 1.2 }}>
                                         <Box sx={{ display: "flex", gap: 1, justifyContent: "end" }}>
                                             <IconButton
                                                 color="primary"
@@ -465,10 +548,12 @@ const RoomPricings = ({ roomId }: Props) => {
                                                 aria-label="Speichern"
                                                 disabled={!modifiedRows.has(index)}
                                             >
-                                                <Save color={
-                                                    !modifiedRows.has(index)
-                                                        ? theme.palette.customColors.blue.halflight
-                                                        : theme.palette.customColors.blue.main}
+                                                <Save
+                                                    color={
+                                                        !modifiedRows.has(index)
+                                                            ? theme.palette.customColors.blue.halflight
+                                                            : theme.palette.customColors.blue.main
+                                                    }
                                                 />
                                             </IconButton>
                                             <IconButton color="error" onClick={() => handleDeletePricing(index)} aria-label="Löschen">

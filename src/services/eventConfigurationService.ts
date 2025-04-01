@@ -86,3 +86,35 @@ export const calculateTotalPrice = (conf: EventConfigurationModel) => {
 
     return roomsPrice + packagePrice;
 }
+
+export const deleteEventConfiguration = async (
+    idToken: string,
+    id: number,
+    onSuccess?: () => void,
+    forceDelete = false
+): Promise<void> => {
+    try {
+        if (!id || id <= 0) {
+            console.error('Invalid ID');
+            return;
+        }
+
+        const response = await fetch(`${evntConfUrl}/${id}?force=${forceDelete}`, {
+            method: 'DELETE',
+            headers: {
+                Authorization: `Bearer ${idToken}`,
+                "Content-Type": "application/json"
+            },
+        });
+
+        if (response.ok) {
+            console.log('Deleted successfully');
+            onSuccess?.();
+        } else {
+            const errorMessage = await response.text();
+            console.error('Failed to delete:', errorMessage);
+        }
+    } catch (error) {
+        console.error('Error deleting:', error);
+    }
+};

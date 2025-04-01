@@ -29,6 +29,7 @@ const EventConfigurationDetails = ({
 
         return rooms.map(room => {
             const name = room.name ?? "?";
+            const isExclusive = model.roomExclusiveIds?.includes(room.id) === true;
             const price = formatPrice(
                 calculateBookingPrice(
                     startDate,
@@ -36,12 +37,13 @@ const EventConfigurationDetails = ({
                     conf.persons ?? 1,
                     room.price,
                     room.priceType,
+                    model.roomExclusiveIds?.includes(room.id) === true,
                     room.roomPricings,
                 )
             );
             return (
                 <Typography key={name}>
-                    {name}: {price}
+                    {name} ({price}) {isExclusive ? ', Exklusive Buchung' : ''}
                 </Typography>
             );
         });

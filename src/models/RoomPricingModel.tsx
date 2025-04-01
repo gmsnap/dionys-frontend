@@ -1,4 +1,5 @@
 import { PriceTypes } from "@/constants/PriceTypes";
+import { PricingSlot } from "@/utils/pricingManager";
 
 export type DayOfWeek = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
@@ -11,8 +12,9 @@ export interface RoomPricingModel {
     endTime: string;    // 'HH:MM:SS'
     price: number;
     priceType: string;
-    exclusivePossible: boolean;
-    exclusiveMandatory: boolean;
+    exclusiveType: string;
+    exclusivePriceType: string | null;
+    exclusivePrice: number | null;
 }
 
 export const createEmptyRoomPricingModel = (roomId: number): RoomPricingModel => ({
@@ -24,6 +26,21 @@ export const createEmptyRoomPricingModel = (roomId: number): RoomPricingModel =>
     endTime: "",
     price: 0,
     priceType: "hour",
-    exclusivePossible: true,
-    exclusiveMandatory: false
+    exclusiveType: "optional",
+    exclusivePriceType: "none",
+    exclusivePrice: null,
 })
+
+export const toPricingSlot = (roomPricing: RoomPricingModel): PricingSlot => {
+    return {
+        startDayOfWeek: roomPricing.startDayOfWeek,
+        startTime: roomPricing.startTime,
+        endDayOfWeek: roomPricing.endDayOfWeek,
+        endTime: roomPricing.endTime,
+        price: roomPricing.price,
+        priceType: roomPricing.priceType,
+        exclusiveType: roomPricing.exclusiveType,
+        exclusivePriceType: roomPricing.exclusivePriceType,
+        exclusivePrice: roomPricing.exclusivePrice,
+    };
+};

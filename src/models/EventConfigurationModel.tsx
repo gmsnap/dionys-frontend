@@ -10,6 +10,7 @@ export interface EventConfigurationModel {
     id: number;
     locationId: number;
     roomIds: number[] | null;
+    roomExclusiveIds: number[] | null;
     packageIds: number[] | null;
     eventCategory: EventCategories | null;
     persons: number | null;
@@ -83,9 +84,10 @@ export const toBooking = (model: EventConfigurationModel): Booking | null => {
     return {
         id: model.id,
         persons: model.persons ?? 1,
-        date: model.date!!,
-        endDate: model.endDate!!,
+        date: model.date,
+        endDate: model.endDate,
         packages: model.packages ? model.packages.map(toBookingPackage) : undefined,
         rooms: model.rooms ?? undefined,
+        roomExclusiveIds: model.roomExclusiveIds ?? undefined,
     };
 }

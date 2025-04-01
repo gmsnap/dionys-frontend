@@ -4,18 +4,19 @@ const baseUrl = process.env.NEXT_PUBLIC_API_URL;
 export const pricingsBaseUrl = `${baseUrl}/partner/roomPricings`;
 
 export const fetchRoomPricingsByRoom = async (
-    roomId: number,
-    setIsLoading: (loading: boolean) => void,
-    setError: (error: string | null) => void
+    roomId: number | number[],
+    setIsLoading?: (loading: boolean) => void,
+    setError?: (error: string | null) => void
 ): Promise<any> => {
     try {
-        setIsLoading(true);
+        setIsLoading?.(true);
 
-        const response =
-            await fetch(`${baseUrl}/rooms/${roomId}/pricings`);
+        const response = Array.isArray(roomId)
+            ? await fetch(`${baseUrl}/rooms/pricings/multiple?roomIds=${roomId.join(',')}`)
+            : await fetch(`${baseUrl}/rooms/${roomId}/pricings`);
 
         if (response.status === 404) {
-            setIsLoading(false);
+            setIsLoading?.(false);
             return [];
         }
 
@@ -24,13 +25,13 @@ export const fetchRoomPricingsByRoom = async (
         }
 
         const result = await response.json();
-        setError(null);
+        setError?.(null);
         return result || [];
     } catch (err) {
-        setError(err instanceof Error ? err.message : 'An unknown error occurred');
+        setError?.(err instanceof Error ? err.message : 'An unknown error occurred');
         return null;
     } finally {
-        setIsLoading(false);
+        setIsLoading?.(false);
     }
 };
 

@@ -42,6 +42,7 @@ export const createDefaultEventConfigurationModel = (locationId: number): EventC
         id: 0,
         locationId: locationId,
         roomIds: null,
+        roomExclusiveIds: null,
         packageIds: null,
         eventCategory: null,
         persons: null,
