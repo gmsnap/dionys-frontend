@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Grid2, SxProps, Theme } from '@mui/material';
+import { Grid2, SxProps, Theme, Typography } from '@mui/material';
 import { HandCoins, Ruler } from 'lucide-react';
 import AccordionGridItem from '@/components/AccordionGridItem';
 import useStore from '@/stores/eventStore';
@@ -105,11 +105,46 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
 
     const iconColor = theme.palette.customColors.embedded.text.tertiary;
 
+    const getExclusiveNote = () => {
+        const withoutPrice = "Möchten Sie den Raum exklusiv buchen?";
+
+        if (!(eventConfiguration?.date &&
+            eventConfiguration.endDate &&
+            eventConfiguration.persons)) {
+            return withoutPrice;
+        }
+        const room = location?.rooms?.find((r) => r.id === pendingRoomId);
+
+        console.log("r ", room)
+
+        if (!room) return withoutPrice;
+
+        const exclusivePrice = calculateBookingPrice(
+            new Date(eventConfiguration.date),
+            new Date(eventConfiguration.endDate),
+            eventConfiguration.persons,
+            room.price,
+            room.priceType,
+            true,
+            room.roomPricings,
+            ['exclusive'],
+        );
+
+        return `Möchten Sie den Raum zu einem Aufpreis von ${formatPrice(exclusivePrice)} buchen?`;
+    }
+
     return (
         <>
             <Grid2 container spacing={1} sx={{ ...sx }}>
-                {location?.rooms &&
-                    location.rooms.map((room) => {
+                {eventConfiguration &&
+                    location?.rooms &&
+                    location.rooms.filter(
+                        r => (
+                            eventConfiguration.persons == null ||
+                            (r.minPersons <= eventConfiguration.persons &&
+                                r.maxPersons >= eventConfiguration.persons)
+                        )
+                    ).map((room) => {
                         const calculatedPrice =
                             eventConfiguration?.date &&
                                 eventConfiguration?.endDate &&
@@ -167,19 +202,36 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
                 aria-labelledby="exclusive-room-dialog-title"
                 aria-describedby="exclusive-room-dialog-description"
             >
-                <DialogTitle id="exclusive-room-dialog-title">
+                <DialogTitle
+                    id="exclusive-room-dialog-title"
+                    sx={{
+                        textAlign: 'center',
+                        padding: 3,
+                    }}
+                >
                     Exklusiv-Option verfügbar
                 </DialogTitle>
                 <DialogContent>
-                    <DialogContentText id="exclusive-room-dialog-description">
-                        Möchten Sie den Raum exklusiv buchen?
+                    <DialogContentText
+                        id="exclusive-room-dialog-description"
+                        sx={{ textAlign: 'center', }}
+                    >
+                        {getExclusiveNote()}
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => handleDialogClose(false)} color="primary">
+                    <Button
+                        variant='contained'
+                        onClick={() => handleDialogClose(false)}
+                        color="primary"
+                    >
                         Nein
                     </Button>
-                    <Button onClick={() => handleDialogClose(true)} color="primary" autoFocus>
+                    <Button
+                        variant='contained'
+                        onClick={() => handleDialogClose(true)}
+                        color="primary" autoFocus
+                    >
                         Ja
                     </Button>
                 </DialogActions>

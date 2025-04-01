@@ -518,7 +518,7 @@ const RoomPricings = ({ roomId }: Props) => {
                                     <Grid2 size={{ xs: 12, sm: 6, md: 1.2 }}>
                                         <TextField
                                             fullWidth
-                                            label="Exklusiv Preis"
+                                            label="Aufpreis Exklusivität"
                                             size="small"
                                             disabled={pricing.exclusiveType === "none" || !pricing.exclusiveType}
                                             value={

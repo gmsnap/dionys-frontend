@@ -119,9 +119,13 @@ export const calculateBookingPrice = (
     basePriceType: string,
     isExclusive: boolean,
     schedules?: PricingSlot[],
+    filters?: string[],
 ) => {
     let totalPrice = 0;
     const coveredRanges: { start: Date; end: Date }[] = [];
+
+    const includePrice = !filters || filters.includes('price');
+    const includeExclusive = !filters || filters.includes('exclusive');
 
     // Helper function to convert JS day (0=Sunday) to custom day (0=Monday)
     const convertToCustomDay = (jsDay: number): number => {
@@ -195,24 +199,28 @@ export const calculateBookingPrice = (
                 if (isBefore(segmentStart, segmentEnd)) {
                     const durationHours = differenceInMinutes(segmentEnd, segmentStart) / 60;
 
-                    // Adjust price based on priceType
-                    if (schedule.priceType === "hour") {
-                        totalPrice += durationHours * schedule.price;
-                    } else if (schedule.priceType === "person") {
-                        totalPrice += durationHours * persons * schedule.price;
-                    } else if (schedule.priceType === "once") {
-                        totalPrice += schedule.price;
+                    if (includePrice) {
+                        // Adjust price based on priceType
+                        if (schedule.priceType === "hour") {
+                            totalPrice += durationHours * schedule.price;
+                        } else if (schedule.priceType === "person") {
+                            totalPrice += durationHours * persons * schedule.price;
+                        } else if (schedule.priceType === "once") {
+                            totalPrice += schedule.price;
+                        }
                     }
 
-                    if (isExclusive &&
-                        schedule.exclusiveType !== "none" &&
-                        schedule.exclusivePrice) {
-                        if (schedule.exclusivePriceType === "hour") {
-                            totalPrice += durationHours * schedule.exclusivePrice;
-                        } else if (schedule.exclusivePriceType === "person") {
-                            totalPrice += durationHours * persons * schedule.exclusivePrice;
-                        } else if (schedule.exclusivePriceType === "once") {
-                            totalPrice += schedule.exclusivePrice;
+                    if (includeExclusive) {
+                        if (isExclusive &&
+                            schedule.exclusiveType !== "none" &&
+                            schedule.exclusivePrice) {
+                            if (schedule.exclusivePriceType === "hour") {
+                                totalPrice += durationHours * schedule.exclusivePrice;
+                            } else if (schedule.exclusivePriceType === "person") {
+                                totalPrice += durationHours * persons * schedule.exclusivePrice;
+                            } else if (schedule.exclusivePriceType === "once") {
+                                totalPrice += schedule.exclusivePrice;
+                            }
                         }
                     }
 
@@ -228,6 +236,10 @@ export const calculateBookingPrice = (
 
     // When no covered ranges and base price type is any fix type, return base price
     if (coveredRanges.length == 0) {
+        if (!includePrice) {
+            return 0;
+        }
+
         if (basePriceType === "once" || basePriceType === "day") {
             return basePrice;
         }
@@ -264,11 +276,13 @@ export const calculateBookingPrice = (
     for (const range of mergedRanges) {
         if (isBefore(unaccountedStart, range.start)) {
             const durationHours = differenceInMinutes(range.start, unaccountedStart) / 60;
-            let price = durationHours * basePrice;
-            if (basePriceType === "person") {
-                price *= persons;
+            if (includePrice) {
+                let price = durationHours * basePrice;
+                if (basePriceType === "person") {
+                    price *= persons;
+                }
+                totalPrice += price;
             }
-            totalPrice += price;
         }
         unaccountedStart = new Date(Math.max(unaccountedStart.getTime(), range.end.getTime()));
     }
@@ -276,11 +290,13 @@ export const calculateBookingPrice = (
     // If there's any remaining uncovered time, charge basePrice
     if (isBefore(unaccountedStart, bookingEnd)) {
         const durationHours = differenceInMinutes(bookingEnd, unaccountedStart) / 60;
-        let price = durationHours * basePrice;
-        if (basePriceType === "person") {
-            price *= persons;
+        if (includePrice) {
+            let price = durationHours * basePrice;
+            if (basePriceType === "person") {
+                price *= persons;
+            }
+            totalPrice += price;
         }
-        totalPrice += price;
     }
 
     return totalPrice;
