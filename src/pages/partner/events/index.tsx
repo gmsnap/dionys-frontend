@@ -55,8 +55,13 @@ const PartnerPage: NextPageWithLayout = () => {
             return;
         }
 
+        const sortedConfs = confs.sort((
+            a: EventConfigurationModel,
+            b: EventConfigurationModel
+        ) => b.id - a.id);
+
         // Set rooms to state
-        setEventConfs(confs);
+        setEventConfs(sortedConfs);
         setError(null);
     };
 
@@ -124,6 +129,11 @@ const PartnerPage: NextPageWithLayout = () => {
             ? new Intl.DateTimeFormat('de-DE', { hour: '2-digit', minute: '2-digit' }).format(new Date(conf.endDate))
             : '?';
         return `${startDate}, ${startTime} - ${endTime} Uhr`;
+    }
+
+    const onDeleted = (id: number) => {
+        setSelectedConf(null);
+        fetchConfigurationsFromApi();
     }
 
     return (
@@ -278,6 +288,7 @@ const PartnerPage: NextPageWithLayout = () => {
                     {selectedConf &&
                         <EventConfigurationDetails
                             model={selectedConf}
+                            onDeleted={() => onDeleted(selectedConf.id)}
                             sx={{ flexGrow: 1, mt: 7, ml: 4, p: 5, backgroundColor: '#EEEEEE' }}
                         />
                     }

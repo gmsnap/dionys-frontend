@@ -6,7 +6,6 @@ import useStore from '@/stores/partnerStore';
 import { useAuthContext } from '@/auth/AuthContext';
 import ConfirmSignup from "../admins/ConfirmSignup";
 import theme from "@/theme";
-import { useHeaderContext } from "@/components/headers/PartnerHeaderContext";
 import router from "next/router";
 import { hasSubscription } from "@/services/paymentService";
 
@@ -16,7 +15,6 @@ interface Props {
 
 const PartnerLoginForm = ({ credentials }: Props) => {
     const { authUser, login, logout } = useAuthContext();
-    const { setIsOverlayOpen } = useHeaderContext();
 
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
