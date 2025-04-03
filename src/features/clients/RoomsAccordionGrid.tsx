@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Grid2, SxProps, Theme, Typography } from '@mui/material';
+import React, { useEffect, useState } from 'react';
+import { Box, Grid2, SxProps, Theme, Typography } from '@mui/material';
 import { HandCoins, Ruler } from 'lucide-react';
 import AccordionGridItem from '@/components/AccordionGridItem';
 import useStore from '@/stores/eventStore';
@@ -106,7 +106,7 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
     const iconColor = theme.palette.customColors.embedded.text.tertiary;
 
     const getExclusiveNote = () => {
-        const withoutPrice = "Möchten Sie den Raum exklusiv buchen?";
+        const withoutPrice = <Typography>Möchten Sie den Raum exklusiv buchen?</Typography>;
 
         if (!(eventConfiguration?.date &&
             eventConfiguration.endDate &&
@@ -130,21 +130,63 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
             ['exclusive'],
         );
 
-        return `Möchten Sie den Raum zu einem Aufpreis von ${formatPrice(exclusivePrice)} buchen?`;
+        return <>
+            {withoutPrice}
+            <Typography>Aufpreis für Exklusivbuchung: {formatPrice(exclusivePrice)}</Typography>
+        </>;
     }
+
+    const getOtherRooms = () => {
+        return location?.rooms?.filter(
+            r => (
+                eventConfiguration && (eventConfiguration.persons == null ||
+                    !(r.minPersons <= eventConfiguration.persons &&
+                        r.maxPersons >= eventConfiguration.persons))
+            )
+        );
+    };
+
+    const matchingRooms = location?.rooms?.filter(
+        r => (
+            eventConfiguration && (eventConfiguration?.persons != null &&
+                r.minPersons <= eventConfiguration.persons &&
+                r.maxPersons >= eventConfiguration.persons)
+        )
+    );
+
+    const otherRooms = getOtherRooms();
+
+    useEffect(() => {
+        if (eventConfiguration && location?.rooms) {
+            const currentRoomIds = eventConfiguration.roomIds || [];
+            const currentExclusiveIds = eventConfiguration.roomExclusiveIds || [];
+            const otherRoomIds = new Set(getOtherRooms()?.map(room => room.id) || []);
+
+            // Check if any currentRoomIds are in otherRooms
+            const invalidRoomIds = currentRoomIds.filter(id => otherRoomIds.has(id));
+
+            if (invalidRoomIds.length > 0) {
+                // Remove invalid rooms from both arrays
+                const updatedRoomIds = currentRoomIds.filter(id => !otherRoomIds.has(id));
+                const updatedExclusiveIds = currentExclusiveIds.filter(id => !otherRoomIds.has(id));
+                const roomIdSet = new Set(updatedRoomIds);
+                const rooms = location.rooms.filter(room => roomIdSet.has(room.id));
+
+                setEventConfiguration({
+                    ...eventConfiguration,
+                    roomIds: updatedRoomIds,
+                    rooms: rooms || null,
+                    roomExclusiveIds: updatedExclusiveIds
+                });
+            }
+        }
+    }, [eventConfiguration, location?.rooms]);
 
     return (
         <>
-            <Grid2 container spacing={1} sx={{ ...sx }}>
-                {eventConfiguration &&
-                    location?.rooms &&
-                    location.rooms.filter(
-                        r => (
-                            eventConfiguration.persons == null ||
-                            (r.minPersons <= eventConfiguration.persons &&
-                                r.maxPersons >= eventConfiguration.persons)
-                        )
-                    ).map((room) => {
+            {matchingRooms && matchingRooms.length > 0 ?
+                <Grid2 container spacing={1} sx={{ ...sx }}>
+                    {matchingRooms.map((room) => {
                         const calculatedPrice =
                             eventConfiguration?.date &&
                                 eventConfiguration?.endDate &&
@@ -194,7 +236,75 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
                             </Grid2>
                         );
                     })}
-            </Grid2>
+                </Grid2> :
+                <Typography variant='h5' sx={{ textAlign: 'center', mt: 6, mb: 2 }}>
+                    Keine passenden Räume gefunden
+                </Typography>
+            }
+
+            {/* Further rooms (that don't match with current selection) */}
+            {otherRooms && otherRooms.length > 0 &&
+                <>
+                    <Box
+                        sx={{
+                            borderTop: `1px solid ${theme.palette.customColors.blue.halfdark}`,
+                            width: '100%',
+                            mt: 6,
+                        }}
+                    />
+                    <Typography variant='h5' sx={{ textAlign: 'center', mt: 2, mb: 2 }}>
+                        Weitere Räume
+                    </Typography>
+                    <Grid2 container spacing={1} sx={{ ...sx }}>
+                        {otherRooms.map((room) => {
+                            const calculatedPrice =
+                                eventConfiguration?.date &&
+                                    eventConfiguration?.endDate &&
+                                    eventConfiguration?.persons
+                                    ? formatPrice(
+                                        calculateBookingPrice(
+                                            new Date(eventConfiguration.date),
+                                            new Date(eventConfiguration.endDate),
+                                            eventConfiguration.persons,
+                                            room.price,
+                                            room.priceType,
+                                            eventConfiguration.roomExclusiveIds?.includes(room.id) === true,
+                                            room.roomPricings
+                                        )
+                                    )
+                                    : "?";
+
+                            return (
+                                <Grid2 key={room.id} size={{ xs: 12 }}>
+                                    <AccordionGridItem
+                                        id={room.id}
+                                        images={room.images.length > 0 ? room.images : []}
+                                        isSelected={false}
+                                        selectRequested={(id) => toggleRoom(id)}
+                                        title={room.name}
+                                        subTitle={
+                                            `${formatRoomSize(room.size)}, ${calculatedPrice}` +
+                                            ` | ${room.minPersons} - ${room.maxPersons} Personen`
+                                        }
+                                        information={room.description}
+                                        infoItems={[
+                                            {
+                                                icon: <Ruler color={iconColor} />,
+                                                label: formatRoomSize(room.size),
+                                            },
+                                            {
+                                                icon: <HandCoins color={iconColor} />,
+                                                label: calculatedPrice,
+                                            },
+                                        ]}
+                                        isActive={false}
+                                    />
+                                </Grid2>
+                            );
+                        })}
+                    </Grid2>
+                </>
+            }
 
             <Dialog
                 open={dialogOpen}

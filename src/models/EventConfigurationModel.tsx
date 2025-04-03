@@ -84,8 +84,8 @@ export const toBooking = (model: EventConfigurationModel): Booking | null => {
     return {
         id: model.id,
         persons: model.persons ?? 1,
-        date: model.date,
-        endDate: model.endDate,
+        date: new Date(model.date),
+        endDate: new Date(model.endDate),
         packages: model.packages ? model.packages.map(toBookingPackage) : undefined,
         rooms: model.rooms ?? undefined,
         roomExclusiveIds: model.roomExclusiveIds ?? undefined,

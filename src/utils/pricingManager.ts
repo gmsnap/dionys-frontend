@@ -32,8 +32,8 @@ export interface BookingPackage {
 export interface Booking {
     id: number;
     persons: number;
-    date: number;
-    endDate: number;
+    date: Date;
+    endDate: Date;
     room?: BookingRoom;
     packages?: BookingPackage[];
     rooms?: BookingRoom[];
@@ -66,21 +66,38 @@ export type PriceTypes =
     "consumption" |
     "none";
 
+const calculatePriceByPriceType = (
+    price: number,
+    priceType: string,
+    hours: number | null,
+    persons: number | null
+) => {
+    switch (priceType) {
+        case "hour":
+            return hours ? hours * price : 0;
+        case "person":
+            return hours && persons ? hours * persons * price : 0;
+        case "once":
+            return price;
+        case "none":
+        default:
+            return 0;
+    }
+};
+
 export const calculateBooking = (booking: Booking) => {
     let diffInHours = 0;
     if (!booking.date || !booking.endDate) {
         return 0;
     }
 
-    const date = new Date(booking.date);
-    const endDate = new Date(booking.endDate);
+    const date = booking.date;
+    const endDate = booking.endDate;
 
     const diffInMs = endDate.getTime() - date.getTime();
     diffInHours = diffInMs / (1000 * 60 * 60);
 
     const persons = booking.persons ?? 1;
-
-    console.log("booking.roomExclusiveIds?.includes(room.id)", booking.roomExclusiveIds)
 
     const roomsPrice = booking.rooms?.reduce((total, room) => {
         const roomPrice = room
@@ -200,27 +217,27 @@ export const calculateBookingPrice = (
                     const durationHours = differenceInMinutes(segmentEnd, segmentStart) / 60;
 
                     if (includePrice) {
+
                         // Adjust price based on priceType
-                        if (schedule.priceType === "hour") {
-                            totalPrice += durationHours * schedule.price;
-                        } else if (schedule.priceType === "person") {
-                            totalPrice += durationHours * persons * schedule.price;
-                        } else if (schedule.priceType === "once") {
-                            totalPrice += schedule.price;
-                        }
+                        totalPrice += calculatePriceByPriceType(
+                            schedule.price,
+                            schedule.priceType,
+                            durationHours,
+                            persons
+                        );
                     }
 
                     if (includeExclusive) {
                         if (isExclusive &&
-                            schedule.exclusiveType !== "none" &&
+                            schedule.exclusiveType &&
+                            schedule.exclusivePriceType &&
                             schedule.exclusivePrice) {
-                            if (schedule.exclusivePriceType === "hour") {
-                                totalPrice += durationHours * schedule.exclusivePrice;
-                            } else if (schedule.exclusivePriceType === "person") {
-                                totalPrice += durationHours * persons * schedule.exclusivePrice;
-                            } else if (schedule.exclusivePriceType === "once") {
-                                totalPrice += schedule.exclusivePrice;
-                            }
+                            totalPrice += calculatePriceByPriceType(
+                                schedule.exclusivePrice,
+                                schedule.exclusivePriceType,
+                                durationHours,
+                                persons
+                            );
                         }
                     }
 
