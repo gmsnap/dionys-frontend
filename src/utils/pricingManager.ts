@@ -1,4 +1,4 @@
-import { addDays, differenceInMinutes, isAfter, isBefore } from "date-fns";
+import { addDays, differenceInMinutes, isAfter, isBefore, isEqual } from "date-fns";
 
 export interface PricingSlot {
     startDayOfWeek: number;
@@ -320,42 +320,53 @@ export const calculateBookingPrice = (
 };
 
 export const doPricingSlotsOverlap = (pricing1: PricingSlot, pricing2: PricingSlot): boolean => {
-    // Convert times to comparable Date objects (same reference day)
-    const referenceDate = new Date(2023, 0, 1); // Using a fixed date (Jan 1, 2023, Sunday)
+    const referenceDate = new Date(2023, 0, 2); // Monday, Jan 2, 2023
 
-    const pricing1Start = new Date(referenceDate);
-    pricing1Start.setDate(referenceDate.getDate() + pricing1.startDayOfWeek);
-    const [startHour1, startMinute1, startSecond1] = pricing1.startTime.split(":").map(Number);
-    pricing1Start.setHours(startHour1, startMinute1, startSecond1 || 0);
-
-    const pricing1End = new Date(referenceDate);
-    pricing1End.setDate(referenceDate.getDate() + pricing1.endDayOfWeek);
-    const [endHour1, endMinute1, endSecond1] = pricing1.endTime.split(":").map(Number);
-    pricing1End.setHours(endHour1, endMinute1, endSecond1 || 0);
-
-    const pricing2Start = new Date(referenceDate);
-    pricing2Start.setDate(referenceDate.getDate() + pricing2.startDayOfWeek);
-    const [startHour2, startMinute2, startSecond2] = pricing2.startTime.split(":").map(Number);
-    pricing2Start.setHours(startHour2, startMinute2, startSecond2 || 0);
-
-    const pricing2End = new Date(referenceDate);
-    pricing2End.setDate(referenceDate.getDate() + pricing2.endDayOfWeek);
-    const [endHour2, endMinute2, endSecond2] = pricing2.endTime.split(":").map(Number);
-    pricing2End.setHours(endHour2, endMinute2, endSecond2 || 0);
-
-    // Ensure pricing1Start <= pricing1End (handles overnight periods)
-    if (isAfter(pricing1Start, pricing1End)) {
-        pricing1End.setDate(pricing1End.getDate() + 1);
+    function getDate(dayOffset: number, time: string): Date {
+        const date = new Date(referenceDate);
+        date.setDate(date.getDate() + dayOffset);
+        const [h, m, s] = time.split(":").map(Number);
+        date.setHours(h, m, s || 0);
+        return date;
     }
 
-    // Ensure pricing2Start <= pricing2End (handles overnight periods)
-    if (isAfter(pricing2Start, pricing2End)) {
-        pricing2End.setDate(pricing2End.getDate() + 1);
+    function normalizeSlot(start: Date, end: Date): [Date, Date] {
+        if (isBefore(end, start)) {
+            end = new Date(end);
+            end.setDate(end.getDate() + 7); // wraps to next week
+        }
+        return [start, end];
     }
 
-    // Check if they overlap (but allow touching at edges)
-    return isBefore(pricing1Start, pricing2End) && isBefore(pricing2Start, pricing1End) &&
-        !(pricing1End.getTime() === pricing2Start.getTime() || pricing2End.getTime() === pricing1Start.getTime());
+    function overlaps(aStart: Date, aEnd: Date, bStart: Date, bEnd: Date): boolean {
+        return isBefore(aStart, bEnd) &&
+            isBefore(bStart, aEnd) &&
+            !isEqual(aEnd, bStart) &&
+            !isEqual(bEnd, aStart);
+    }
+
+    const slot1Start = getDate(pricing1.startDayOfWeek, pricing1.startTime);
+    const slot1End = getDate(pricing1.endDayOfWeek, pricing1.endTime);
+    const slot2Start = getDate(pricing2.startDayOfWeek, pricing2.startTime);
+    const slot2End = getDate(pricing2.endDayOfWeek, pricing2.endTime);
+
+    const [s1Start, s1End] = normalizeSlot(slot1Start, slot1End);
+    const [s2Start, s2End] = normalizeSlot(slot2Start, slot2End);
+
+    // Check base overlap
+    if (overlaps(s1Start, s1End, s2Start, s2End)) return true;
+
+    // Check slot2 shifted 7 days forward (to account for wraparound vs slot1)
+    const s2StartShifted = new Date(s2Start); s2StartShifted.setDate(s2Start.getDate() + 7);
+    const s2EndShifted = new Date(s2End); s2EndShifted.setDate(s2End.getDate() + 7);
+    if (overlaps(s1Start, s1End, s2StartShifted, s2EndShifted)) return true;
+
+    // Check slot1 shifted 7 days forward (in case slot2 wraps and slot1 is earlier in week)
+    const s1StartShifted = new Date(s1Start); s1StartShifted.setDate(s1Start.getDate() + 7);
+    const s1EndShifted = new Date(s1End); s1EndShifted.setDate(s1End.getDate() + 7);
+    if (overlaps(s1StartShifted, s1EndShifted, s2Start, s2End)) return true;
+
+    return false;
 };
 
 export const getPricingSlotsForDates = (
