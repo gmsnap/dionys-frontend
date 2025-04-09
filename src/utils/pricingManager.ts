@@ -29,6 +29,14 @@ export interface BookingPackage {
     maxPersons: number;
 };
 
+export interface BookingRoomExtra {
+    roomId: number;
+    confId: number;
+    persons?: number;
+    isExclusive?: boolean;
+    seating?: string;
+};
+
 export interface Booking {
     id: number;
     persons: number;
@@ -37,7 +45,7 @@ export interface Booking {
     room?: BookingRoom;
     packages?: BookingPackage[];
     rooms?: BookingRoom[];
-    roomExclusiveIds?: number[];
+    roomExtras?: BookingRoomExtra[];
 };
 
 const multiplyPriceByPriceType = (
@@ -107,7 +115,7 @@ export const calculateBooking = (booking: Booking) => {
                 persons,
                 room.price,
                 room.priceType,
-                booking.roomExclusiveIds?.includes(room.id) === true,
+                booking.roomExtras?.some(r => r.roomId === room.id) === true,
                 room.roomPricings
             )
             : 0;

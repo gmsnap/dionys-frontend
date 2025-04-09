@@ -54,7 +54,7 @@ const PackageSelector = ({
             >
                 <ProposalNextButton
                     nextStep={tryComplete}
-                    isDisabled={!eventConfiguration?.roomIds?.length} />
+                    isDisabled={!eventConfiguration?.roomExtras?.length} />
                 <ProposalBackButton previousStep={previousStep} />
             </Box>
         </Box >

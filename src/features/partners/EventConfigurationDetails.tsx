@@ -43,7 +43,7 @@ const EventConfigurationDetails = ({ model, onDeleted, sx }: Props) => {
                     conf.persons!,
                     room.price,
                     room.priceType,
-                    conf.roomExclusiveIds?.includes(room.id) === true,
+                    conf.roomExtras?.some(r => r.roomId === room.id) === true,
                     pricings ?? undefined
                 )
             );

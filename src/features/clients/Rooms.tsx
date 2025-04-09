@@ -5,6 +5,7 @@ import useStore from '@/stores/eventStore';
 import { RoomModel } from '@/models/RoomModel';
 import ImageGallery from './ImageGallery';
 import { fetchRooms } from '@/services/roomService';
+import { RoomExtra } from '@/models/RoomExtra';
 
 const baseUrl = process.env.NEXT_PUBLIC_API_URL;
 
@@ -22,11 +23,22 @@ const Rooms = ({ sx }: VenueProps) => {
     const handleRoomChange = async (newRoomId: number) => {
         if (eventConfiguration) {
             const room = rooms?.find((room) => room.id === newRoomId);
-            setEventConfiguration({
-                ...eventConfiguration,
-                roomIds: [newRoomId],
-                rooms: rooms || null,
-            });
+
+            if (room) {
+                const updatedRoomExtra: RoomExtra = {
+                    roomId: room.id,
+                    confId: eventConfiguration.id || 0,
+                    persons: eventConfiguration.persons || 0,
+                    isExclusive: false,
+                    seating: undefined,
+                };
+
+                setEventConfiguration({
+                    ...eventConfiguration,
+                    roomExtras: [updatedRoomExtra],
+                    rooms: [room],
+                });
+            }
         }
     };
 
@@ -108,7 +120,7 @@ const Rooms = ({ sx }: VenueProps) => {
                             color="primary"
                             sx={{ flex: 1 }}
                             onClick={() => handleRoomChange(room.id)}>
-                            {eventConfiguration?.roomIds?.length && eventConfiguration.roomIds[0] === room.id
+                            {eventConfiguration?.roomExtras?.length && eventConfiguration.roomExtras[0]?.roomId === room.id
                                 ? 'Ausgewählt'
                                 : 'Venue Auswählen'}
                         </Button>

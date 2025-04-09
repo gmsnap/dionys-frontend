@@ -11,6 +11,7 @@ import RoomsDropDown from '@/features/partners/RoomsDropDown';
 import RoomPricings from '@/features/partners/RoomPricings';
 import theme from '@/theme';
 import { WaitIcon } from '@/components/WaitIcon';
+import RoomSeatings from '@/features/partners/RoomSeatings';
 
 const PartnerPage: NextPageWithLayout = () => {
     const isMobile = useMediaQuery(theme.breakpoints.down("md"))
@@ -108,6 +109,7 @@ const PartnerPage: NextPageWithLayout = () => {
                                 onRoomChange={(id) => setRoomId(id)}
                             />
                             <RoomPricings roomId={roomId} />
+                            <RoomSeatings roomId={roomId} />
                         </Box>
                     }
 

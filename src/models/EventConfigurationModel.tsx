@@ -5,12 +5,12 @@ import { EventPackageModel, toBookingPackage } from './EventPackageModel';
 import { BookingUserModel } from './BookingUserModel';
 import { LocationModel } from './LocationModel';
 import { Booking } from '@/utils/pricingManager';
+import { RoomExtra } from './RoomExtra';
 
 export interface EventConfigurationModel {
     id: number;
     locationId: number;
-    roomIds: number[] | null;
-    roomExclusiveIds: number[] | null;
+    roomExtras: RoomExtra[] | null;
     packageIds: number[] | null;
     eventCategory: EventCategories | null;
     persons: number | null;
@@ -88,6 +88,6 @@ export const toBooking = (model: EventConfigurationModel): Booking | null => {
         endDate: new Date(model.endDate),
         packages: model.packages ? model.packages.map(toBookingPackage) : undefined,
         rooms: model.rooms ?? undefined,
-        roomExclusiveIds: model.roomExclusiveIds ?? undefined,
+        roomExtras: model.roomExtras ?? undefined,
     };
 }

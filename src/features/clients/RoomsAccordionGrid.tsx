@@ -25,26 +25,22 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
 
     const toggleRoom = (roomId: number) => {
         if (eventConfiguration) {
-            const currentRoomIds = eventConfiguration.roomIds || [];
-            const currentExclusiveIds = eventConfiguration.roomExclusiveIds || [];
+            const currentRoomExtras = eventConfiguration.roomExtras || [];
+            const isSelected = currentRoomExtras.some(extra => extra.roomId === roomId);
 
-            // If room is already selected, remove it
-            if (currentRoomIds.includes(roomId)) {
-                const updatedRoomIds = currentRoomIds.filter(id => id !== roomId);
-                const updatedExclusiveIds = currentExclusiveIds.filter(id => id !== roomId);
-                const roomIdSet = new Set(updatedRoomIds);
-                const rooms = location?.rooms?.filter(room => roomIdSet.has(room.id));
+            if (isSelected) {
+                const updatedRoomExtras = currentRoomExtras.filter(r => r.roomId !== roomId);
+                const updatedRoomIds = updatedRoomExtras.map(r => r.roomId);
+                const rooms = location?.rooms?.filter(room => updatedRoomIds.includes(room.id)) || null;
 
                 setEventConfiguration({
                     ...eventConfiguration,
-                    roomIds: updatedRoomIds,
-                    rooms: rooms || null,
-                    roomExclusiveIds: updatedExclusiveIds
+                    roomExtras: updatedRoomExtras,
+                    rooms,
                 });
             } else {
                 const schedules = location?.rooms?.find((r) => r.id === roomId)?.roomPricings;
 
-                // Check for exclusive overlaps if schedules and dates exist
                 if (schedules && eventConfiguration.date && eventConfiguration.endDate) {
                     const overlaps = getPricingSlotsForDates(
                         new Date(eventConfiguration.date),
@@ -52,27 +48,31 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
                         schedules
                     );
 
-                    // Check if any overlapping schedule is exclusive
                     const hasExclusiveOverlap = overlaps.some(schedule => schedule.exclusivePriceType !== "none");
-
                     if (hasExclusiveOverlap) {
-                        // Show dialog only if there's an exclusive overlap
                         setPendingRoomId(roomId);
                         setDialogOpen(true);
-                        return; // Exit early, dialog will handle the rest
+                        return;
                     }
                 }
 
-                // No exclusive overlaps found or no schedules/dates, proceed without dialog
-                const updatedRoomIds = [...currentRoomIds, roomId];
-                const roomIdSet = new Set(updatedRoomIds);
-                const rooms = location?.rooms?.filter(room => roomIdSet.has(room.id));
+                const updatedRoomExtras = [
+                    ...currentRoomExtras,
+                    {
+                        roomId,
+                        confId: eventConfiguration.id || 0,
+                        persons: eventConfiguration.persons || 0,
+                        isExclusive: false,
+                        seating: undefined,
+                    }
+                ];
+                const updatedRoomIds = updatedRoomExtras.map(r => r.roomId);
+                const rooms = location?.rooms?.filter(room => updatedRoomIds.includes(room.id)) || null;
 
                 setEventConfiguration({
                     ...eventConfiguration,
-                    roomIds: updatedRoomIds,
-                    rooms: rooms || null,
-                    roomExclusiveIds: currentExclusiveIds // No change to exclusive IDs
+                    roomExtras: updatedRoomExtras,
+                    rooms,
                 });
             }
         }
@@ -80,22 +80,25 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
 
     const handleDialogClose = (makeExclusive: boolean) => {
         if (pendingRoomId !== null && eventConfiguration) {
-            const currentRoomIds = eventConfiguration.roomIds || [];
-            const currentExclusiveIds = eventConfiguration.roomExclusiveIds || [];
+            const currentRoomExtras = eventConfiguration.roomExtras || [];
 
-            const updatedRoomIds = [...currentRoomIds, pendingRoomId];
-            const roomIdSet = new Set(updatedRoomIds);
-            const rooms = location?.rooms?.filter(room => roomIdSet.has(room.id));
-
-            const updatedExclusiveIds = makeExclusive
-                ? [...currentExclusiveIds, pendingRoomId]
-                : [...currentExclusiveIds];
+            const updatedRoomExtras = [
+                ...currentRoomExtras,
+                {
+                    roomId: pendingRoomId,
+                    confId: eventConfiguration.id || 0,
+                    persons: eventConfiguration.persons || 0,
+                    isExclusive: makeExclusive,
+                    seating: undefined,
+                }
+            ];
+            const updatedRoomIds = updatedRoomExtras.map(r => r.roomId);
+            const rooms = location?.rooms?.filter(room => updatedRoomIds.includes(room.id)) || null;
 
             setEventConfiguration({
                 ...eventConfiguration,
-                roomIds: updatedRoomIds,
-                rooms: rooms || null,
-                roomExclusiveIds: updatedExclusiveIds
+                roomExtras: updatedRoomExtras,
+                rooms,
             });
         }
 
@@ -103,20 +106,44 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
         setPendingRoomId(null);
     };
 
+    const getOtherRooms = () => {
+        return location?.rooms?.filter(
+            r => (
+                eventConfiguration && (eventConfiguration.persons == null ||
+                    !(r.minPersons <= eventConfiguration.persons &&
+                        r.maxPersons >= eventConfiguration.persons))
+            )
+        );
+    };
+
+    useEffect(() => {
+        if (eventConfiguration && location?.rooms) {
+            const currentRoomExtras = eventConfiguration.roomExtras || [];
+            const otherRoomIds = new Set(getOtherRooms()?.map(room => room.id) || []);
+
+            const updatedRoomExtras = currentRoomExtras.filter(r => !otherRoomIds.has(r.roomId));
+            const updatedRoomIds = updatedRoomExtras.map(r => r.roomId);
+            const rooms = location.rooms.filter(room => updatedRoomIds.includes(room.id));
+
+            if (updatedRoomExtras.length !== currentRoomExtras.length) {
+                setEventConfiguration({
+                    ...eventConfiguration,
+                    roomExtras: updatedRoomExtras,
+                    rooms,
+                });
+            }
+        }
+    }, [eventConfiguration, location?.rooms]);
+
     const iconColor = theme.palette.customColors.embedded.text.tertiary;
 
     const getExclusiveNote = () => {
         const withoutPrice = <Typography>Möchten Sie den Raum exklusiv buchen?</Typography>;
-
-        if (!(eventConfiguration?.date &&
-            eventConfiguration.endDate &&
-            eventConfiguration.persons)) {
+        if (!(eventConfiguration?.date && eventConfiguration.endDate && eventConfiguration.persons)) {
             return withoutPrice;
         }
+
         const room = location?.rooms?.find((r) => r.id === pendingRoomId);
-
-        console.log("r ", room)
-
         if (!room) return withoutPrice;
 
         const exclusivePrice = calculateBookingPrice(
@@ -134,59 +161,31 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
             {withoutPrice}
             <Typography>Aufpreis für Exklusivbuchung: {formatPrice(exclusivePrice)}</Typography>
         </>;
-    }
-
-    const getOtherRooms = () => {
-        return location?.rooms?.filter(
-            r => (
-                eventConfiguration && (eventConfiguration.persons == null ||
-                    !(r.minPersons <= eventConfiguration.persons &&
-                        r.maxPersons >= eventConfiguration.persons))
-            )
-        );
     };
 
     const matchingRooms = location?.rooms?.filter(
         r => (
-            eventConfiguration && (eventConfiguration?.persons != null &&
-                r.minPersons <= eventConfiguration.persons &&
-                r.maxPersons >= eventConfiguration.persons)
+            eventConfiguration?.persons != null &&
+            r.minPersons <= eventConfiguration.persons &&
+            r.maxPersons >= eventConfiguration.persons
         )
     );
 
     const otherRooms = getOtherRooms();
 
-    useEffect(() => {
-        if (eventConfiguration && location?.rooms) {
-            const currentRoomIds = eventConfiguration.roomIds || [];
-            const currentExclusiveIds = eventConfiguration.roomExclusiveIds || [];
-            const otherRoomIds = new Set(getOtherRooms()?.map(room => room.id) || []);
+    const isRoomSelected = (roomId: number) =>
+        eventConfiguration?.roomExtras?.some(r => r.roomId === roomId);
 
-            // Check if any currentRoomIds are in otherRooms
-            const invalidRoomIds = currentRoomIds.filter(id => otherRoomIds.has(id));
-
-            if (invalidRoomIds.length > 0) {
-                // Remove invalid rooms from both arrays
-                const updatedRoomIds = currentRoomIds.filter(id => !otherRoomIds.has(id));
-                const updatedExclusiveIds = currentExclusiveIds.filter(id => !otherRoomIds.has(id));
-                const roomIdSet = new Set(updatedRoomIds);
-                const rooms = location.rooms.filter(room => roomIdSet.has(room.id));
-
-                setEventConfiguration({
-                    ...eventConfiguration,
-                    roomIds: updatedRoomIds,
-                    rooms: rooms || null,
-                    roomExclusiveIds: updatedExclusiveIds
-                });
-            }
-        }
-    }, [eventConfiguration, location?.rooms]);
+    const isRoomExclusive = (roomId: number) =>
+        eventConfiguration?.roomExtras?.some(r => r.roomId === roomId && r.isExclusive);
 
     return (
         <>
             {matchingRooms && matchingRooms.length > 0 ?
                 <Grid2 container spacing={1} sx={{ ...sx }}>
                     {matchingRooms.map((room) => {
+                        const isSelected = isRoomSelected(room.id);
+                        const isExclusive = isRoomExclusive(room.id);
                         const calculatedPrice =
                             eventConfiguration?.date &&
                                 eventConfiguration?.endDate &&
@@ -198,15 +197,11 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
                                         eventConfiguration.persons,
                                         room.price,
                                         room.priceType,
-                                        eventConfiguration.roomExclusiveIds?.includes(room.id) === true,
+                                        isExclusive ?? false,
                                         room.roomPricings
                                     )
                                 )
                                 : "?";
-
-                        const isSelected = eventConfiguration?.roomIds?.includes(room.id);
-                        const isExclusive = isSelected &&
-                            eventConfiguration?.roomExclusiveIds?.includes(room.id);
 
                         return (
                             <Grid2 key={room.id} size={{ xs: 12 }}>
@@ -242,7 +237,6 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
                 </Typography>
             }
 
-            {/* Further rooms (that don't match with current selection) */}
             {otherRooms && otherRooms.length > 0 &&
                 <>
                     <Box
@@ -268,7 +262,7 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
                                             eventConfiguration.persons,
                                             room.price,
                                             room.priceType,
-                                            eventConfiguration.roomExclusiveIds?.includes(room.id) === true,
+                                            false,
                                             room.roomPricings
                                         )
                                     )
@@ -312,36 +306,19 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
                 aria-labelledby="exclusive-room-dialog-title"
                 aria-describedby="exclusive-room-dialog-description"
             >
-                <DialogTitle
-                    id="exclusive-room-dialog-title"
-                    sx={{
-                        textAlign: 'center',
-                        padding: 3,
-                    }}
-                >
+                <DialogTitle id="exclusive-room-dialog-title" sx={{ textAlign: 'center', padding: 3 }}>
                     Exklusiv-Option verfügbar
                 </DialogTitle>
                 <DialogContent>
-                    <DialogContentText
-                        id="exclusive-room-dialog-description"
-                        sx={{ textAlign: 'center', }}
-                    >
+                    <DialogContentText id="exclusive-room-dialog-description" sx={{ textAlign: 'center' }}>
                         {getExclusiveNote()}
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
-                    <Button
-                        variant='contained'
-                        onClick={() => handleDialogClose(false)}
-                        color="primary"
-                    >
+                    <Button variant='contained' onClick={() => handleDialogClose(false)} color="primary">
                         Nein
                     </Button>
-                    <Button
-                        variant='contained'
-                        onClick={() => handleDialogClose(true)}
-                        color="primary" autoFocus
-                    >
+                    <Button variant='contained' onClick={() => handleDialogClose(true)} color="primary" autoFocus>
                         Ja
                     </Button>
                 </DialogActions>

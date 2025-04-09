@@ -326,7 +326,7 @@ const RoomPricings = ({ roomId }: Props) => {
         if (!roomId) {
             return
         }
-        fetchPricings(roomId)
+        fetchPricings(roomId, null)
     }, [roomId])
 
     if (isLoading) {
