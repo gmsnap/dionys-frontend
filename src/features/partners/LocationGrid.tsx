@@ -51,7 +51,10 @@ const LocationGrid = ({ sx, selectHandler }: LocationGridProps) => {
                             },
                             {
                                 icon: <User color={theme.palette.customColors.blue.main} />,
-                                label: '10-50'
+                                label:
+                                    Array.isArray(location.rooms) && location.rooms.length > 0
+                                        ? `${Math.min(...location.rooms.map(r => r.minPersons))} - ${Math.max(...location.rooms.map(r => r.maxPersons))}`
+                                        : 'n/a'
                             },
                             {
                                 icon: <Layers2 color={theme.palette.customColors.blue.main} />,
