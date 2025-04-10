@@ -149,7 +149,17 @@ const GridItem: React.FC<GridItemProps> = ({
                     variant="body2"
                     component="div"
                     dangerouslySetInnerHTML={{ __html: information ?? '' }}
-                    sx={{ mt: 4 }}
+                    sx={{
+                        mt: 4,
+                        "& ul, & ol": {
+                            paddingLeft: 3,
+                            marginTop: 1,
+                            marginBottom: 1,
+                        },
+                        "& li": {
+                            marginBottom: 0.5,
+                        },
+                    }}
                 />
             </Box>}
         </Box>
