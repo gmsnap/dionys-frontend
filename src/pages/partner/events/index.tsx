@@ -114,8 +114,8 @@ const PartnerPage: NextPageWithLayout = () => {
 
     const formatTitle = (conf: EventConfigurationModel) => {
         const location = conf.location?.title ?? "?";
-        const company = conf.booker?.bookingCompany?.companyName ?? "?";
-        return `Location: ${location}, Anfrage von: ${company}`;
+        const fromName = conf.booker?.bookingCompany?.companyName ?? conf.booker?.givenName ?? "?";
+        return `Location: ${location}, Anfrage von: ${fromName}`;
     }
 
     const formatDates = (conf: EventConfigurationModel) => {
