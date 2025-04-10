@@ -1,5 +1,6 @@
 import { PriceTypes } from "@/constants/PriceTypes";
 import { RoomPricingModel } from "./RoomPricingModel";
+import { RoomSeatingModel } from "./RoomSeatingModel";
 
 export interface RoomModel {
     id: number;
@@ -15,6 +16,7 @@ export interface RoomModel {
     eventCategories: string[];
     roomConfigurations: RoomConfigurationModel[];
     roomPricings?: RoomPricingModel[];
+    roomSeatings?: RoomSeatingModel[];
     RoomsEventConfigurations?: {
         isExclusive: boolean;
     };

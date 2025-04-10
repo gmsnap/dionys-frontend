@@ -51,6 +51,7 @@ const formatPriceForDisplay = (value: number): string => {
 
 // Add seating type options at the top of the file, after the reconfigPriceTypeOptions
 const seatingTypeOptions = [
+    { value: "empty", label: "ohne Mobiliar" },
     { value: "mixed", label: "Gemischt" },
     { value: "standing", label: "Stehplätze" },
     { value: "seated", label: "Sitzplätze" },

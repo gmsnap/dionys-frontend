@@ -28,17 +28,21 @@ const EventConfigurationDetails = ({
 
         return rooms.map(room => {
             const name = room.name ?? "?";
-            const isExclusive = model.roomExtras?.some(r => r.roomId === room.id) === true;
+            const extra = model.roomExtras?.find(r => r.roomId === room.id);
+            const isExclusive = extra?.isExclusive === true;
+            const seating = extra?.seating;
             const price = formatPrice(
-                calculateBookingPrice(
-                    startDate,
-                    endDate,
-                    conf.persons ?? 1,
-                    room.price,
-                    room.priceType,
-                    model.roomExtras?.some(r => r.roomId === room.id) === true,
-                    room.roomPricings,
-                )
+                calculateBookingPrice({
+                    bookingStart: startDate,
+                    bookingEnd: endDate,
+                    persons: conf.persons ?? 1,
+                    basePrice: room.price,
+                    basePriceType: room.priceType,
+                    isExclusive,
+                    schedules: room.roomPricings,
+                    seatings: room.roomSeatings,
+                    seating,
+                })
             );
             return (
                 <Typography key={name}>

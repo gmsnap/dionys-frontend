@@ -1,17 +1,19 @@
 import React from 'react';
-import { Box, Select, MenuItem, SelectChangeEvent, Typography } from '@mui/material';
+import { Box, Select, MenuItem, SelectChangeEvent, SxProps, Theme } from '@mui/material';
 import { RoomModel } from '@/models/RoomModel';
 
 interface Props {
     rooms: RoomModel[] | null;
     roomId: number | null;
     onRoomChange?: (locationId: number) => void;
+    sx?: SxProps<Theme>;
 }
 
 const RoomsDropDown: React.FC<Props> = ({
     rooms,
     roomId,
-    onRoomChange
+    onRoomChange,
+    sx
 }) => {
     const handleChange = (event: SelectChangeEvent<number>) => {
         onRoomChange?.(event.target.value as number);
@@ -23,6 +25,7 @@ const RoomsDropDown: React.FC<Props> = ({
                 display: 'flex',
                 flexDirection: { xs: 'column', sm: 'row' },
                 alignItems: { xs: 'start', sm: 'center' },
+                ...sx
             }}
         >
             {rooms && rooms.length > 0 && (

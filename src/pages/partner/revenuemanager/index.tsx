@@ -88,28 +88,37 @@ const PartnerPage: NextPageWithLayout = () => {
             }}>
                 {/* Pricing Slots (Day and Time) */}
 
-                <PageHeadline title='Tag und Zeit' />
 
-                <Box sx={{
-                    ml: 4,
-                    mr: 4,
-                }}>
-                    <Typography
-                        variant={isMobile ? 'body2' : 'body1'}
-                        sx={{ mt: 2, mb: 1 }}
-                    >
-                        Erstelle Zeitslots mit individuellen Preisberechnungen
-                    </Typography>
-
+                <Box sx={{ ml: 0, mr: 0, }}>
                     {rooms &&
                         <Box>
                             <RoomsDropDown
                                 rooms={rooms}
                                 roomId={roomId}
                                 onRoomChange={(id) => setRoomId(id)}
+                                sx={{ ml: 2, mb: 4, }}
                             />
-                            <RoomPricings roomId={roomId} />
-                            <RoomSeatings roomId={roomId} />
+                            <PageHeadline title='Tag und Zeit' />
+                            <Box sx={{ ml: 4, mr: 4, mb: 4, }}>
+                                <Typography
+                                    variant={isMobile ? 'body2' : 'body1'}
+                                    sx={{ mt: 2, mb: 1 }}
+                                >
+                                    Erstelle Zeitslots mit individuellen Preisberechnungen
+                                </Typography>
+                                <RoomPricings roomId={roomId} />
+                            </Box>
+
+                            <PageHeadline title='Seating' />
+                            <Box sx={{ ml: 4, mr: 4, }}>
+                                <Typography
+                                    variant={isMobile ? 'body2' : 'body1'}
+                                    sx={{ mt: 2, mb: 1 }}
+                                >
+                                    Erstelle Seatings mit individuellen Preisberechnungen
+                                </Typography>
+                                <RoomSeatings roomId={roomId} />
+                            </Box>
                         </Box>
                     }
 

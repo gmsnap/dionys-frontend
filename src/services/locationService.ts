@@ -92,7 +92,7 @@ export const fetchLocationByCode = async (
         if (setIsLoading != null) {
             setIsLoading(true);
         }
-        const includes = 'eventCategories,rooms,pricings,eventPackages';
+        const includes = 'eventCategories,rooms,pricings,seatings,eventPackages';
         const response =
             await fetch(`${locationsBaseUrl}/code/${code}?single=1&include=${includes}`);
         if (!response.ok) {

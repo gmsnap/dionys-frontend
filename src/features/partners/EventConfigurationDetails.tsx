@@ -37,15 +37,15 @@ const EventConfigurationDetails = ({ model, onDeleted, sx }: Props) => {
             const pricings = roomPricings?.filter((p) => p.roomId === room.id);
             const name = room.name ?? "?";
             const price = formatPrice(
-                calculateBookingPrice(
-                    new Date(conf.date!),
-                    new Date(conf.endDate!),
-                    conf.persons!,
-                    room.price,
-                    room.priceType,
-                    conf.roomExtras?.some(r => r.roomId === room.id) === true,
-                    pricings ?? undefined
-                )
+                calculateBookingPrice({
+                    bookingStart: new Date(conf.date!),
+                    bookingEnd: new Date(conf.endDate!),
+                    persons: conf.persons!,
+                    basePrice: room.price,
+                    basePriceType: room.priceType,
+                    isExclusive: conf.roomExtras?.some(r => r.roomId === room.id) === true,
+                    schedules: pricings ?? undefined,
+                })
             );
             const isExclusive = room.RoomsEventConfigurations?.isExclusive === true;
             return (

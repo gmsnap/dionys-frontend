@@ -8,6 +8,7 @@ export interface RoomSeatingModel {
     reconfigPriceType: string;
     reconfigIsAbsolute: boolean | null;
     reconfigPrice: number | null;
+    isDefault: boolean;
 }
 
 export const createEmptyRoomSeatingModel = (roomId: number): RoomSeatingModel => ({
@@ -20,4 +21,5 @@ export const createEmptyRoomSeatingModel = (roomId: number): RoomSeatingModel =>
     reconfigPriceType: "none",
     reconfigIsAbsolute: true,
     reconfigPrice: 0,
+    isDefault: false,
 });

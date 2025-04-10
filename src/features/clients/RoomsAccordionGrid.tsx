@@ -1,27 +1,37 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Grid2, SxProps, Theme, Typography } from '@mui/material';
+import { Box, Grid2, SxProps, Theme, Typography, FormControl, InputLabel, Select, MenuItem, Switch, FormControlLabel } from '@mui/material';
 import { HandCoins, Ruler } from 'lucide-react';
 import AccordionGridItem from '@/components/AccordionGridItem';
 import useStore from '@/stores/eventStore';
 import { formatPrice } from '@/utils/formatPrice';
 import { formatRoomSize } from '@/utils/formatSizes';
 import theme from '@/theme';
-import { calculateBookingPrice, getPricingSlotsForDates } from '@/utils/pricingManager';
+import { calculateBookingPrice, calculateSeating, getPricingSlotsForDates } from '@/utils/pricingManager';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import Button from '@mui/material/Button';
+import { RoomSeatingModel } from '@/models/RoomSeatingModel';
 
 interface VenueSelectorProps {
     sx?: SxProps<Theme>;
 }
 
+const seatingTypeOptions = [
+    { value: "empty", label: "ohne Mobiliar" },
+    { value: "mixed", label: "Gemischt" },
+    { value: "standing", label: "Stehplätze" },
+    { value: "seated", label: "Sitzplätze" },
+]
+
 const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
     const { eventConfiguration, location, setEventConfiguration } = useStore();
     const [dialogOpen, setDialogOpen] = useState(false);
     const [pendingRoomId, setPendingRoomId] = useState<number | null>(null);
+    const [selectedSeating, setSelectedSeating] = useState<string>('');
+    const [isExclusive, setIsExclusive] = useState(false);
 
     const toggleRoom = (roomId: number) => {
         if (eventConfiguration) {
@@ -40,6 +50,7 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
                 });
             } else {
                 const schedules = location?.rooms?.find((r) => r.id === roomId)?.roomPricings;
+                const seatings = location?.rooms?.find((r) => r.id === roomId)?.roomSeatings;
 
                 if (schedules && eventConfiguration.date && eventConfiguration.endDate) {
                     const overlaps = getPricingSlotsForDates(
@@ -49,9 +60,13 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
                     );
 
                     const hasExclusiveOverlap = overlaps.some(schedule => schedule.exclusivePriceType !== "none");
-                    if (hasExclusiveOverlap) {
+                    const hasSeatings = seatings && seatings.length > 0;
+
+                    if (hasExclusiveOverlap || hasSeatings) {
                         setPendingRoomId(roomId);
                         setDialogOpen(true);
+                        setSelectedSeating(seatings?.[0]?.seating || ''); // Default to first seating if available
+                        setIsExclusive(false);
                         return;
                     }
                 }
@@ -63,7 +78,7 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
                         confId: eventConfiguration.id || 0,
                         persons: eventConfiguration.persons || 0,
                         isExclusive: false,
-                        seating: undefined,
+                        seating: seatings?.[0]?.seating || '',
                     }
                 ];
                 const updatedRoomIds = updatedRoomExtras.map(r => r.roomId);
@@ -78,8 +93,8 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
         }
     };
 
-    const handleDialogClose = (makeExclusive: boolean) => {
-        if (pendingRoomId !== null && eventConfiguration) {
+    const handleDialogClose = (confirm: boolean) => {
+        if (confirm && pendingRoomId !== null && eventConfiguration) {
             const currentRoomExtras = eventConfiguration.roomExtras || [];
 
             const updatedRoomExtras = [
@@ -88,8 +103,8 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
                     roomId: pendingRoomId,
                     confId: eventConfiguration.id || 0,
                     persons: eventConfiguration.persons || 0,
-                    isExclusive: makeExclusive,
-                    seating: undefined,
+                    isExclusive,
+                    seating: selectedSeating,
                 }
             ];
             const updatedRoomIds = updatedRoomExtras.map(r => r.roomId);
@@ -137,30 +152,94 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
 
     const iconColor = theme.palette.customColors.embedded.text.tertiary;
 
-    const getExclusiveNote = () => {
-        const withoutPrice = <Typography>Möchten Sie den Raum exklusiv buchen?</Typography>;
+    const getDialogContent = () => {
         if (!(eventConfiguration?.date && eventConfiguration.endDate && eventConfiguration.persons)) {
-            return withoutPrice;
+            return <Typography>Bitte vervollständigen Sie die Event-Details</Typography>;
         }
 
         const room = location?.rooms?.find((r) => r.id === pendingRoomId);
-        if (!room) return withoutPrice;
+        if (!room) return <Typography>Raum nicht gefunden</Typography>;
 
-        const exclusivePrice = calculateBookingPrice(
-            new Date(eventConfiguration.date),
-            new Date(eventConfiguration.endDate),
-            eventConfiguration.persons,
-            room.price,
-            room.priceType,
-            true,
-            room.roomPricings,
-            ['exclusive'],
+        const pricings = room.roomPricings;
+        const overlaps = pricings
+            ? getPricingSlotsForDates(
+                new Date(eventConfiguration.date),
+                new Date(eventConfiguration.endDate),
+                pricings
+            )
+            : [];
+
+        const hasExclusiveOption = overlaps.some(schedule => schedule.exclusivePriceType !== "none");
+        const hasSeatingOptions = room.roomSeatings && room.roomSeatings.length > 0;
+
+        const bookingStart = new Date(eventConfiguration.date);
+        const bookingEnd = new Date(eventConfiguration.endDate);
+
+        const exclusivePrice = calculateBookingPrice({
+            bookingStart,
+            bookingEnd,
+            persons: eventConfiguration.persons,
+            basePrice: room.price,
+            basePriceType: room.priceType,
+            isExclusive: true,
+            schedules: room.roomPricings,
+            filters: ['exclusive'],
+        });
+
+        const roomBasePrice = calculateBookingPrice({
+            bookingStart,
+            bookingEnd,
+            persons: eventConfiguration.persons,
+            basePrice: room.price,
+            basePriceType: room.priceType,
+            isExclusive: false,
+            schedules: room.roomPricings,
+        });
+
+        return (
+            <>
+                <FormControl fullWidth sx={{ mt: 2 }} disabled={!hasSeatingOptions}>
+                    <InputLabel>Seating</InputLabel>
+                    <Select
+                        value={selectedSeating}
+                        label="Seating"
+                        onChange={(e) => setSelectedSeating(e.target.value)}
+                    >
+                        {room.roomSeatings?.map((seating: RoomSeatingModel) => (
+                            <MenuItem key={seating.id} value={seating.seating}>
+                                {
+                                    (seatingTypeOptions?.find(o => o.value === seating.seating)?.label
+                                        ?? seating.seating) +
+                                    " ( + " +
+                                    formatPrice(
+                                        calculateSeating(
+                                            roomBasePrice,
+                                            bookingStart,
+                                            bookingEnd,
+                                            eventConfiguration.persons ?? 0,
+                                            room.roomSeatings,
+                                            seating.seating
+                                        )
+                                    ) +
+                                    ")"
+                                }
+                            </MenuItem>
+                        ))}
+                    </Select>
+                </FormControl>
+                <FormControlLabel
+                    control={
+                        <Switch
+                            checked={isExclusive}
+                            onChange={(e) => setIsExclusive(e.target.checked)}
+                            disabled={!hasExclusiveOption}
+                        />
+                    }
+                    label={`Exklusiv buchen${hasExclusiveOption ? ` (Aufpreis: ${formatPrice(exclusivePrice)})` : ''}`}
+                    sx={{ mt: 2 }}
+                />
+            </>
         );
-
-        return <>
-            {withoutPrice}
-            <Typography>Aufpreis für Exklusivbuchung: {formatPrice(exclusivePrice)}</Typography>
-        </>;
     };
 
     const matchingRooms = location?.rooms?.filter(
@@ -179,6 +258,9 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
     const isRoomExclusive = (roomId: number) =>
         eventConfiguration?.roomExtras?.some(r => r.roomId === roomId && r.isExclusive);
 
+    const getSeating = (roomId: number) =>
+        eventConfiguration?.roomExtras?.find(r => r.roomId === roomId)?.seating ?? undefined;
+
     return (
         <>
             {matchingRooms && matchingRooms.length > 0 ?
@@ -186,20 +268,23 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
                     {matchingRooms.map((room) => {
                         const isSelected = isRoomSelected(room.id);
                         const isExclusive = isRoomExclusive(room.id);
+                        const seating = getSeating(room.id);
                         const calculatedPrice =
                             eventConfiguration?.date &&
                                 eventConfiguration?.endDate &&
                                 eventConfiguration?.persons
                                 ? formatPrice(
-                                    calculateBookingPrice(
-                                        new Date(eventConfiguration.date),
-                                        new Date(eventConfiguration.endDate),
-                                        eventConfiguration.persons,
-                                        room.price,
-                                        room.priceType,
-                                        isExclusive ?? false,
-                                        room.roomPricings
-                                    )
+                                    calculateBookingPrice({
+                                        bookingStart: new Date(eventConfiguration.date),
+                                        bookingEnd: new Date(eventConfiguration.endDate),
+                                        persons: eventConfiguration.persons,
+                                        basePrice: room.price,
+                                        basePriceType: room.priceType,
+                                        isExclusive: false,
+                                        schedules: room.roomPricings,
+                                        seatings: room.roomSeatings,
+                                        seating,
+                                    })
                                 )
                                 : "?";
 
@@ -256,15 +341,16 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
                                     eventConfiguration?.endDate &&
                                     eventConfiguration?.persons
                                     ? formatPrice(
-                                        calculateBookingPrice(
-                                            new Date(eventConfiguration.date),
-                                            new Date(eventConfiguration.endDate),
-                                            eventConfiguration.persons,
-                                            room.price,
-                                            room.priceType,
-                                            false,
-                                            room.roomPricings
-                                        )
+                                        calculateBookingPrice({
+                                            bookingStart: new Date(eventConfiguration.date),
+                                            bookingEnd: new Date(eventConfiguration.endDate),
+                                            persons: eventConfiguration.persons,
+                                            basePrice: room.price,
+                                            basePriceType: room.priceType,
+                                            isExclusive: false,
+                                            schedules: room.roomPricings,
+                                            seatings: room.roomSeatings,
+                                        })
                                     )
                                     : "?";
 
@@ -303,23 +389,23 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
             <Dialog
                 open={dialogOpen}
                 onClose={() => handleDialogClose(false)}
-                aria-labelledby="exclusive-room-dialog-title"
-                aria-describedby="exclusive-room-dialog-description"
+                aria-labelledby="room-options-dialog-title"
+                aria-describedby="room-options-dialog-description"
             >
-                <DialogTitle id="exclusive-room-dialog-title" sx={{ textAlign: 'center', padding: 3 }}>
-                    Exklusiv-Option verfügbar
+                <DialogTitle id="room-options-dialog-title" sx={{ textAlign: 'center', padding: 3 }}>
+                    Raum-Optionen
                 </DialogTitle>
                 <DialogContent>
-                    <DialogContentText id="exclusive-room-dialog-description" sx={{ textAlign: 'center' }}>
-                        {getExclusiveNote()}
+                    <DialogContentText id="room-options-dialog-description" sx={{ textAlign: 'center' }}>
+                        {getDialogContent()}
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
                     <Button variant='contained' onClick={() => handleDialogClose(false)} color="primary">
-                        Nein
+                        Abbrechen
                     </Button>
                     <Button variant='contained' onClick={() => handleDialogClose(true)} color="primary" autoFocus>
-                        Ja
+                        Bestätigen
                     </Button>
                 </DialogActions>
             </Dialog>

@@ -12,6 +12,19 @@ export interface PricingSlot {
     exclusivePrice: number | null;
 };
 
+export interface BookingSeating {
+    id: number;
+    roomId: number;
+    seating: string;
+    priceType: string;
+    isAbsolute: boolean;
+    price: number;
+    reconfigPriceType: string;
+    reconfigIsAbsolute: boolean | null;
+    reconfigPrice: number | null;
+    isDefault: boolean;
+};
+
 export interface BookingRoom {
     id: number;
     price: number;
@@ -19,6 +32,7 @@ export interface BookingRoom {
     minPersons: number;
     maxPersons: number;
     roomPricings?: PricingSlot[];
+    roomSeatings?: BookingSeating[];
 };
 
 export interface BookingPackage {
@@ -99,25 +113,32 @@ export const calculateBooking = (booking: Booking) => {
         return 0;
     }
 
-    const date = booking.date;
-    const endDate = booking.endDate;
+    const bookingStart = booking.date;
+    const bookingEnd = booking.endDate;
 
-    const diffInMs = endDate.getTime() - date.getTime();
+    const diffInMs = bookingEnd.getTime() - bookingStart.getTime();
     diffInHours = diffInMs / (1000 * 60 * 60);
 
     const persons = booking.persons ?? 1;
 
+
+
     const roomsPrice = booking.rooms?.reduce((total, room) => {
+        const extra = booking.roomExtras?.find(r => r.roomId === room.id);
+        const isExclusive = extra?.isExclusive === true;
+        const seating = extra?.seating;
         const roomPrice = room
-            ? calculateBookingPrice(
-                date,
-                endDate,
+            ? calculateBookingPrice({
+                bookingStart,
+                bookingEnd,
                 persons,
-                room.price,
-                room.priceType,
-                booking.roomExtras?.some(r => r.roomId === room.id) === true,
-                room.roomPricings
-            )
+                basePrice: room.price,
+                basePriceType: room.priceType,
+                isExclusive,
+                schedules: room.roomPricings,
+                seatings: room.roomSeatings,
+                seating,
+            })
             : 0;
         return total + roomPrice;
     }, 0) || 0;
@@ -136,16 +157,31 @@ export const calculateBooking = (booking: Booking) => {
     return roomsPrice + packagePrice;
 }
 
-export const calculateBookingPrice = (
-    bookingStart: Date,
-    bookingEnd: Date,
-    persons: number = 1,
-    basePrice: number,
-    basePriceType: string,
-    isExclusive: boolean,
-    schedules?: PricingSlot[],
-    filters?: string[],
-) => {
+export interface BookingPriceProps {
+    bookingStart: Date;
+    bookingEnd: Date;
+    persons: number;
+    basePrice: number;
+    basePriceType: string;
+    isExclusive: boolean;
+    seating?: string;
+    schedules?: PricingSlot[];
+    seatings?: BookingSeating[];
+    filters?: string[];
+}
+
+export const calculateBookingPrice = ({
+    bookingStart,
+    bookingEnd,
+    persons,
+    basePrice,
+    basePriceType,
+    isExclusive,
+    seating,
+    schedules,
+    seatings,
+    filters
+}: BookingPriceProps) => {
     let totalPrice = 0;
     const coveredRanges: { start: Date; end: Date }[] = [];
 
@@ -266,7 +302,14 @@ export const calculateBookingPrice = (
         }
 
         if (basePriceType === "once" || basePriceType === "day") {
-            return basePrice;
+            // return basePrice + seating
+            return basePrice +
+                calculateSeating(totalPrice,
+                    new Date(bookingStart),
+                    bookingEnd,
+                    persons,
+                    seatings,
+                    seating);
         }
         if (basePriceType === "none" || basePriceType === "consumption") {
             return 0;
@@ -324,8 +367,66 @@ export const calculateBookingPrice = (
         }
     }
 
+    // Apply seating
+    totalPrice += calculateSeating(totalPrice,
+        unaccountedStart,
+        bookingEnd,
+        persons,
+        seatings,
+        seating);
+
     return totalPrice;
 };
+
+export const calculateSeating = (
+    totalPrice: number,
+    bookingStart: Date,
+    bookingEnd: Date,
+    persons: number,
+    seatings?: BookingSeating[],
+    seating?: string
+) => {
+    const seatingToApply = seating
+        ? seatings?.find(s => s.seating === seating) || seatings?.find(s => s.isDefault) || null
+        : null;
+
+    if (seatingToApply) {
+        const durationHours = differenceInMinutes(bookingEnd, bookingStart) / 60;
+
+        const seatingBasePrice = seatingToApply.isAbsolute
+            ? seatingToApply.price
+            : totalPrice * (seatingToApply.price / 100);
+
+        const seatingPrice = calculatePriceByPriceType(
+            seatingBasePrice,
+            seatingToApply.priceType,
+            durationHours,
+            persons
+        );
+
+        if (seatingToApply.reconfigPriceType != "none" &&
+            seatingToApply.reconfigPrice &&
+            seatingToApply.reconfigPriceType
+        ) {
+            const reconfigBasePrice = seatingToApply.reconfigIsAbsolute
+                ? seatingToApply.reconfigPrice
+                : totalPrice * (seatingToApply.reconfigPrice / 100);
+
+            const reconfigPrice = calculatePriceByPriceType(
+                reconfigBasePrice,
+                seatingToApply.reconfigPriceType,
+                durationHours,
+                persons
+            );
+
+            return seatingPrice + reconfigPrice;
+        } else {
+            return seatingPrice;
+        }
+    }
+
+    return 0;
+}
 
 export const doPricingSlotsOverlap = (pricing1: PricingSlot, pricing2: PricingSlot): boolean => {
     const referenceDate = new Date(2023, 0, 2); // Monday, Jan 2, 2023
