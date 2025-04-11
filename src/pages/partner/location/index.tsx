@@ -10,6 +10,7 @@ import LocationGrid from '@/features/partners/LocationGrid';
 import EventCategoriesEditor from '@/features/partners/EventCategoriesEditor';
 import { WaitIcon } from '@/components/WaitIcon';
 import React from 'react';
+import { storePartnerLocations } from '@/services/locationService';
 
 interface CategoriesItemProps {
     locationId: number | null;
@@ -56,7 +57,9 @@ const PartnerPage: NextPageWithLayout = () => {
 
     useEffect(() => {
         if (partnerUser && isLoading) {
+            storePartnerLocations();
             setIsLoading(false);
+            console.log("storePartnerLocations e")
         }
     }, [partnerUser]);
 
