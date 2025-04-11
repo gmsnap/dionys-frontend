@@ -16,6 +16,7 @@ interface GridItemProps {
     subTitle?: string;
     information?: string;
     infoItems?: InfoItem[];
+    isActive?: boolean;
 }
 
 const GridItem: React.FC<GridItemProps> = ({
@@ -27,6 +28,7 @@ const GridItem: React.FC<GridItemProps> = ({
     subTitle,
     information,
     infoItems,
+    isActive,
 }) => {
     const [showInformation, setShowInformation] = useState(false);
 
@@ -112,22 +114,24 @@ const GridItem: React.FC<GridItemProps> = ({
                     >
                         Informationen
                     </Button>}
-                    <Button
-                        variant="contained"
-                        color={isSelected ? "secondary" : "primary"}
-                        sx={{
-                            padding: '8px 16px',
-                            backgroundColor: isSelected ? '#FFFFFF' : undefined, // White background if selected
-                            color: isSelected ? '#000000' : undefined, // Black text if selected
-                            '&:hover': {
-                                backgroundColor: isSelected ? '#F5F5F5' : undefined, // Light gray on hover when selected
-                            },
-                            borderRadius: 1,
-                        }}
-                        onClick={() => selectRequested?.(id)}
-                    >
-                        {isSelected ? 'Ausgewählt' : 'Wählen'}
-                    </Button>
+                    {isActive !== false &&
+                        <Button
+                            variant="contained"
+                            color={isSelected ? "secondary" : "primary"}
+                            sx={{
+                                padding: '8px 16px',
+                                backgroundColor: isSelected ? '#FFFFFF' : undefined, // White background if selected
+                                color: isSelected ? '#000000' : undefined, // Black text if selected
+                                '&:hover': {
+                                    backgroundColor: isSelected ? '#F5F5F5' : undefined, // Light gray on hover when selected
+                                },
+                                borderRadius: 1,
+                            }}
+                            onClick={() => selectRequested?.(id)}
+                        >
+                            {isSelected ? 'Ausgewählt' : 'Wählen'}
+                        </Button>
+                    }
                 </Box>
             </Box>
 
@@ -145,7 +149,17 @@ const GridItem: React.FC<GridItemProps> = ({
                     variant="body2"
                     component="div"
                     dangerouslySetInnerHTML={{ __html: information ?? '' }}
-                    sx={{ mt: 4 }}
+                    sx={{
+                        mt: 4,
+                        "& ul, & ol": {
+                            paddingLeft: 3,
+                            marginTop: 1,
+                            marginBottom: 1,
+                        },
+                        "& li": {
+                            marginBottom: 0.5,
+                        },
+                    }}
                 />
             </Box>}
         </Box>

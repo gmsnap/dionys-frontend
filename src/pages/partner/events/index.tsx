@@ -14,6 +14,7 @@ import { CalendarIcon, List as ListIcon } from 'lucide-react';
 import { formatEventCategoryStringSync } from '@/utils/formatEventCategories';
 import { onboardingCompleted } from '@/services/onboardingService';
 import OnboardingIndicator from '@/features/partners/OnboardingIndicator';
+import PageHeadline from '@/features/partners/PageHeadline';
 
 const PartnerPage: NextPageWithLayout = () => {
     const { partnerUser } = useStore();
@@ -54,8 +55,13 @@ const PartnerPage: NextPageWithLayout = () => {
             return;
         }
 
+        const sortedConfs = confs.sort((
+            a: EventConfigurationModel,
+            b: EventConfigurationModel
+        ) => b.id - a.id);
+
         // Set rooms to state
-        setEventConfs(confs);
+        setEventConfs(sortedConfs);
         setError(null);
     };
 
@@ -108,8 +114,8 @@ const PartnerPage: NextPageWithLayout = () => {
 
     const formatTitle = (conf: EventConfigurationModel) => {
         const location = conf.location?.title ?? "?";
-        const company = conf.booker?.bookingCompany?.companyName ?? "?";
-        return `Location: ${location}, Anfrage von: ${company}`;
+        const fromName = conf.booker?.bookingCompany?.companyName ?? conf.booker?.givenName ?? "?";
+        return `Location: ${location}, Anfrage von: ${fromName}`;
     }
 
     const formatDates = (conf: EventConfigurationModel) => {
@@ -123,6 +129,11 @@ const PartnerPage: NextPageWithLayout = () => {
             ? new Intl.DateTimeFormat('de-DE', { hour: '2-digit', minute: '2-digit' }).format(new Date(conf.endDate))
             : '?';
         return `${startDate}, ${startTime} - ${endTime} Uhr`;
+    }
+
+    const onDeleted = (id: number) => {
+        setSelectedConf(null);
+        fetchConfigurationsFromApi();
     }
 
     return (
@@ -184,32 +195,7 @@ const PartnerPage: NextPageWithLayout = () => {
             )}
 
             {/* Content with Headline */}
-            <>
-                <Box
-                    sx={{
-                        display: 'flex',
-                        flexDirection: 'row',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                    }}>
-                    <Typography
-                        variant='h3'
-                        sx={{
-                            fontFamily: "'Arial', sans-serif",
-                            ml: 3,
-                        }}
-                    >
-                        Dashboard
-                    </Typography>
-                </Box>
-                <Box
-                    sx={{
-                        borderTop: (theme) => `1px solid ${theme.palette.customColors.blue.halfdark}`,
-                        width: '100%',
-                        mt: 3,
-                    }}
-                />
-            </>
+            <PageHeadline title='Dashboard' />
             <Box sx={{
                 mt: { xs: 5, md: 10 },
                 display: 'flex',
@@ -302,6 +288,7 @@ const PartnerPage: NextPageWithLayout = () => {
                     {selectedConf &&
                         <EventConfigurationDetails
                             model={selectedConf}
+                            onDeleted={() => onDeleted(selectedConf.id)}
                             sx={{ flexGrow: 1, mt: 7, ml: 4, p: 5, backgroundColor: '#EEEEEE' }}
                         />
                     }

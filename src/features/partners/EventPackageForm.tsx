@@ -33,7 +33,7 @@ import { AvailablePackageCategories, PackageCategories } from '@/constants/Packa
 import { formatPackageCategory } from '@/utils/formatPackageCategories';
 import RichTextField from '@/components/RichTextField';
 
-const controlWidth = 12;
+const controlWidth = 7;
 const labelWidth = 4;
 
 interface FormProps {
@@ -311,14 +311,18 @@ const EventPackageForm = ({
                 height: "100%",
             }}>
                 <form onSubmit={handleSubmit(onSubmit)}>
-                    <Grid2 container rowSpacing={2}>
+                    <Box sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 2,
+                    }}>
 
                         {/* Title */}
                         <Grid2 container alignItems="top" rowSpacing={0} sx={{ width: '100%' }}>
                             <Grid2 size={{ xs: 12, sm: labelWidth }}>
                                 <Typography variant="label">Bezeichnung</Typography>
                             </Grid2>
-                            <Grid2 size={{ xs: 12, sm: 8, md: 6 }}>
+                            <Grid2 size={{ xs: 12, sm: 10, md: 6 }}>
                                 <Controller
                                     name="title"
                                     control={control}
@@ -340,7 +344,7 @@ const EventPackageForm = ({
                             <Grid2 size={{ xs: labelWidth }}>
                                 <Typography variant="label">Beschreibung</Typography>
                             </Grid2>
-                            <Grid2 size={{ xs: 12, sm: 8, md: 6 }}>
+                            <Grid2 size={{ xs: 12, sm: 10, md: 6 }}>
                                 <Controller
                                     name="description"
                                     control={control}
@@ -360,7 +364,7 @@ const EventPackageForm = ({
                             <Grid2 size={{ xs: 12, sm: labelWidth }}>
                                 <Typography variant="label">Paket-Kategorie</Typography>
                             </Grid2>
-                            <Grid2 size={{ xs: 12, sm: 8, md: 6 }}>
+                            <Grid2 size={{ xs: 12, sm: 10, md: 6 }}>
                                 <Controller
                                     name="packageCategory"
                                     control={control}
@@ -389,7 +393,7 @@ const EventPackageForm = ({
                             <Grid2 size={{ xs: labelWidth }}>
                                 <Typography variant="label">Preis</Typography>
                             </Grid2>
-                            <Grid2 size={{ xs: 12, sm: 8, md: 6 }}>
+                            <Grid2 size={{ xs: 12, sm: 10, md: 6 }}>
                                 {isPriceInputDisabled
                                     ? <TextField value={"-"} disabled={true} sx={{ width: '100%' }} />
                                     : <PriceInput
@@ -405,7 +409,7 @@ const EventPackageForm = ({
                             <Grid2 size={{ xs: 12, sm: labelWidth }}>
                                 <Typography variant="label">Preisbezug</Typography>
                             </Grid2>
-                            <Grid2 size={{ xs: 12, sm: 8, md: 6 }}>
+                            <Grid2 size={{ xs: 12, sm: 10, md: 6 }}>
                                 <PriceTypeField
                                     control={control}
                                     errors={errors}
@@ -414,14 +418,14 @@ const EventPackageForm = ({
                         </Grid2>
 
                         {/* Persons */}
-                        <Grid2 container alignItems="top" rowSpacing={0} sx={{ width: '100%' }}>
+                        <Grid2 container size={{ xs: 12, sm: 10 }} spacing={0} alignItems="top">
                             {/* Label */}
-                            <Grid2 size={{ xs: 12, sm: labelWidth }}>
+                            <Grid2 size={{ xs: 12, md: labelWidth }}>
                                 <Typography variant="label">Personenanzahl</Typography>
                             </Grid2>
 
                             {/* Min Persons */}
-                            <Grid2 size={{ xs: 6, sm: 4, md: 3 }}>
+                            <Grid2 size={{ xs: 6, sm: 5, md: 3 }} sx={{ ml: 0 }}>
                                 <Controller
                                     name="minPersons"
                                     control={control}
@@ -450,7 +454,7 @@ const EventPackageForm = ({
                             </Grid2>
 
                             {/* Max Persons */}
-                            <Grid2 size={{ xs: 6, sm: 4, md: 3 }} sx={{ ml: 0 }}>
+                            <Grid2 size={{ xs: 6, sm: 5, md: 3 }} sx={{ ml: 0 }}>
                                 <Controller
                                     name="maxPersons"
                                     control={control}
@@ -483,7 +487,7 @@ const EventPackageForm = ({
                             <Grid2 size={{ xs: 12, sm: labelWidth }}>
                                 <Typography variant="label">Location</Typography>
                             </Grid2>
-                            <Grid2 size={{ xs: 12, sm: 8, md: 6 }}>
+                            <Grid2 size={{ xs: 12, sm: 10, md: 6 }}>
                                 <Controller
                                     name="locationId"
                                     control={control}
@@ -517,7 +521,7 @@ const EventPackageForm = ({
                             <Grid2 size={{ xs: 12, sm: labelWidth }}>
                                 <Typography variant="label">Kategorien</Typography>
                             </Grid2>
-                            <Grid2 size={{ xs: 12, sm: 8, md: 6 }}>
+                            <Grid2 size={{ xs: 12, sm: 10, md: 6 }}>
                                 <EventCategoriesField
                                     control={control}
                                     errors={errors}
@@ -583,7 +587,7 @@ const EventPackageForm = ({
                                 </Typography>
                             </Grid2>
                         )}
-                    </Grid2>
+                    </Box>
                 </form>
                 {packageId > 0 &&
                     <>

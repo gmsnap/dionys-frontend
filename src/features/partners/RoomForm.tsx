@@ -25,6 +25,7 @@ import { useAuthContext } from '@/auth/AuthContext';
 import { fetchLocationsByCompanyId } from '@/services/locationService';
 import PriceInput from '@/components/PriceInput';
 import PriceTypeField from './PriceTypeField';
+import RichTextField from '@/components/RichTextField';
 
 // Validation schema
 const roomValidationSchema = yup.object().shape({
@@ -80,7 +81,6 @@ const roomValidationSchema = yup.object().shape({
 
 const controlWidth = 7;
 const labelWidth = 4;
-
 interface RoomFormProps {
     roomId: number;
     locationId: number | null;
@@ -319,10 +319,6 @@ const RoomForm = ({
         }
     };
 
-    const roomTitle = watch('name') ?
-        `Räume: ${watch('name')}` :
-        'Räume: Raum hinzufügen';
-
     return (
         <Box sx={{ height: "100vh", ...sx }}>
             <Typography variant="h5"
@@ -344,10 +340,10 @@ const RoomForm = ({
                         {/* Title */}
                         <Grid2 size={{ sm: controlWidth }}>
                             <Grid2 container alignItems="top">
-                                <Grid2 size={{ sm: labelWidth }}>
+                                <Grid2 size={{ xs: labelWidth }}>
                                     <Typography variant="label">Bezeichnung</Typography>
                                 </Grid2>
-                                <Grid2 size={{ xs: 12, sm: 4 }}>
+                                <Grid2 size={{ xs: 12, sm: 10, md: 6 }}>
                                     <Controller
                                         name="name"
                                         control={control}
@@ -371,19 +367,15 @@ const RoomForm = ({
                                 <Grid2 size={{ xs: labelWidth }}>
                                     <Typography variant="label">Beschreibung</Typography>
                                 </Grid2>
-                                <Grid2 size={{ xs: 12, sm: 4 }}>
+                                <Grid2 size={{ xs: 12, sm: 10, md: 6 }}>
                                     <Controller
                                         name="description"
                                         control={control}
                                         render={({ field }) => (
-                                            <TextField
-                                                {...field}
-                                                fullWidth
-                                                variant="outlined"
-                                                error={!!errors.description}
-                                                helperText={errors.description?.message}
-                                                multiline
-                                                rows={3}
+                                            <RichTextField
+                                                name="description"
+                                                control={control}
+                                                error={errors.description?.message}
                                             />
                                         )}
                                     />
@@ -397,7 +389,7 @@ const RoomForm = ({
                                 <Grid2 size={{ xs: labelWidth }}>
                                     <Typography variant="label">Quadratmeter</Typography>
                                 </Grid2>
-                                <Grid2 size={{ xs: 12, sm: 4 }}>
+                                <Grid2 size={{ xs: 12, sm: 10, md: 6 }}>
                                     <Controller
                                         name="size"
                                         control={control}
@@ -421,7 +413,7 @@ const RoomForm = ({
                                 <Grid2 size={{ xs: labelWidth }}>
                                     <Typography variant="label">Preis</Typography>
                                 </Grid2>
-                                <Grid2 size={{ xs: 12, sm: 4 }}>
+                                <Grid2 size={{ xs: 12, sm: 10, md: 6 }}>
                                     <PriceInput
                                         control={control}
                                         errors={errors}
@@ -436,7 +428,7 @@ const RoomForm = ({
                                 <Grid2 size={{ xs: labelWidth }}>
                                     <Typography variant="label">Preisbezug</Typography>
                                 </Grid2>
-                                <Grid2 size={{ xs: 12, sm: 4 }}>
+                                <Grid2 size={{ xs: 12, sm: 10, md: 6 }}>
                                     <PriceTypeField
                                         control={control}
                                         errors={errors}
@@ -445,18 +437,14 @@ const RoomForm = ({
                             </Grid2>
                         </Grid2>
 
-                        <Grid2
-                            container
-                            size={{ xs: 12, sm: controlWidth }}
-                            spacing={0}
-                            alignItems="top">
+                        <Grid2 container size={{ xs: 12, sm: 10 }} spacing={0} alignItems="top">
                             {/* Label */}
-                            <Grid2 size={{ xs: 12, sm: labelWidth }}>
+                            <Grid2 size={{ xs: 12, md: labelWidth }}>
                                 <Typography variant="label">Personenanzahl</Typography>
                             </Grid2>
 
                             {/* Min Persons */}
-                            <Grid2 size={{ xs: 6, sm: 0.5 * labelWidth }}>
+                            <Grid2 size={{ xs: 6, sm: 5, md: 3 }} sx={{ ml: 0 }}>
                                 <Controller
                                     name="minPersons"
                                     control={control}
@@ -480,7 +468,7 @@ const RoomForm = ({
                             </Grid2>
 
                             {/* Max Persons */}
-                            <Grid2 size={{ xs: 6, sm: 0.5 * labelWidth }} sx={{ ml: 0 }}>
+                            <Grid2 size={{ xs: 6, sm: 5, md: 3 }} sx={{ ml: 0 }}>
                                 <Controller
                                     name="maxPersons"
                                     control={control}
@@ -509,7 +497,7 @@ const RoomForm = ({
                                 <Grid2 size={{ xs: labelWidth }}>
                                     <Typography variant="label">Location</Typography>
                                 </Grid2>
-                                <Grid2 size={{ xs: 12, sm: 4 }}>
+                                <Grid2 size={{ xs: 12, sm: 10, md: 6 }}>
                                     <Controller
                                         name="locationId"
                                         control={control}
@@ -545,7 +533,7 @@ const RoomForm = ({
                                 <Grid2 size={{ xs: labelWidth }}>
                                     <Typography variant="label">Kategorien</Typography>
                                 </Grid2>
-                                <Grid2 size={{ xs: 12, sm: 4 }}>
+                                <Grid2 size={{ xs: 12, sm: 10, md: 6 }}>
                                     <EventCategoriesField
                                         control={control}
                                         errors={errors}
@@ -590,8 +578,14 @@ const RoomForm = ({
                             {roomId > 0 &&
                                 <DeleteButton
                                     isDisabled={isSubmitting}
-                                    onDelete={() => handleDeleteRoom(roomId,
-                                        () => roomDeleted?.(roomId))}
+                                    onDelete={() => authUser?.idToken
+                                        ? handleDeleteRoom(
+                                            authUser.idToken,
+                                            roomId,
+                                            () => roomDeleted?.(roomId)
+                                        )
+                                        : {}
+                                    }
                                 />
                             }
                         </Grid2>

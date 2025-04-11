@@ -1,6 +1,6 @@
-import { EventConfigurationModel } from "@/models/EventConfigurationModel";
-import { calculateTotalPrice } from "@/services/eventConfigurationService";
+import { EventConfigurationModel, toBooking } from "@/models/EventConfigurationModel";
 import { formatPrice, formatPriceWithType } from "@/utils/formatPrice";
+import { calculateBooking, calculateBookingPrice } from "@/utils/pricingManager";
 import { Box, SxProps, Theme, Typography } from "@mui/material";
 
 interface Props {
@@ -21,14 +21,32 @@ const EventConfigurationDetails = ({
 
     const formatRooms = (conf: EventConfigurationModel) => {
         const rooms = conf.rooms;
-        if (!rooms) return <Typography>?</Typography>;
+        if (!rooms || !conf.date || !conf.endDate) return <Typography>?</Typography>;
+
+        const startDate = new Date(conf.date);
+        const endDate = new Date(conf.endDate);
 
         return rooms.map(room => {
             const name = room.name ?? "?";
-            const price = formatPriceWithType(room.price, room.priceType);
+            const extra = model.roomExtras?.find(r => r.roomId === room.id);
+            const isExclusive = extra?.isExclusive === true;
+            const seating = extra?.seating;
+            const price = formatPrice(
+                calculateBookingPrice({
+                    bookingStart: startDate,
+                    bookingEnd: endDate,
+                    persons: conf.persons ?? 1,
+                    basePrice: room.price,
+                    basePriceType: room.priceType,
+                    isExclusive,
+                    schedules: room.roomPricings,
+                    seatings: room.roomSeatings,
+                    seating,
+                })
+            );
             return (
                 <Typography key={name}>
-                    {name} ({price})
+                    {name} ({price}) {isExclusive ? ', Exklusive Buchung' : ''}
                 </Typography>
             );
         });
@@ -59,6 +77,8 @@ const EventConfigurationDetails = ({
         return `${startDate}, ${startTime} - ${endTime} Uhr`;
     }
 
+    const bookingModel = toBooking(model);
+
     return (
         <Box sx={{ ...sx }}>
             <Typography variant="h5" sx={{ mt: 2, mb: 1 }}>Eventdaten</Typography>
@@ -76,11 +96,13 @@ const EventConfigurationDetails = ({
                     ))}
                 </>
             }
-
-            <Typography sx={{ fontWeight: 'bold', mt: 2 }}>
-                Total: {formatPrice(calculateTotalPrice(model))}
-            </Typography>
-
+            {bookingModel
+                ? <Typography sx={{ fontWeight: 'bold', mt: 2 }}>
+                    Gesamt: {formatPrice(calculateBooking(bookingModel))}
+                </Typography>
+                : <Typography sx={{ color: 'red', fontWeight: 'bold', mt: 2 }}>
+                    Gesamtpreis kann nicht berechnet werden.
+                </Typography>}
             {model.booker &&
                 <>
                     <Typography variant="h5" sx={{ mt: 2, mb: 1 }}>Persönliche Daten</Typography>

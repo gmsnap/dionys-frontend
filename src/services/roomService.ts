@@ -64,6 +64,7 @@ export const fetchRoomsByCompany = async (
 }
 
 export const handleDeleteRoom = async (
+    idToken: string,
     roomId: number,
     onSuccess: () => void,
     forceDelete = false
@@ -76,6 +77,10 @@ export const handleDeleteRoom = async (
 
         const response = await fetch(`${roomsBaseUrl}/${roomId}?force=${forceDelete}`, {
             method: 'DELETE',
+            headers: {
+                Authorization: `Bearer ${idToken}`,
+                "Content-Type": "application/json"
+            },
         });
 
         if (response.ok) {

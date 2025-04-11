@@ -6,6 +6,7 @@ import { fetchLocationByCode } from '@/services/locationService'
 import EventConfigurator2 from '@/features/clients/EventConfigurator2'
 import useStore from '@/stores/eventStore'
 import { LocationModel } from '@/models/LocationModel'
+import { sleep } from '@/utils/timingUtil'
 
 const Configurator: NextPageWithLayout = () => {
     const router = useRouter();
@@ -31,16 +32,20 @@ const Configurator: NextPageWithLayout = () => {
                 const fetchLocation = async () => {
                     setIsLoading(true);
                     let location: LocationModel | null = null;
-                    let attempts = 3;
+                    let attempts = 5;
                     while (!location && attempts-- > 0) {
                         location =
                             await fetchLocationByCode(code, null, null);
+
                         if (location) {
                             setIsLoading(false);
                             setLocationId(location.id);
                             setLocation(location);
                             return;
                         }
+
+                        // Wait 100ms before next attempt
+                        await sleep(100);
                     }
                     setIsLoading(false);
                     setError('not found');

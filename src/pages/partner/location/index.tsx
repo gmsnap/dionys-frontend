@@ -1,4 +1,4 @@
-import { ReactElement, useEffect, useState } from 'react';
+import { ReactElement, useEffect, useMemo, useState } from 'react';
 import PartnerLayout from '@/layouts/PartnerLayout';
 import type { NextPageWithLayout } from '@/types/page';
 import { Box, List, ListItem, ListItemButton, ListItemText, Typography } from '@mui/material';
@@ -8,29 +8,20 @@ import useStore from '@/stores/partnerStore';
 import theme from '@/theme';
 import LocationGrid from '@/features/partners/LocationGrid';
 import EventCategoriesEditor from '@/features/partners/EventCategoriesEditor';
+import { WaitIcon } from '@/components/WaitIcon';
+import React from 'react';
+import { storePartnerLocations } from '@/services/locationService';
 
-const PartnerPage: NextPageWithLayout = () => {
-    const { partnerUser, partnerLocations } = useStore();
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const [locationId, setLocationId] = useState<number | null>(null);
-    const [editCategories, setEditCategories] = useState(false);
+interface CategoriesItemProps {
+    locationId: number | null;
+    onClick: () => void;
+}
 
-    useEffect(() => {
-        setIsLoggedIn(!!partnerUser);
-    }, [partnerUser]);
-
-    if (!isLoggedIn) {
-        return (
-            <Typography variant="h6" textAlign="center">
-                Please log in to create a location.
-            </Typography>
-        );
-    }
-
-    const categoriesItem =
+const CategoriesItem = React.memo(({ locationId, onClick }: CategoriesItemProps) => {
+    return (
         <ListItem key={-1} disablePadding>
             <ListItemButton
-                onClick={() => setEditCategories(true)}
+                onClick={onClick}
                 sx={{
                     pt: { xs: 0, sm: 'inherit' },
                     pb: { xs: 0, sm: 'inherit' },
@@ -51,7 +42,34 @@ const PartnerPage: NextPageWithLayout = () => {
                     }}
                 />
             </ListItemButton>
-        </ListItem>;
+        </ListItem>
+    );
+});
+
+CategoriesItem.displayName = 'CategoriesItem';
+
+const PartnerPage: NextPageWithLayout = () => {
+    const { partnerUser } = useStore();
+    const { partnerLocations } = useStore();
+    const [locationId, setLocationId] = useState<number | null>(null);
+    const [editCategories, setEditCategories] = useState(false);
+    const [isLoading, setIsLoading] = useState<boolean>(true);
+
+    useEffect(() => {
+        if (partnerUser && isLoading) {
+            storePartnerLocations();
+            setIsLoading(false);
+            console.log("storePartnerLocations e")
+        }
+    }, [partnerUser]);
+
+    console.log("render2")
+
+    if (isLoading) {
+        return (
+            <WaitIcon sx={{ mt: 20 }} />
+        );
+    }
 
     if (editCategories) {
         return (
@@ -66,7 +84,10 @@ const PartnerPage: NextPageWithLayout = () => {
                         mr: { xs: 1, sm: 3 },
                         minWidth: { xs: '100px', sm: '200px', md: '250px' },
                     }}>
-                        {categoriesItem}
+                        <CategoriesItem
+                            locationId={locationId}
+                            onClick={() => setEditCategories(true)}
+                        />
                         <ListItem key={null} disablePadding>
                             <ListItemButton
                                 onClick={() => setEditCategories(false)}
@@ -112,7 +133,10 @@ const PartnerPage: NextPageWithLayout = () => {
                         mr: { xs: 1, sm: 3 },
                         minWidth: { xs: '100px', sm: '200px', md: '250px' },
                     }}>
-                        {categoriesItem}
+                        <CategoriesItem
+                            locationId={locationId}
+                            onClick={() => setEditCategories(true)}
+                        />
                         <ListItem key={null} disablePadding>
                             <ListItemButton
                                 onClick={() => setEditCategories(false)}
@@ -171,7 +195,10 @@ const PartnerPage: NextPageWithLayout = () => {
                         mr: { xs: 1, sm: 3 },
                         minWidth: { xs: '100px', sm: '200px', md: '250px' },
                     }}>
-                        {categoriesItem}
+                        <CategoriesItem
+                            locationId={locationId}
+                            onClick={() => setEditCategories(true)}
+                        />
                         <ListItem key={null} disablePadding>
                             <ListItemButton
                                 onClick={() => setLocationId(null)}

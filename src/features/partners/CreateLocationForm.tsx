@@ -1,6 +1,4 @@
-"use client";
-
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm, Controller, FormProvider } from 'react-hook-form';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -9,7 +7,6 @@ import {
     Button,
     TextField,
     Typography,
-    CircularProgress,
     Grid2,
     FormControlLabel,
     Switch,
@@ -26,6 +23,7 @@ import ImmutableItemList from "./ImmutableItemList";
 import { useAuthContext } from "@/auth/AuthContext";
 import BillingAddressFields from "./BillingAddressFields2";
 import LocationEmbedCode from "./LocationEmbedCode";
+import { WaitIcon } from '@/components/WaitIcon';
 
 // Validation schema
 const locationValidationSchema = yup.object().shape({
@@ -114,7 +112,7 @@ const LocationForm = ({ locationId, submitButtonCaption, locationCreated }: Loca
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [responseMessage, setResponseMessage] = useState("");
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isEdit, setIsEdit] = useState(false);
     const [billingToggle, setBillingToggle] = useState(true);
@@ -294,17 +292,6 @@ const LocationForm = ({ locationId, submitButtonCaption, locationCreated }: Loca
 
     }, [locationId]);
 
-    if (isLoading) {
-        return (
-            <Box sx={{ maxWidth: 600, mx: "auto", mt: 4, p: 2, textAlign: "center" }}>
-                <CircularProgress />
-                <Typography variant="h6" sx={{ mt: 2 }}>
-                    Loading location data...
-                </Typography>
-            </Box>
-        );
-    }
-
     if (error) {
         return (
             <Box sx={{ maxWidth: 600, mx: "auto", mt: 4, p: 2, textAlign: "center" }}>
@@ -321,246 +308,251 @@ const LocationForm = ({ locationId, submitButtonCaption, locationCreated }: Loca
     const controlWidth = 10;
 
     return (
-        <Box sx={{ maxWidth: 500, mx: "auto", mt: 4 }}>
-            <Typography variant="h5"
-                sx={{ mb: 2, color: 'primary.main' }}>
-                Allgemein
-            </Typography>
-            <FormProvider {...methods}>
-                <form onSubmit={handleSubmit(onSubmit)}>
-                    <Grid2 container spacing={2}>
+        <>
+            {isLoading ?
+                (<WaitIcon />) :
+                (<Box sx={{ maxWidth: 500, mx: "auto", mt: 4 }}>
+                    <Typography variant="h5"
+                        sx={{ mb: 2, color: 'primary.main' }}>
+                        Allgemein
+                    </Typography>
+                    <FormProvider {...methods}>
+                        <form onSubmit={handleSubmit(onSubmit)}>
+                            <Grid2 container spacing={2}>
 
-                        {/* Title */}
-                        <Grid2 size={{ xs: 12, sm: controlWidth }}>
-                            <Grid2 container alignItems="top">
-                                <Grid2 size={{ xs: 12, sm: 4 }}>
-                                    <Typography variant="label">Name der Location</Typography>
-                                </Grid2>
-                                <Grid2 size={{ xs: 12, sm: 8 }}>
-                                    <Controller
-                                        name="title"
-                                        control={control}
-                                        render={({ field }) => (
-                                            <TextField
-                                                {...field}
-                                                fullWidth
-                                                variant="outlined"
-                                                error={!!errors.title}
-                                                helperText={errors.title?.message}
+                                {/* Title */}
+                                <Grid2 size={{ xs: 12, sm: controlWidth }}>
+                                    <Grid2 container alignItems="top">
+                                        <Grid2 size={{ xs: 12, sm: 4 }}>
+                                            <Typography variant="label">Name der Location</Typography>
+                                        </Grid2>
+                                        <Grid2 size={{ xs: 12, sm: 8 }}>
+                                            <Controller
+                                                name="title"
+                                                control={control}
+                                                render={({ field }) => (
+                                                    <TextField
+                                                        {...field}
+                                                        fullWidth
+                                                        variant="outlined"
+                                                        error={!!errors.title}
+                                                        helperText={errors.title?.message}
+                                                    />
+                                                )}
                                             />
-                                        )}
+                                        </Grid2>
+                                    </Grid2>
+                                </Grid2>
+
+                                {/* City */}
+                                <Grid2 size={{ xs: 12, sm: controlWidth }}>
+                                    <Grid2 container alignItems="top">
+                                        <Grid2 size={{ xs: 12, sm: 4 }}>
+                                            <Typography variant="label">Stadt</Typography>
+                                        </Grid2>
+                                        <Grid2 size={{ xs: 12, sm: 8 }}>
+                                            <Controller
+                                                name="city"
+                                                control={control}
+                                                render={({ field }) => (
+                                                    <TextField
+                                                        {...field}
+                                                        fullWidth
+                                                        variant="outlined"
+                                                        error={!!errors.city}
+                                                        helperText={errors.city?.message}
+                                                    />
+                                                )}
+                                            />
+                                        </Grid2>
+                                    </Grid2>
+                                </Grid2>
+
+                                {/* Area */}
+                                <Grid2 size={{ xs: 12, sm: controlWidth }}>
+                                    <Grid2 container alignItems="top">
+                                        <Grid2 size={{ xs: 12, sm: 4 }}>
+                                            <Typography variant="label">Lage (z.B. Stadtteil)</Typography>
+                                        </Grid2>
+                                        <Grid2 size={{ xs: 12, sm: 8 }}>
+                                            <Controller
+                                                name="area"
+                                                control={control}
+                                                render={({ field }) => (
+                                                    <TextField
+                                                        {...field}
+                                                        fullWidth
+                                                        variant="outlined"
+                                                        error={!!errors.area}
+                                                        helperText={errors.area?.message}
+                                                    />
+                                                )}
+                                            />
+                                        </Grid2>
+                                    </Grid2>
+                                </Grid2>
+
+                                {/* Street Address */}
+                                <Grid2 size={{ xs: 12, sm: controlWidth }}>
+                                    <Grid2 container alignItems="top">
+                                        <Grid2 size={{ xs: 12, sm: 4 }}>
+                                            <Typography variant="label">Anschrift</Typography>
+                                        </Grid2>
+                                        <Grid2 size={{ xs: 12, sm: 8 }}>
+                                            <Controller
+                                                name="streetAddress"
+                                                control={control}
+                                                render={({ field }) => (
+                                                    <TextField
+                                                        {...field}
+                                                        fullWidth
+                                                        variant="outlined"
+                                                        error={!!errors.streetAddress}
+                                                        helperText={errors.streetAddress?.message}
+                                                    />
+                                                )}
+                                            />
+                                        </Grid2>
+                                    </Grid2>
+                                </Grid2>
+
+                                {/* Postal Code */}
+                                <Grid2 size={{ xs: 12, sm: controlWidth }}>
+                                    <Grid2 container alignItems="flex-start">
+                                        <Grid2 size={{ xs: 12, sm: 4 }} >
+                                            <Typography variant="label">Postleitzahl</Typography>
+                                        </Grid2>
+                                        <Grid2 size={{ xs: 12, sm: 8 }}>
+                                            <Controller
+                                                name="postalCode"
+                                                control={control}
+                                                render={({ field }) => (
+                                                    <TextField
+                                                        {...field}
+                                                        fullWidth
+                                                        variant="outlined"
+                                                        error={!!errors.postalCode}
+                                                        helperText={errors.postalCode?.message}
+                                                    />
+                                                )}
+                                            />
+                                        </Grid2>
+                                    </Grid2>
+                                </Grid2>
+
+                                <Grid2 size={{ xs: 12, sm: controlWidth }} mt={2} mb={2}>
+                                    <ImageUploadField name="image" />
+                                </Grid2>
+
+                                {/* Billing Address */}
+                                <Typography variant="h5" sx={{ mt: 3, mb: 1, color: "primary.main" }}>
+                                    Rechnungsadresse
+                                </Typography>
+
+                                {/* Billing Address Toggle */}
+                                <Grid2 size={{ xs: 12 }}>
+                                    <FormControlLabel
+                                        control={<Switch checked={billingToggle} onChange={handleToggle} />}
+                                        label="entspricht Unternehmensadresse"
                                     />
                                 </Grid2>
-                            </Grid2>
-                        </Grid2>
 
-                        {/* City */}
+                                {/* Billing Address Fields */}
+                                {!billingToggle &&
+                                    <BillingAddressFields formData={getValues()} errors={errors} />}
+
+                                {/* Submit */}
+                                <Grid2 size={{ xs: 12 }}>
+                                    <Button
+                                        variant="contained"
+                                        color="primary"
+                                        type="submit"
+                                        disabled={isSubmitting}
+                                        sx={{
+                                            lineHeight: 0,
+                                            outline: '3px solid transparent',
+                                            mt: 4,
+                                            mb: 1,
+                                            '&:hover': {
+                                                outline: '3px solid #00000033',
+                                            },
+                                            '.icon': {
+                                                color: '#ffffff',
+                                            },
+                                            '&:hover .icon': {
+                                                color: '#ffffff',
+                                            },
+                                        }}
+                                    >
+                                        {submitButtonCaption || "Speichern"}
+                                        <Box component="span" sx={{ ml: 1 }}>
+                                            <Save className="icon" width={16} height={16} />
+                                        </Box>
+                                    </Button>
+                                </Grid2>
+
+                            </Grid2>
+                        </form>
+                    </FormProvider>
+
+                    {responseMessage && (
                         <Grid2 size={{ xs: 12, sm: controlWidth }}>
-                            <Grid2 container alignItems="top">
-                                <Grid2 size={{ xs: 12, sm: 4 }}>
-                                    <Typography variant="label">Stadt</Typography>
-                                </Grid2>
-                                <Grid2 size={{ xs: 12, sm: 8 }}>
-                                    <Controller
-                                        name="city"
-                                        control={control}
-                                        render={({ field }) => (
-                                            <TextField
-                                                {...field}
-                                                fullWidth
-                                                variant="outlined"
-                                                error={!!errors.city}
-                                                helperText={errors.city?.message}
-                                            />
-                                        )}
-                                    />
-                                </Grid2>
-                            </Grid2>
+                            <Typography variant="body2" color="success">
+                                {responseMessage}
+                            </Typography>
                         </Grid2>
+                    )}
 
-                        {/* Area */}
-                        <Grid2 size={{ xs: 12, sm: controlWidth }}>
-                            <Grid2 container alignItems="top">
-                                <Grid2 size={{ xs: 12, sm: 4 }}>
-                                    <Typography variant="label">Lage (z.B. Stadtteil)</Typography>
-                                </Grid2>
-                                <Grid2 size={{ xs: 12, sm: 8 }}>
-                                    <Controller
-                                        name="area"
-                                        control={control}
-                                        render={({ field }) => (
-                                            <TextField
-                                                {...field}
-                                                fullWidth
-                                                variant="outlined"
-                                                error={!!errors.area}
-                                                helperText={errors.area?.message}
-                                            />
-                                        )}
-                                    />
-                                </Grid2>
-                            </Grid2>
-                        </Grid2>
-
-                        {/* Street Address */}
-                        <Grid2 size={{ xs: 12, sm: controlWidth }}>
-                            <Grid2 container alignItems="top">
-                                <Grid2 size={{ xs: 12, sm: 4 }}>
-                                    <Typography variant="label">Anschrift</Typography>
-                                </Grid2>
-                                <Grid2 size={{ xs: 12, sm: 8 }}>
-                                    <Controller
-                                        name="streetAddress"
-                                        control={control}
-                                        render={({ field }) => (
-                                            <TextField
-                                                {...field}
-                                                fullWidth
-                                                variant="outlined"
-                                                error={!!errors.streetAddress}
-                                                helperText={errors.streetAddress?.message}
-                                            />
-                                        )}
-                                    />
-                                </Grid2>
-                            </Grid2>
-                        </Grid2>
-
-                        {/* Postal Code */}
-                        <Grid2 size={{ xs: 12, sm: controlWidth }}>
-                            <Grid2 container alignItems="flex-start">
-                                <Grid2 size={{ xs: 12, sm: 4 }} >
-                                    <Typography variant="label">Postleitzahl</Typography>
-                                </Grid2>
-                                <Grid2 size={{ xs: 12, sm: 8 }}>
-                                    <Controller
-                                        name="postalCode"
-                                        control={control}
-                                        render={({ field }) => (
-                                            <TextField
-                                                {...field}
-                                                fullWidth
-                                                variant="outlined"
-                                                error={!!errors.postalCode}
-                                                helperText={errors.postalCode?.message}
-                                            />
-                                        )}
-                                    />
-                                </Grid2>
-                            </Grid2>
-                        </Grid2>
-
-                        <Grid2 size={{ xs: 12, sm: controlWidth }} mt={2} mb={2}>
-                            <ImageUploadField name="image" />
-                        </Grid2>
-
-                        {/* Billing Address */}
-                        <Typography variant="h5" sx={{ mt: 3, mb: 1, color: "primary.main" }}>
-                            Rechnungsadresse
-                        </Typography>
-
-                        {/* Billing Address Toggle */}
-                        <Grid2 size={{ xs: 12 }}>
-                            <FormControlLabel
-                                control={<Switch checked={billingToggle} onChange={handleToggle} />}
-                                label="entspricht Unternehmensadresse"
-                            />
-                        </Grid2>
-
-                        {/* Billing Address Fields */}
-                        {!billingToggle &&
-                            <BillingAddressFields formData={getValues()} errors={errors} />}
-
-                        {/* Submit */}
-                        <Grid2 size={{ xs: 12 }}>
-                            <Button
-                                variant="contained"
-                                color="primary"
-                                type="submit"
-                                disabled={isSubmitting}
+                    {/* Display Event Categories */}
+                    {eventCategories.length > 0 && (
+                        <Box
+                            sx={{
+                                display: 'flex',
+                                flexDirection: { xs: 'column', sm: 'row', },
+                                gap: { xs: 2, sm: 0, },
+                                mt: 4,
+                            }}
+                        >
+                            <Box sx={{
+                                width: {
+                                    xs: "100%", // 100% width for small screens
+                                    sm: "25%", // Same as 3/12 in Grid2
+                                },
+                            }}><Typography variant="h5"
                                 sx={{
-                                    lineHeight: 0,
-                                    outline: '3px solid transparent',
-                                    mt: 4,
-                                    mb: 1,
-                                    '&:hover': {
-                                        outline: '3px solid #00000033',
-                                    },
-                                    '.icon': {
-                                        color: '#ffffff',
-                                    },
-                                    '&:hover .icon': {
-                                        color: '#ffffff',
-                                    },
-                                }}
-                            >
-                                {submitButtonCaption || "Speichern"}
-                                <Box component="span" sx={{ ml: 1 }}>
-                                    <Save className="icon" width={16} height={16} />
-                                </Box>
-                            </Button>
-                        </Grid2>
+                                    color: 'primary.main',
+                                    lineHeight: 2,
+                                }}>
+                                    Kategorien
+                                </Typography>
+                            </Box>
+                            <ImmutableItemList
+                                strings={eventCategories.map((c) =>
+                                    formatEventCategoriesSync([c as EventCategories])
+                                )}
+                            />
+                        </Box>
+                    )}
 
-                    </Grid2>
-                </form>
-            </FormProvider>
-
-            {responseMessage && (
-                <Grid2 size={{ xs: 12, sm: controlWidth }}>
-                    <Typography variant="body2" color="success">
-                        {responseMessage}
-                    </Typography>
-                </Grid2>
-            )}
-
-            {/* Display Event Categories */}
-            {eventCategories.length > 0 && (
-                <Box
-                    sx={{
-                        display: 'flex',
-                        flexDirection: { xs: 'column', sm: 'row', },
-                        gap: { xs: 2, sm: 0, },
-                        mt: 4,
-                    }}
-                >
-                    <Box sx={{
-                        width: {
-                            xs: "100%", // 100% width for small screens
-                            sm: "25%", // Same as 3/12 in Grid2
-                        },
-                    }}><Typography variant="h5"
-                        sx={{
-                            color: 'primary.main',
-                            lineHeight: 2,
+                    {idCode &&
+                        <Box sx={{
+                            mt: 5,
+                            mb: 4,
                         }}>
-                            Kategorien
-                        </Typography>
-                    </Box>
-                    <ImmutableItemList
-                        strings={eventCategories.map((c) =>
-                            formatEventCategoriesSync([c as EventCategories])
-                        )}
-                    />
-                </Box>
-            )}
-
-            {idCode &&
-                <Box sx={{
-                    mt: 5,
-                    mb: 4,
-                }}>
-                    <Typography
-                        variant="h5"
-                        sx={{
-                            color: 'primary.main',
-                            mb: 2,
-                        }}>
-                        Einbettung dieser Location
-                    </Typography>
-                    <LocationEmbedCode idCode={idCode} />
-                </Box>
+                            <Typography
+                                variant="h5"
+                                sx={{
+                                    color: 'primary.main',
+                                    mb: 2,
+                                }}>
+                                Einbettung dieser Location
+                            </Typography>
+                            <LocationEmbedCode idCode={idCode} />
+                        </Box>
+                    }
+                </Box >)
             }
-        </Box >
+        </>
     );
 };
 

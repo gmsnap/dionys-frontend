@@ -2,19 +2,30 @@ import { ReactElement, useEffect, useState } from 'react';
 import PartnerLayout from '@/layouts/PartnerLayout';
 import useStore from '@/stores/partnerStore';
 import type { NextPageWithLayout } from '@/types/page';
-import { Box, List, ListItem, ListItemButton, ListItemText, Typography } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 import PartnerContentLayout from '@/layouts/PartnerContentLayout';
 import LocationsDropDown from '@/features/partners/LocationsDropDown';
-import { EventPackageModel } from '@/models/EventPackageModel';
-import { fetchEventPackages, fetchEventPackagesByCompany } from '@/services/eventPackageService';
-import theme from '@/theme';
-import EventPackageForm from '@/features/partners/EventPackageForm';
-import EventPackageGrid from '@/features/partners/EventPackageGrid';
 import PackagesPageContent from '@/features/partners/PackagesPageContent';
+import { WaitIcon } from '@/components/WaitIcon';
 
 const PartnerPage: NextPageWithLayout = () => {
     const { partnerUser, partnerLocations } = useStore();
     const [locationId, setLocationId] = useState<number | null>(null);
+    const [isLoading, setIsLoading] = useState<boolean>(true);
+
+    useEffect(() => {
+        if (partnerUser && partnerLocations) {
+            setIsLoading(false);
+        }
+    }, [partnerUser, partnerLocations]);
+
+    if (isLoading) {
+        return (
+            <PartnerContentLayout title='Look & Feel'>
+                <WaitIcon sx={{ mt: 20 }} />
+            </PartnerContentLayout>
+        );
+    }
 
     if (!partnerLocations || partnerLocations.length == 0) {
         return (
@@ -24,7 +35,7 @@ const PartnerPage: NextPageWithLayout = () => {
                     mt: 10,
                 }}>
                     <Typography variant="h5" textAlign="center">
-                        Erstellen Sie bitte zunächst eine Location.
+                        Erstelle bitte zunächst eine Location.
                     </Typography>
                 </Box>
             </PartnerContentLayout>

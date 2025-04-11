@@ -1,16 +1,24 @@
-import { EventConfigurationModel } from "@/models/EventConfigurationModel";
-import { calculateTotalPrice } from "@/services/eventConfigurationService";
+import { EventConfigurationModel, toBooking } from "@/models/EventConfigurationModel";
+import { deleteEventConfiguration } from "@/services/eventConfigurationService";
 import { formatPrice, formatPriceWithType } from "@/utils/formatPrice";
-import { Box, SxProps, Theme, Typography } from "@mui/material";
+import { Box, Button, SxProps, Theme, Typography } from "@mui/material";
+import { X } from "lucide-react";
+import { useAuthContext } from '@/auth/AuthContext';
+import { BookingRoom, calculateBooking, calculateBookingPrice, PricingSlot } from "@/utils/pricingManager";
+import { useEffect, useState } from "react";
+import { fetchRoomPricingsByRoom } from "@/services/roomPricingService";
+import { RoomPricingModel, toPricingSlot } from "@/models/RoomPricingModel";
 
 interface Props {
     model: EventConfigurationModel;
+    onDeleted?: () => void;
     sx?: SxProps<Theme>;
 }
 
-const EventConfigurationDetails = ({
-    model, sx
-}: Props) => {
+const EventConfigurationDetails = ({ model, onDeleted, sx }: Props) => {
+    const { authUser } = useAuthContext();
+    const [roomPricings, setRoomPricings] = useState<RoomPricingModel[] | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
 
     const formatLocation = (conf: EventConfigurationModel) => {
         const location = conf.location;
@@ -20,14 +28,29 @@ const EventConfigurationDetails = ({
 
     const formatRooms = (conf: EventConfigurationModel) => {
         const rooms = conf.rooms;
-        if (!rooms) return <Typography>?</Typography>;
 
-        return rooms.map(room => {
+        if (!(rooms && conf && conf.date && conf.endDate && conf.persons)) {
+            return <Typography>?</Typography>;
+        }
+
+        return rooms.map((room) => {
+            const pricings = roomPricings?.filter((p) => p.roomId === room.id);
             const name = room.name ?? "?";
-            const price = formatPriceWithType(room.price, room.priceType);
+            const price = formatPrice(
+                calculateBookingPrice({
+                    bookingStart: new Date(conf.date!),
+                    bookingEnd: new Date(conf.endDate!),
+                    persons: conf.persons!,
+                    basePrice: room.price,
+                    basePriceType: room.priceType,
+                    isExclusive: conf.roomExtras?.some(r => r.roomId === room.id) === true,
+                    schedules: pricings ?? undefined,
+                })
+            );
+            const isExclusive = room.RoomsEventConfigurations?.isExclusive === true;
             return (
                 <Typography key={name}>
-                    {name} ({price})
+                    {name} ({price}, exklusiv: {isExclusive ? "ja" : "nein"})
                 </Typography>
             );
         });
@@ -58,6 +81,71 @@ const EventConfigurationDetails = ({
         return `${startDate}, ${startTime} - ${endTime} Uhr`;
     }
 
+    const handleDelete = async () => {
+        if (!authUser?.idToken) return;
+
+        await deleteEventConfiguration(
+            authUser.idToken,
+            model.id,
+            () => onDeleted?.(),
+        );
+    }
+
+    const updateRoomPricing = (
+        rooms: BookingRoom[],
+        roomPricings: RoomPricingModel[],
+
+    ) => {
+        rooms.forEach(room => {
+            // Find matching pricing from roomPricings
+            const matchingPricing = roomPricings
+                .filter(p => p.roomId === room.id)
+                .map(p => toPricingSlot(p));
+            if (matchingPricing.length > 0) {
+                room.roomPricings = matchingPricing; // Assign converted pricing array
+            }
+        });
+    };
+
+    useEffect(() => {
+        if (model.rooms && model.rooms.length > 0) {
+            const fetchPricings = async () => {
+                const ids = model.rooms?.map(r => r.id);
+                if (Array.isArray(ids)) {
+                    const pricings = await fetchRoomPricingsByRoom(ids);
+                    if (pricings) {
+                        setRoomPricings(pricings);
+                        return;
+                    }
+                }
+                setRoomPricings([]);
+            };
+            fetchPricings();
+        } else {
+            setRoomPricings([]);
+        }
+    }, [model]);
+
+    useEffect(() => {
+        if (roomPricings !== null) {
+            setIsLoading(false);
+        }
+    }, [roomPricings]);
+
+    if (isLoading) {
+        return (
+            <Box sx={{ ...sx }}>
+                <Typography variant="h6">Buchung ID-{model.id}</Typography>
+            </Box>
+        );
+    }
+
+    const bookingModel = toBooking(model);
+    if (Array.isArray(bookingModel?.rooms) && Array.isArray(roomPricings)) {
+        updateRoomPricing(bookingModel.rooms, roomPricings);
+    }
+    console.log(bookingModel);
+
     return (
         <Box sx={{ ...sx }}>
             <Typography variant="h6">Buchung ID-{model.id}</Typography>
@@ -75,7 +163,11 @@ const EventConfigurationDetails = ({
                 </Box>
             ))}
 
-            <Typography sx={{ fontWeight: 'bold', mt: 2 }}>Total: {formatPrice(calculateTotalPrice(model))}</Typography>
+            <Typography sx={{ fontWeight: 'bold', mt: 2 }}>
+                Total: {bookingModel
+                    ? formatPrice(calculateBooking(bookingModel))
+                    : "Nicht berechnet"}
+            </Typography>
             {model.booker && (<>
                 <Typography variant="h5" sx={{ mt: 2 }}>Kontaktdaten</Typography>
                 <Typography>{model.booker.givenName} {model.booker.familyName}</Typography>
@@ -91,7 +183,18 @@ const EventConfigurationDetails = ({
 
             <Typography variant="h5" sx={{ mt: 2 }}>Kommentar</Typography>
             <Typography>{model.notes}</Typography>
-        </Box >
+
+            <Button
+                variant="delete"
+                onClick={handleDelete}
+                sx={{ mt: 5 }}
+            >
+                Dauerhaft Löschen
+                <Box component="span" sx={{ ml: 1 }}>
+                    <X className="icon" width={16} height={16} />
+                </Box>
+            </Button>
+        </Box>
     );
 };
 

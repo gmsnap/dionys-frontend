@@ -92,8 +92,9 @@ export const fetchLocationByCode = async (
         if (setIsLoading != null) {
             setIsLoading(true);
         }
+        const includes = 'eventCategories,rooms,pricings,seatings,eventPackages';
         const response =
-            await fetch(`${locationsBaseUrl}/code/${code}?single=1&include=eventCategories,rooms,eventPackages`);
+            await fetch(`${locationsBaseUrl}/code/${code}?single=1&include=${includes}`);
         if (!response.ok) {
             throw new Error(`Error: ${response.status} ${response.statusText}`);
         }
@@ -136,9 +137,11 @@ export const fetchLocationWithRooms = async (
 };
 
 export const useSetLocationByCurrentPartner = () => {
-    const { partnerUser, setPartnerLocations } = useStore();
+    const { partnerUser, partnerLocations, setPartnerLocations } = useStore();
 
     useEffect(() => {
+        if (!partnerUser || partnerLocations) return;
+
         const setLocation = async () => {
             if (partnerUser?.companyId) {
                 const locations = await fetchLocationsByCompanyId(partnerUser.companyId, null, null, true);
@@ -151,7 +154,7 @@ export const useSetLocationByCurrentPartner = () => {
         };
 
         setLocation();
-    }, [partnerUser, setPartnerLocations]);
+    }, [partnerUser, partnerLocations]);
 };
 
 export const storePartnerLocations = (onComplete?: () => void) => {
@@ -175,6 +178,7 @@ export const storePartnerLocations = (onComplete?: () => void) => {
 };
 
 export const handleDeleteLocation = async (
+    idToken: string,
     locationId: number,
     onSuccess: () => void,
     forceDelete = false
@@ -187,6 +191,10 @@ export const handleDeleteLocation = async (
 
         const response = await fetch(`${locationsBaseUrl}/${locationId}?force=${forceDelete}`, {
             method: 'DELETE',
+            headers: {
+                Authorization: `Bearer ${idToken}`,
+                "Content-Type": "application/json"
+            },
         });
 
         if (response.ok) {
