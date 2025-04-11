@@ -29,13 +29,17 @@ import { hasSubscription } from '@/services/paymentService';
 
 const Header: FC = () => {
     const theme = useTheme();
+
     const pathname = usePathname();
+
     const { authUser, logout, authLoading } = useAuthContext();
     const { isOverlayOpen, setIsOverlayOpen } = useHeaderContext();
     const { isPaymentOverlayOpen, setIsPaymentOverlayOpen } = useHeaderContext();
     const { isOnboardingOverlayOpen, setIsOnboardingOverlayOpen } = useHeaderContext();
+
     const { setPartnerUser } = useStore();
     const partnerUser = useStore((state) => state.partnerUser);
+    const { setPartnerLocations } = useStore();
     const partnerLocations = useMemo(() => useStore.getState().partnerLocations, []);
 
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -120,6 +124,7 @@ const Header: FC = () => {
 
         if (!authUser?.username) {
             setPartnerUser(null);
+            setPartnerLocations(null);
             return;
         }
 
