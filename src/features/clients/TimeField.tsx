@@ -1,20 +1,30 @@
 import React, { useState } from "react";
 import { Controller } from "react-hook-form";
 import { Grid2, InputAdornment, Typography } from "@mui/material";
-import { DesktopTimePicker, LocalizationProvider, TimeIcon, TimePicker } from "@mui/x-date-pickers";
+import { DesktopTimePicker, LocalizationProvider, TimeIcon } from "@mui/x-date-pickers";
 import dayjs from "dayjs";
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 
 interface TimeFieldProps {
     control: any;
-    fieldName: any;
+    fieldName: string; // Changed from any to string for better typing
     errors: any;
     labelText: string;
     labelWidth: number;
+    inputRef?: React.RefObject<HTMLInputElement>; // Added inputRef prop
+    onKeyDown?: (e: React.KeyboardEvent) => void; // Added onKeyDown prop
 }
 
-const TimeField: React.FC<TimeFieldProps> = ({ control, fieldName, errors, labelText, labelWidth }) => {
-    const [open, setOpen] = useState(false)
+const TimeField: React.FC<TimeFieldProps> = ({
+    control,
+    fieldName,
+    errors,
+    labelText,
+    labelWidth,
+    inputRef,
+    onKeyDown
+}) => {
+    const [open, setOpen] = useState(false);
 
     const handleAdornmentClick = () => {
         setOpen(true);
@@ -37,11 +47,8 @@ const TimeField: React.FC<TimeFieldProps> = ({ control, fieldName, errors, label
                                 onChange={(newTime) => {
                                     if (newTime) {
                                         // Update only the time portion while preserving the current date
-                                        // Preserve existing date
-                                        const updatedDate = new Date(value);
-                                        // Set new time
+                                        const updatedDate = new Date(value || Date.now()); // Fallback to now if no value
                                         updatedDate.setHours(newTime.hour(), newTime.minute(), newTime.second(), 0);
-                                        // Pass the updated timestamp back
                                         onChange(updatedDate.getTime());
                                     }
                                 }}
@@ -53,6 +60,8 @@ const TimeField: React.FC<TimeFieldProps> = ({ control, fieldName, errors, label
                                         variant: "outlined",
                                         error: !!errors[fieldName],
                                         helperText: errors[fieldName]?.message,
+                                        inputRef: inputRef, // Pass inputRef to the underlying TextField
+                                        onKeyDown: onKeyDown, // Pass onKeyDown to the underlying TextField
                                         InputProps: {
                                             endAdornment: (
                                                 <InputAdornment
@@ -80,7 +89,7 @@ const TimeField: React.FC<TimeFieldProps> = ({ control, fieldName, errors, label
                     />
                 </Grid2>
             </>
-        </LocalizationProvider >
+        </LocalizationProvider>
     );
 };
 

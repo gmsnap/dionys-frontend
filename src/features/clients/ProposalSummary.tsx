@@ -75,6 +75,8 @@ const ProposalSummary = ({
                 height: '100%',
                 display: 'flex',
                 flexDirection: 'column',
+                ml: 2,
+                mr: 2,
             }}
         >
             <Typography variant='body1'>

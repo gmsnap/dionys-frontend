@@ -3,7 +3,7 @@ import { Controller } from 'react-hook-form';
 import { Grid2, InputAdornment, Typography } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import dayjs, { Dayjs } from 'dayjs';
+import dayjs from 'dayjs';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { CalendarIcon } from '@mui/x-date-pickers';
 
@@ -11,10 +11,12 @@ interface DateFieldProps {
     control: any;
     errors: any;
     labelWidth: number;
+    inputRef?: React.RefObject<HTMLInputElement>; // Added inputRef prop
+    onKeyDown?: (e: React.KeyboardEvent) => void; // Added onKeyDown prop
 }
 
-const DateField: React.FC<DateFieldProps> = ({ control, errors, labelWidth }) => {
-    const [open, setOpen] = useState(false)
+const DateField: React.FC<DateFieldProps> = ({ control, errors, labelWidth, inputRef, onKeyDown }) => {
+    const [open, setOpen] = useState(false);
 
     const handleAdornmentClick = () => {
         setOpen(true);
@@ -36,7 +38,6 @@ const DateField: React.FC<DateFieldProps> = ({ control, errors, labelWidth }) =>
                                 value={value ? dayjs(value) : null} // Convert timestamp to dayjs
                                 format="D.M.YYYY"
                                 onChange={(newValue) => {
-                                    // Update with the timestamp in milliseconds
                                     if (newValue) {
                                         onChange(newValue.valueOf()); // Use valueOf() to get timestamp
                                     } else {
@@ -51,6 +52,8 @@ const DateField: React.FC<DateFieldProps> = ({ control, errors, labelWidth }) =>
                                         variant: "outlined",
                                         error: !!errors.date,
                                         helperText: errors.date?.message,
+                                        inputRef: inputRef, // Pass inputRef to the underlying TextField
+                                        onKeyDown: onKeyDown, // Pass onKeyDown to the underlying TextField
                                         InputProps: {
                                             endAdornment: (
                                                 <InputAdornment

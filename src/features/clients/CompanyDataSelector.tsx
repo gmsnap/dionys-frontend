@@ -69,7 +69,7 @@ const CompanyDataSelector = ({ previousStep, stepCompleted }: SelectorProps) => 
                     flexGrow: 1, // Take up available space
                 }}
             >
-                <Grid2 container rowSpacing={2}>
+                <Grid2 container rowSpacing={2} sx={{ ml: 2, mr: 2 }}>
 
                     {/* Company Name */}
                     <Grid2 container alignItems="top" rowSpacing={0} sx={{ width: '100%' }}>

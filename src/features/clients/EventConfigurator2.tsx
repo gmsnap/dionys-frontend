@@ -59,7 +59,7 @@ const EventConfigurator2 = ({ locationId, sx, }: EventConfiguratorProps) => {
         } else {
             navItems.push(
                 {
-                    label: 'Anlass', id: 'category',
+                    label: 'Event erstellen', id: 'category',
                     control: <CategorySelector stepCompleted={nextStep} />,
                     hasButton: true,
                 },
@@ -69,7 +69,7 @@ const EventConfigurator2 = ({ locationId, sx, }: EventConfiguratorProps) => {
 
     navItems.push(
         {
-            label: 'Allgemeines', id: 'general',
+            label: 'Personen und Datum', id: 'general',
             control: <GeneralSelector
                 previousStep={navItems.length > 0 ? prevStep : undefined}
                 stepCompleted={nextStep} />,
@@ -91,7 +91,7 @@ const EventConfigurator2 = ({ locationId, sx, }: EventConfiguratorProps) => {
             .length > 0) {
         navItems.push(
             {
-                label: 'Catering', id: 'catering',
+                label: 'Food & Beverage Pakete', id: 'catering',
                 control: <PackageSelector
                     previousStep={prevStep}
                     stepCompleted={nextStep}
@@ -111,7 +111,7 @@ const EventConfigurator2 = ({ locationId, sx, }: EventConfiguratorProps) => {
             .length > 0) {
         navItems.push(
             {
-                label: 'Packages', id: 'packages',
+                label: 'Look & Feel Pakete', id: 'packages',
                 control: <PackageSelector
                     previousStep={prevStep}
                     stepCompleted={nextStep}
@@ -127,7 +127,7 @@ const EventConfigurator2 = ({ locationId, sx, }: EventConfiguratorProps) => {
     // Add remaining items
     navItems.push(
         {
-            label: 'PersonalData', id: 'personalData',
+            label: 'Persönliche Daten', id: 'personalData',
             control: <PersonalDataSelector
                 previousStep={prevStep}
                 stepCompleted={nextStep}
@@ -135,14 +135,14 @@ const EventConfigurator2 = ({ locationId, sx, }: EventConfiguratorProps) => {
             hasButton: true,
         },
         {
-            label: 'CompanyData', id: 'company',
+            label: 'Firmendaten', id: 'company',
             control: <CompanyDataSelector
                 previousStep={prevStep}
                 stepCompleted={nextStep} />,
             hasButton: false,
         },
         {
-            label: 'Summary', id: 'summary',
+            label: 'Zusammenfassung', id: 'summary',
             control: <ProposalSummary
                 previousStep={prevStep}
                 previousStepdAndSkip={() => prevStep(2)}
@@ -150,7 +150,7 @@ const EventConfigurator2 = ({ locationId, sx, }: EventConfiguratorProps) => {
             hasButton: false,
         },
         {
-            label: 'Thanks', id: 'thanks',
+            label: 'Danke :)', id: 'thanks',
             control: <ProposalThanks />,
             hasButton: false,
         }
@@ -184,75 +184,75 @@ const EventConfigurator2 = ({ locationId, sx, }: EventConfiguratorProps) => {
             height: '100dvh',
         }}>
             {/* Headlines */}
-            <Box
-                sx={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    textAlign: 'center',
-                    gap: 1,
-                    pt: 2, pr: 8, pb: 0, pl: 8,
-                }}
-            >
-                <Typography variant='h4' sx={{
-                    fontSize: { xs: '28px', sm: '36px' },
-                    fontWeight: 700
-                }}>
-                    {selectedIndex == navItems.length - 2
-                        ? 'Zusammenfassung'
-                        : 'Event erstellen'}
-                </Typography>
-                <Typography variant='body1' >
-                    Erstelle dein Event und erhalte ein erstes Angebot in 2 Minuten
-                </Typography>
-            </Box>
+            {selectedIndex < navItems.length - 1 &&
+                <>
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            textAlign: 'center',
+                            gap: 1,
+                            pt: 0, pr: 8, pb: 0, pl: 8,
+                        }}
+                    >
+                        <Typography variant='h4' sx={{
+                            fontSize: { xs: '28px', sm: '36px' },
+                            fontWeight: 700
+                        }}>
+                            {navItems[selectedIndex].label}
+                        </Typography>
+                        <Typography variant='body1' >
+                            Erstelle dein Event und erhalte ein erstes Angebot in 2 Minuten
+                        </Typography>
+                    </Box>
+                    {/* Navigation Bar */}
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            justifyContent: 'center',
+                            gap: 2,
+                            mt: 2,
+                            mb: 2,
+                            opacity: selectedIndex < navItems.length - 1
+                                ? 1
+                                : 0.2,
+                            pointerEvents: selectedIndex < navItems.length - 1
+                                ? 'auto'
+                                : 'none',
+                        }}
+                    >
+                        {navItems
+                            .filter(item => item.hasButton === true)
+                            .map((item, index) => (
+                                <Box
+                                    key={item.id}
+                                    onClick={() => handleNavClick(index)}
+                                    sx={{
+                                        display: 'flex',
+                                        flexDirection: 'row',
+                                        alignItems: 'center',
+                                        minWidth: '20px',
+                                        height: '13px',
+                                        cursor: 'pointer',
+                                        backgroundColor: 'transparent',
+                                    }}
+                                >
+                                    <Box
+                                        sx={{
+                                            width: '100%',
+                                            height: '3px',
+                                            backgroundColor: index <= selectedIndex
+                                                ? theme.palette.customColors.blue.main
+                                                : theme.palette.customColors.text.inactive,
+                                        }}
+                                    >
 
-            {/* Navigation Bar */}
-            <Box
-                sx={{
-                    display: 'flex',
-                    justifyContent: 'center',
-                    gap: 2,
-                    mt: 2,
-                    mb: 2,
-                    opacity: selectedIndex < navItems.length - 1
-                        ? 1
-                        : 0.2,
-                    pointerEvents: selectedIndex < navItems.length - 1
-                        ? 'auto'
-                        : 'none',
-                }}
-            >
-                {navItems
-                    .filter(item => item.hasButton === true)
-                    .map((item, index) => (
-                        <Box
-                            key={item.id}
-                            onClick={() => handleNavClick(index)}
-                            sx={{
-                                display: 'flex',
-                                flexDirection: 'row',
-                                alignItems: 'center',
-                                minWidth: '20px',
-                                height: '13px',
-                                cursor: 'pointer',
-                                backgroundColor: 'transparent',
-                            }}
-                        >
-                            <Box
-                                sx={{
-                                    width: '100%',
-                                    height: '3px',
-                                    backgroundColor: index <= selectedIndex
-                                        ? theme.palette.customColors.blue.main
-                                        : theme.palette.customColors.text.inactive,
-                                }}
-                            >
-
-                            </Box>
-                        </Box>
-                    ))}
-            </Box>
+                                    </Box>
+                                </Box>
+                            ))}
+                    </Box>
+                </>}
 
             {/* Selected Control */}
             <Box
