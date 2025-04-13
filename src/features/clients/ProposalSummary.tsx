@@ -8,9 +8,9 @@ import EventConfigurationDetails from './EventConfigurationDetails';
 import WaitOverlay from '@/components/WaitOverlay';
 
 interface SelectorProps {
-    previousStep: () => void,
-    previousStepdAndSkip: () => void,
-    proposalSent: () => void,
+    previousStep: () => void;
+    previousStepdAndSkip: () => void;
+    proposalSent: () => void;
     sx?: SxProps<Theme>;
 }
 
@@ -75,54 +75,64 @@ const ProposalSummary = ({
                 height: '100%',
                 display: 'flex',
                 flexDirection: 'column',
-                ml: 2,
-                mr: 2,
+                position: 'relative', // Ensure relative positioning for absolute buttons
+                ...sx,
             }}
         >
-            <Typography variant='body1'>
-                <Typography>
-                    Hallo {`${eventConfiguration?.booker?.givenName} ${eventConfiguration?.booker?.familyName}`},
+            <Box
+                sx={{
+                    flex: 1,
+                    overflowY: 'auto', // Ensure content can scroll
+                    ml: 2,
+                    mr: 2,
+                    pb: { xs: 20, sm: 16 }, // Add bottom padding for buttons
+                }}
+            >
+                <Typography variant='body1'>
+                    <Typography>
+                        Hallo {`${eventConfiguration?.booker?.givenName} ${eventConfiguration?.booker?.familyName}`},
+                    </Typography>
+                    <Typography>
+                        vielen Dank für deine Anfrage. <br />Du hast aktuell folgende Optionen gewählt:
+                    </Typography>
                 </Typography>
-                <Typography>
-                    vielen Dank für deine Anfrage. <br />Du hast aktuell folgende Optionen gewählt:
+
+                {eventConfiguration &&
+                    <EventConfigurationDetails model={eventConfiguration} sx={{ mt: 2, ml: 0 }} />
+                }
+
+                <Typography variant='body1' sx={{ mt: 2 }}>
+                    Bitte überprüfe deine gewählten Optionen noch einmal und hinterlasse uns weitere Wünsche gerne als Kommentar.<br />
+                    Wir schicken dir gleich ein erstes, unverbindliches Angebot zu und melden uns zeitnah persönlich bei dir.
                 </Typography>
-            </Typography>
 
-            {eventConfiguration &&
-                <EventConfigurationDetails model={eventConfiguration} sx={{ mt: 2, ml: 0 }} />
-            }
-
-            <Typography variant='body1' sx={{ mt: 2 }}>
-                Bitte überprüfe deine gewählten Optionen noch einmal und hinterlasse uns weitere Wünsche gerne als Kommentar.<br />
-                Wir schicken dir gleich ein erstes, unverbindliches Angebot zu und melden uns zeitnah persönlich bei dir.
-            </Typography>
-
-            {/* Notes */}
-            <Grid2 container alignItems="top" rowSpacing={0} sx={{ width: '100%', mt: 2, mb: 1, }}>
-                <Grid2 size={{ xs: 12 }}>
-                    <Controller
-                        name="notes"
-                        control={control}
-                        render={({ field }) => (
-                            <TextField
-                                {...field}
-                                label="Sonderwünsche und Hinweise (optional)"
-                                fullWidth
-                                variant="outlined"
-                                multiline={true}
-                                rows={3}
-                                onBlur={(e) => handleFieldBlur("notes", e.target.value)}
-                                slotProps={{
-                                    inputLabel: {
-                                        // Adjust label font size
-                                        style: { fontSize: "0.8rem" }
-                                    }
-                                }}
-                            />
-                        )}
-                    />
+                {/* Notes */}
+                <Grid2 container alignItems="top" rowSpacing={0} sx={{ width: '100%', mt: 2, mb: 1 }}>
+                    <Grid2 size={{ xs: 12 }}>
+                        <Controller
+                            name="notes"
+                            control={control}
+                            render={({ field }) => (
+                                <TextField
+                                    {...field}
+                                    label="Sonderwünsche und Hinweise (optional)"
+                                    fullWidth
+                                    variant="outlined"
+                                    multiline={true}
+                                    rows={3}
+                                    onBlur={(e) => handleFieldBlur("notes", e.target.value)}
+                                    slotProps={{
+                                        inputLabel: {
+                                            // Adjust label font size
+                                            style: { fontSize: "0.8rem" }
+                                        }
+                                    }}
+                                />
+                            )}
+                        />
+                    </Grid2>
                 </Grid2>
-            </Grid2>
+            </Box>
 
             {/* Navigation Buttons */}
             <Box
@@ -133,6 +143,8 @@ const ProposalSummary = ({
                     pt: 2,
                     pb: 2,
                     zIndex: 200,
+                    position: 'absolute',
+                    bottom: 0,
                 }}
             >
                 <Button
@@ -156,8 +168,7 @@ const ProposalSummary = ({
             </Box>
 
             {sending && <WaitOverlay />}
-
-        </Box >
+        </Box>
     );
 };
 

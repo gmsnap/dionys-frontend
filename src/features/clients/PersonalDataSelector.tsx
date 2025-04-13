@@ -84,6 +84,8 @@ const PersonalDataSelector = ({
             height: '100%',
             display: 'flex',
             flexDirection: 'column',
+            position: 'relative', // Ensure relative positioning for absolute buttons
+            ...sx,
         }}>
             <form
                 onSubmit={handleSubmit(() => { })}
@@ -91,9 +93,18 @@ const PersonalDataSelector = ({
                     display: 'flex',
                     flexDirection: 'column',
                     flexGrow: 1,
+                    overflowY: 'auto', // Ensure form content can scroll
                 }}
             >
-                <Grid2 container rowSpacing={2} sx={{ ml: 2, mr: 2 }}>
+                <Grid2
+                    container
+                    rowSpacing={2}
+                    sx={{
+                        ml: 2,
+                        mr: 2,
+                        pb: { xs: 24, sm: 20 } // Add bottom padding for buttons
+                    }}
+                >
                     {/* Given Name */}
                     <Grid2 container alignItems="top" rowSpacing={0} sx={{ width: '100%' }}>
                         <Grid2 size={{ xs: 12, sm: labelWidth }}>
@@ -200,8 +211,11 @@ const PersonalDataSelector = ({
                     backgroundColor: 'white',
                     width: '100%',
                     mt: 'auto',
-                    pt: 2,
+                    pt: 0,
                     pb: 2,
+                    zIndex: 200,
+                    position: 'absolute',
+                    bottom: 0,
                 }}
             >
                 <ProposalNextButton
