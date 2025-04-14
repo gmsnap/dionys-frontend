@@ -59,7 +59,9 @@ const EventConfigurator2 = ({ locationId, sx, }: EventConfiguratorProps) => {
         } else {
             navItems.push(
                 {
-                    label: 'Event erstellen', id: 'category',
+                    label: 'Event erstellen',
+                    id: 'category',
+                    subTitle: 'Erstelle dein Event und erhalte ein erstes Angebot in 2 Minuten',
                     control: <CategorySelector stepCompleted={nextStep} />,
                     hasButton: true,
                 },
@@ -69,14 +71,18 @@ const EventConfigurator2 = ({ locationId, sx, }: EventConfiguratorProps) => {
 
     navItems.push(
         {
-            label: 'Personen und Datum', id: 'general',
+            label: 'Event erstellen',
+            id: 'general',
+            subTitle: 'Wie viele seid ihr und wann wollt ihr kommen?',
             control: <GeneralSelector
                 previousStep={navItems.length > 0 ? prevStep : undefined}
                 stepCompleted={nextStep} />,
             hasButton: true,
         },
         {
-            label: 'Venue', id: 'venue',
+            label: 'Event erstellen',
+            id: 'venue',
+            subTitle: 'Wo möchtet ihr feiern?',
             control: <VenueSelector
                 previousStep={prevStep}
                 stepCompleted={nextStep} />,
@@ -91,7 +97,9 @@ const EventConfigurator2 = ({ locationId, sx, }: EventConfiguratorProps) => {
             .length > 0) {
         navItems.push(
             {
-                label: 'Food & Beverage Pakete', id: 'catering',
+                label: 'Event erstellen',
+                id: 'catering',
+                subTitle: 'Was möchtet ihr essen und trinken?',
                 control: <PackageSelector
                     previousStep={prevStep}
                     stepCompleted={nextStep}
@@ -111,7 +119,9 @@ const EventConfigurator2 = ({ locationId, sx, }: EventConfiguratorProps) => {
             .length > 0) {
         navItems.push(
             {
-                label: 'Look & Feel Pakete', id: 'packages',
+                label: 'Event erstellen',
+                id: 'packages',
+                subTitle: 'Was braucht ihr zusätzlich?',
                 control: <PackageSelector
                     previousStep={prevStep}
                     stepCompleted={nextStep}
@@ -127,7 +137,9 @@ const EventConfigurator2 = ({ locationId, sx, }: EventConfiguratorProps) => {
     // Add remaining items
     navItems.push(
         {
-            label: 'Persönliche Daten', id: 'personalData',
+            label: 'Event erstellen',
+            id: 'personalData',
+            subTitle: 'Wie können wir dich erreichen?',
             control: <PersonalDataSelector
                 previousStep={prevStep}
                 stepCompleted={nextStep}
@@ -135,22 +147,28 @@ const EventConfigurator2 = ({ locationId, sx, }: EventConfiguratorProps) => {
             hasButton: true,
         },
         {
-            label: 'Firmendaten', id: 'company',
+            label: 'Event erstellen',
+            id: 'company',
+            subTitle: 'An welches Unternehmen schicken wir unser Angebot?',
             control: <CompanyDataSelector
                 previousStep={prevStep}
                 stepCompleted={nextStep} />,
             hasButton: false,
         },
         {
-            label: 'Zusammenfassung', id: 'summary',
+            label: 'Zusammenfassung',
+            id: 'summary',
+            subTitle: 'Passen deine Angaben? Dann schicken wir dir ein erstes Angebot zu',
             control: <ProposalSummary
                 previousStep={prevStep}
-                previousStepdAndSkip={() => prevStep(2)}
+                previousStepAndSkip={() => prevStep(2)}
                 proposalSent={nextStep} />,
             hasButton: false,
         },
         {
-            label: 'Danke :)', id: 'thanks',
+            label: 'Danke :)',
+            id: 'thanks',
+            subTitle: null,
             control: <ProposalThanks />,
             hasButton: false,
         }
@@ -202,9 +220,10 @@ const EventConfigurator2 = ({ locationId, sx, }: EventConfiguratorProps) => {
                         }}>
                             {navItems[selectedIndex].label}
                         </Typography>
-                        <Typography variant='body1' >
-                            Erstelle dein Event und erhalte ein erstes Angebot in 2 Minuten
-                        </Typography>
+                        {navItems[selectedIndex].subTitle &&
+                            <Typography variant='body1'>
+                                {navItems[selectedIndex].subTitle}
+                            </Typography>}
                     </Box>
                     {/* Navigation Bar */}
                     <Box
@@ -282,6 +301,20 @@ const EventConfigurator2 = ({ locationId, sx, }: EventConfiguratorProps) => {
             >
                 {navItems[selectedIndex].control}
             </Box>
+
+            {/* Fix Footer (Buttons) 
+            <Box
+                ref={scrollableBoxRef}
+                sx={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'top',
+                    width: { xs: '100%' },
+                    height: '100px',
+                }}
+            >
+                footer
+            </Box>*/}
         </Box>
     );
 };
