@@ -176,7 +176,7 @@ const CompanyDataSelector = ({ previousStep, stepCompleted }: SelectorProps) => 
                     backgroundColor: 'white',
                     width: '100%',
                     mt: 'auto',
-                    pt: 2,
+                    pt: 0,
                     pb: 2,
                     zIndex: 200,
                     position: 'absolute',
