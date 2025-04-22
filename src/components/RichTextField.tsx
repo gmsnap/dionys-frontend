@@ -22,7 +22,6 @@ const RichTextField: React.FC<RichTextFieldProps> = ({ name, control, error }) =
                 <Box>
                     <Box
                         sx={{
-                            height: 250,
                             overflowY: "auto",
                             resize: "vertical",
                             border: "1px solid",
@@ -30,7 +29,9 @@ const RichTextField: React.FC<RichTextFieldProps> = ({ name, control, error }) =
                             borderRadius: 2,
                             "& .ql-container": {
                                 minHeight: 150,
+                                maxHeight: 350,
                                 height: "auto !important",
+                                border: "none !important",
                             },
                             "& .ql-toolbar": {
                                 position: "sticky",
