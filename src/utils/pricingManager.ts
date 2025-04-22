@@ -368,12 +368,14 @@ export const calculateBookingPrice = ({
     }
 
     // Apply seating
-    totalPrice += calculateSeating(totalPrice,
-        unaccountedStart,
+    const seatingPrice = calculateSeating(totalPrice,
+        bookingStart,
         bookingEnd,
         persons,
         seatings,
         seating);
+
+    totalPrice += seatingPrice;
 
     return totalPrice;
 };
@@ -410,7 +412,7 @@ export const calculateSeating = (
         ) {
             const reconfigBasePrice = seatingToApply.reconfigIsAbsolute
                 ? seatingToApply.reconfigPrice
-                : totalPrice * (seatingToApply.reconfigPrice / 100);
+                : seatingPrice * (seatingToApply.reconfigPrice / 100);
 
             const reconfigPrice = calculatePriceByPriceType(
                 reconfigBasePrice,
