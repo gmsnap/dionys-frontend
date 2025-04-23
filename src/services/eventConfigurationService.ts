@@ -35,58 +35,6 @@ export const fetchEventConfigurationsByCompany = async (
     }
 }
 
-const multiplyPriceByPriceType = (price: number,
-    priceType: PriceTypes,
-    h: number,
-    p: number
-) => {
-    if (priceType === 'hour') {
-        return price * h;
-    } else if (priceType === 'person') {
-        return price * p;
-    }
-    return price;
-}
-
-export const calculateTotalPrice = (conf: EventConfigurationModel) => {
-    let diffInHours = 0;
-    if (conf.date && conf.endDate) {
-        const date = new Date(conf.date);
-        const endDate = new Date(conf.endDate);
-
-        const diffInMs = endDate.getTime() - date.getTime();
-        diffInHours = diffInMs / (1000 * 60 * 60);
-    }
-
-    //console.log("diffInHours", diffInHours);
-
-    const persons = conf.persons ?? 0;
-
-    const roomsPrice = conf.rooms?.reduce((total, room) => {
-        const roomPrice = room
-            ? multiplyPriceByPriceType(
-                room.price,
-                room.priceType,
-                diffInHours,
-                persons)
-            : 0;
-        return total + roomPrice;
-    }, 0) || 0;
-
-    let packagePrice = 0;
-    if (conf.packages) {
-        conf.packages.forEach(p => {
-            packagePrice += multiplyPriceByPriceType(
-                p.price,
-                p.priceType,
-                diffInHours,
-                persons);
-        });
-    }
-
-    return roomsPrice + packagePrice;
-}
-
 export const deleteEventConfiguration = async (
     idToken: string,
     id: number,

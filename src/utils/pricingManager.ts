@@ -1,6 +1,7 @@
 import { addDays, differenceInMinutes, isAfter, isBefore, isEqual } from "date-fns";
 
 export interface PricingSlot {
+    roomPricingType: string;
     startDayOfWeek: number;
     startTime: string;  // 'HH:MM:SS'
     endDayOfWeek: number;
@@ -62,29 +63,12 @@ export interface Booking {
     roomExtras?: BookingRoomExtra[];
 };
 
-const multiplyPriceByPriceType = (
-    price: number,
-    priceType: PriceTypes,
-    h: number,
-    p: number
-): number => {
-    switch (priceType) {
-        case 'hour':
-            return price * h;
-        case 'person':
-            return price * p;
-        case 'none':
-            return 0;
-        default:
-            return price;
-    }
-};
-
 export type PriceTypes =
     "day" |
     "once" |
     "hour" |
     "person" |
+    "personHour" |
     "consumption" |
     "none";
 
@@ -98,6 +82,8 @@ const calculatePriceByPriceType = (
         case "hour":
             return hours ? hours * price : 0;
         case "person":
+            return persons ? persons * price : 0;
+        case "personHour":
             return hours && persons ? hours * persons * price : 0;
         case "once":
             return price;
@@ -143,10 +129,10 @@ export const calculateBooking = (booking: Booking) => {
         return total + roomPrice;
     }, 0) || 0;
 
-    let packagePrice = 0;
+    let packagesPrice = 0;
     if (booking.packages) {
         booking.packages.forEach(p => {
-            packagePrice += multiplyPriceByPriceType(
+            packagesPrice += calculatePriceByPriceType(
                 p.price,
                 p.priceType as PriceTypes,
                 diffInHours,
@@ -154,7 +140,7 @@ export const calculateBooking = (booking: Booking) => {
         });
     }
 
-    return roomsPrice + packagePrice;
+    return roomsPrice + packagesPrice;
 }
 
 export interface BookingPriceProps {
@@ -183,42 +169,35 @@ export const calculateBookingPrice = ({
     filters
 }: BookingPriceProps) => {
     let totalPrice = 0;
-    const coveredRanges: { start: Date; end: Date }[] = [];
+
+    const basicRanges: { start: Date; end: Date }[] = [];
+    const extraRanges: { start: Date; end: Date; price: number }[] = [];
 
     const includePrice = !filters || filters.includes('price');
     const includeExclusive = !filters || filters.includes('exclusive');
 
-    // Helper function to convert JS day (0=Sunday) to custom day (0=Monday)
     const convertToCustomDay = (jsDay: number): number => {
-        return jsDay === 0 ? 6 : jsDay - 1; // Sunday (0) becomes 6, others shift left
+        return jsDay === 0 ? 6 : jsDay - 1;
     };
 
-    // Loop through schedules and apply pricing where applicable
     schedules?.forEach((schedule) => {
-        // Get the booking start and end days of week (in our custom format where 0=Monday)
         const bookingStartDay = convertToCustomDay(bookingStart.getDay());
         const bookingEndDay = convertToCustomDay(bookingEnd.getDay());
 
-        // Check if the booking day falls within the schedule's day range
         let isBookingInScheduleDays = false;
 
         if (schedule.startDayOfWeek <= schedule.endDayOfWeek) {
-            // Schedule is within the same week (e.g., Mon-Wed)
             isBookingInScheduleDays =
                 (bookingStartDay >= schedule.startDayOfWeek && bookingStartDay <= schedule.endDayOfWeek) ||
                 (bookingEndDay >= schedule.startDayOfWeek && bookingEndDay <= schedule.endDayOfWeek);
         } else {
-            // Schedule wraps around the week (e.g., Fri-Mon)
             isBookingInScheduleDays =
                 (bookingStartDay >= schedule.startDayOfWeek || bookingStartDay <= schedule.endDayOfWeek) ||
                 (bookingEndDay >= schedule.startDayOfWeek || bookingEndDay <= schedule.endDayOfWeek);
         }
 
-        if (!isBookingInScheduleDays) {
-            return; // Skip this schedule if booking doesn't fall within its days
-        }
+        if (!isBookingInScheduleDays) return;
 
-        // For each day in the booking range, check if it falls within the schedule
         const currentDate = new Date(bookingStart);
 
         while (currentDate < bookingEnd) {
@@ -232,7 +211,6 @@ export const calculateBookingPrice = ({
             }
 
             if (isInScheduleDays) {
-                // Create schedule start and end times for this day
                 const scheduleStart = new Date(currentDate);
                 const scheduleEnd = new Date(currentDate);
 
@@ -248,12 +226,10 @@ export const calculateBookingPrice = ({
                     0
                 );
 
-                // If end time is before start time, it means it crosses midnight
                 if (schedule.endTime < schedule.startTime) {
                     scheduleEnd.setDate(scheduleEnd.getDate() + 1);
                 }
 
-                // Find overlap between booking and schedule for this day
                 const segmentStart = isBefore(bookingStart, scheduleStart) ? scheduleStart : bookingStart;
                 const segmentEnd = isAfter(bookingEnd, scheduleEnd) ? scheduleEnd : bookingEnd;
 
@@ -261,124 +237,106 @@ export const calculateBookingPrice = ({
                     const durationHours = differenceInMinutes(segmentEnd, segmentStart) / 60;
 
                     if (includePrice) {
-
-                        // Adjust price based on priceType
-                        totalPrice += calculatePriceByPriceType(
+                        const price = calculatePriceByPriceType(
                             schedule.price,
                             schedule.priceType,
                             durationHours,
                             persons
                         );
-                    }
 
-                    if (includeExclusive) {
-                        if (isExclusive &&
-                            schedule.exclusiveType &&
-                            schedule.exclusivePriceType &&
-                            schedule.exclusivePrice) {
-                            totalPrice += calculatePriceByPriceType(
-                                schedule.exclusivePrice,
-                                schedule.exclusivePriceType,
-                                durationHours,
-                                persons
-                            );
+                        totalPrice += price;
+
+                        if (schedule.roomPricingType === "extra") {
+                            extraRanges.push({ start: segmentStart, end: segmentEnd, price });
                         }
                     }
 
-                    coveredRanges.push({ start: segmentStart, end: segmentEnd });
+                    if (
+                        includeExclusive &&
+                        schedule.roomPricingType === "basic" &&
+                        isExclusive &&
+                        schedule.exclusiveType &&
+                        schedule.exclusivePriceType &&
+                        schedule.exclusivePrice
+                    ) {
+                        totalPrice += calculatePriceByPriceType(
+                            schedule.exclusivePrice,
+                            schedule.exclusivePriceType,
+                            durationHours,
+                            persons
+                        );
+                    }
+
+                    if (schedule.roomPricingType === "basic") {
+                        basicRanges.push({ start: segmentStart, end: segmentEnd });
+                    }
                 }
             }
 
-            // Move to the next day
             currentDate.setDate(currentDate.getDate() + 1);
             currentDate.setHours(0, 0, 0, 0);
         }
     });
 
-    // When no covered ranges and base price type is any fix type, return base price
-    if (coveredRanges.length == 0) {
-        if (!includePrice) {
-            return 0;
-        }
+    if (basicRanges.length === 0 && extraRanges.length === 0) {
+        if (!includePrice) return 0;
 
         if (basePriceType === "once" || basePriceType === "day") {
-            // return basePrice + seating
-            return basePrice +
-                calculateSeating(totalPrice,
-                    new Date(bookingStart),
-                    bookingEnd,
-                    persons,
-                    seatings,
-                    seating);
+            return basePrice + calculateSeating(totalPrice, bookingStart, bookingEnd, persons, seatings, seating);
         }
+
         if (basePriceType === "none" || basePriceType === "consumption") {
             return 0;
         }
     }
 
-    // Sort covered ranges by start time
-    coveredRanges.sort((a, b) => a.start.getTime() - b.start.getTime());
+    // Sort and merge only basic ranges
+    basicRanges.sort((a, b) => a.start.getTime() - b.start.getTime());
 
-    // Merge overlapping ranges
     const mergedRanges: { start: Date; end: Date }[] = [];
-    for (const range of coveredRanges) {
+
+    for (const range of basicRanges) {
         if (mergedRanges.length === 0) {
             mergedRanges.push(range);
             continue;
         }
 
         const lastRange = mergedRanges[mergedRanges.length - 1];
+
         if (isBefore(lastRange.end, range.start)) {
-            // No overlap, add as new range
             mergedRanges.push(range);
         } else if (isBefore(lastRange.end, range.end)) {
-            // Partial overlap, extend the last range
             lastRange.end = range.end;
         }
-        // If range is completely contained in lastRange, do nothing
     }
 
     let unaccountedStart = new Date(bookingStart);
 
-    // Calculate base price for uncovered time slots
     for (const range of mergedRanges) {
         if (isBefore(unaccountedStart, range.start)) {
             const durationHours = differenceInMinutes(range.start, unaccountedStart) / 60;
             if (includePrice) {
-                let price = durationHours * basePrice;
-                if (basePriceType === "person") {
-                    price *= persons;
-                }
+                const price = calculatePriceByPriceType(basePrice, basePriceType, durationHours, persons);
                 totalPrice += price;
             }
         }
         unaccountedStart = new Date(Math.max(unaccountedStart.getTime(), range.end.getTime()));
     }
 
-    // If there's any remaining uncovered time, charge basePrice
     if (isBefore(unaccountedStart, bookingEnd)) {
         const durationHours = differenceInMinutes(bookingEnd, unaccountedStart) / 60;
         if (includePrice) {
-            let price = durationHours * basePrice;
-            if (basePriceType === "person") {
-                price *= persons;
-            }
+            const price = calculatePriceByPriceType(basePrice, basePriceType, durationHours, persons);
             totalPrice += price;
         }
     }
 
-    // Apply seating
-    const seatingPrice = calculateSeating(totalPrice,
-        bookingStart,
-        bookingEnd,
-        persons,
-        seatings,
-        seating);
-
+    const seatingPrice = calculateSeating(totalPrice, bookingStart, bookingEnd, persons, seatings, seating);
     totalPrice += seatingPrice;
 
     return totalPrice;
 };
+
 
 export const calculateSeating = (
     totalPrice: number,
@@ -431,6 +389,10 @@ export const calculateSeating = (
 }
 
 export const doPricingSlotsOverlap = (pricing1: PricingSlot, pricing2: PricingSlot): boolean => {
+    if (!(pricing1.roomPricingType == "basic" && pricing2.roomPricingType == "basic")) {
+        return false;
+    }
+
     const referenceDate = new Date(2023, 0, 2); // Monday, Jan 2, 2023
 
     function getDate(dayOffset: number, time: string): Date {
