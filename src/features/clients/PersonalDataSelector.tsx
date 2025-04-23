@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Box, Grid2, SxProps, TextField, Theme, Typography } from '@mui/material';
 import useStore from '@/stores/eventStore';
 import ProposalBackButton from './ProposalBackButton';
@@ -13,9 +13,9 @@ import { yupResolver } from '@hookform/resolvers/yup';
 const labelWidth = 4;
 
 interface SelectorProps {
-    previousStep: () => void,
-    stepCompleted: () => void,
-    stepCompletedAndSkip: () => void,
+    previousStep: () => void;
+    stepCompleted: () => void;
+    stepCompletedAndSkip: () => void;
     sx?: SxProps<Theme>;
 }
 
@@ -37,6 +37,15 @@ const PersonalDataSelector = ({
         resolver: yupResolver(BookingUserValidationSchema),
     });
 
+    // Refs for each input field
+    const givenNameRef = useRef<HTMLInputElement>(null);
+    const familyNameRef = useRef<HTMLInputElement>(null);
+    const emailRef = useRef<HTMLInputElement>(null);
+    const phoneNumberRef = useRef<HTMLInputElement>(null);
+
+    // Array of refs in order for focus navigation
+    const inputRefs = [givenNameRef, familyNameRef, emailRef, phoneNumberRef];
+
     useEffect(() => {
         if (eventConfiguration?.booker) {
             reset(eventConfiguration.booker);
@@ -53,23 +62,49 @@ const PersonalDataSelector = ({
         nextStep(); // Proceed to the next step
     };
 
+    // Handle Enter key press
+    const handleKeyDown = (e: React.KeyboardEvent, currentIndex: number) => {
+        if (e.key === 'Enter') {
+            e.preventDefault(); // Prevent default form submission unless it's the last field
+            if (currentIndex < inputRefs.length - 1) {
+                // Move to the next field
+                inputRefs[currentIndex + 1].current?.focus();
+            } else {
+                // Submit the form with the default next step (stepCompleted) if it's the last field
+                if (isValid) {
+                    handleSubmit((data) => handleFormSubmit(data, stepCompleted))();
+                }
+            }
+        }
+    };
+
     return (
         <Box sx={{
             width: '100%',
             height: '100%',
             display: 'flex',
             flexDirection: 'column',
+            position: 'relative', // Ensure relative positioning for absolute buttons
+            ...sx,
         }}>
             <form
                 onSubmit={handleSubmit(() => { })}
                 style={{
                     display: 'flex',
                     flexDirection: 'column',
-                    flexGrow: 1, // Take up available space
+                    flexGrow: 1,
+                    overflowY: 'auto', // Ensure form content can scroll
                 }}
             >
-                <Grid2 container rowSpacing={2}>
-
+                <Grid2
+                    container
+                    rowSpacing={2}
+                    sx={{
+                        ml: 2,
+                        mr: 2,
+                        pb: { xs: 24, sm: 20 } // Add bottom padding for buttons
+                    }}
+                >
                     {/* Given Name */}
                     <Grid2 container alignItems="top" rowSpacing={0} sx={{ width: '100%' }}>
                         <Grid2 size={{ xs: 12, sm: labelWidth }}>
@@ -82,10 +117,12 @@ const PersonalDataSelector = ({
                                 render={({ field }) => (
                                     <TextField
                                         {...field}
+                                        inputRef={givenNameRef}
                                         fullWidth
                                         variant="outlined"
                                         error={!!errors.givenName}
                                         helperText={errors.givenName?.message}
+                                        onKeyDown={(e) => handleKeyDown(e, 0)}
                                     />
                                 )}
                             />
@@ -104,10 +141,12 @@ const PersonalDataSelector = ({
                                 render={({ field }) => (
                                     <TextField
                                         {...field}
+                                        inputRef={familyNameRef}
                                         fullWidth
                                         variant="outlined"
                                         error={!!errors.familyName}
                                         helperText={errors.familyName?.message}
+                                        onKeyDown={(e) => handleKeyDown(e, 1)}
                                     />
                                 )}
                             />
@@ -126,11 +165,13 @@ const PersonalDataSelector = ({
                                 render={({ field }) => (
                                     <TextField
                                         {...field}
+                                        inputRef={emailRef}
                                         fullWidth
                                         variant="outlined"
                                         type="email"
                                         error={!!errors.email}
                                         helperText={errors.email?.message}
+                                        onKeyDown={(e) => handleKeyDown(e, 2)}
                                     />
                                 )}
                             />
@@ -149,17 +190,18 @@ const PersonalDataSelector = ({
                                 render={({ field }) => (
                                     <TextField
                                         {...field}
+                                        inputRef={phoneNumberRef}
                                         fullWidth
                                         variant="outlined"
                                         type="tel"
                                         error={!!errors.phoneNumber}
                                         helperText={errors.phoneNumber?.message}
+                                        onKeyDown={(e) => handleKeyDown(e, 3)}
                                     />
                                 )}
                             />
                         </Grid2>
                     </Grid2>
-
                 </Grid2>
             </form>
 
@@ -168,9 +210,12 @@ const PersonalDataSelector = ({
                 sx={{
                     backgroundColor: 'white',
                     width: '100%',
-                    mt: 'auto', // Pushes this box to the bottom
-                    pt: 2,
+                    mt: 'auto',
+                    pt: 0,
                     pb: 2,
+                    zIndex: 200,
+                    position: 'absolute',
+                    bottom: 0,
                 }}
             >
                 <ProposalNextButton

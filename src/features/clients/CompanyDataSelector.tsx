@@ -14,8 +14,8 @@ import { yupResolver } from '@hookform/resolvers/yup';
 const labelWidth = 4;
 
 interface SelectorProps {
-    previousStep: () => void,
-    stepCompleted: () => void,
+    previousStep: () => void;
+    stepCompleted: () => void;
 }
 
 const CompanyDataSelector = ({ previousStep, stepCompleted }: SelectorProps) => {
@@ -60,17 +60,26 @@ const CompanyDataSelector = ({ previousStep, stepCompleted }: SelectorProps) => 
             height: '100%',
             display: 'flex',
             flexDirection: 'column',
+            position: 'relative', // Ensure relative positioning for absolute buttons
         }}>
             <form
                 onSubmit={handleSubmit(tryComplete)}
                 style={{
                     display: 'flex',
                     flexDirection: 'column',
-                    flexGrow: 1, // Take up available space
+                    flexGrow: 1,
+                    overflowY: 'auto', // Ensure form content can scroll
                 }}
             >
-                <Grid2 container rowSpacing={2}>
-
+                <Grid2
+                    container
+                    rowSpacing={2}
+                    sx={{
+                        ml: 2,
+                        mr: 2,
+                        pb: { xs: 20, sm: 16 } // Add bottom padding for buttons
+                    }}
+                >
                     {/* Company Name */}
                     <Grid2 container alignItems="top" rowSpacing={0} sx={{ width: '100%' }}>
                         <Grid2 size={{ xs: 12, sm: labelWidth }}>
@@ -166,15 +175,19 @@ const CompanyDataSelector = ({ previousStep, stepCompleted }: SelectorProps) => 
                 sx={{
                     backgroundColor: 'white',
                     width: '100%',
-                    mt: 'auto', // Pushes this box to the bottom
-                    pt: 2,
+                    mt: 'auto',
+                    pt: 0,
                     pb: 2,
+                    zIndex: 200,
+                    position: 'absolute',
+                    bottom: 0,
                 }}
             >
                 <ProposalNextButton
                     nextStep={tryComplete}
                     isDisabled={!isValid}
-                    sx={{ mt: 2, mb: 0, pb: 0 }} />
+                    sx={{ mt: 2, mb: 0, pb: 0 }}
+                />
                 <ProposalBackButton previousStep={previousStep} />
             </Box>
         </Box>

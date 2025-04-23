@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Box, SxProps, Theme } from '@mui/material';
 import useStore from '@/stores/eventStore';
 import ProposalBackButton from './ProposalBackButton';
@@ -7,9 +7,9 @@ import PackagesAccordeonGrid from './PackagesAccordeonGrid';
 import { PackageCategories } from '@/constants/PackageCategories';
 
 interface SelectorProps {
-    previousStep: () => void,
-    stepCompleted: () => void,
-    packageCategory?: PackageCategories,
+    previousStep: () => void;
+    stepCompleted: () => void;
+    packageCategory?: PackageCategories;
     sx?: SxProps<Theme>;
 }
 
@@ -20,7 +20,6 @@ const PackageSelector = ({
     sx
 }: SelectorProps) => {
     const { eventConfiguration, location, setEventConfiguration } = useStore();
-    const [visible, setVisible] = useState(false);
 
     const tryComplete = (): void => {
         stepCompleted?.();
@@ -33,10 +32,18 @@ const PackageSelector = ({
                 height: '100%',
                 display: 'flex',
                 flexDirection: 'column',
+                position: 'relative', // Ensure relative positioning for absolute buttons
+                ...sx,
             }}
         >
             {location?.rooms && (
-                <Box sx={{ flex: 1, }}>
+                <Box
+                    sx={{
+                        flex: 1,
+                        overflowY: 'auto', // Ensure content can scroll
+                        pb: { xs: 20, sm: 16 }, // Add bottom padding for buttons
+                    }}
+                >
                     <PackagesAccordeonGrid packageCategory={packageCategory} />
                 </Box>
             )}
@@ -50,14 +57,17 @@ const PackageSelector = ({
                     pt: 2,
                     pb: 2,
                     zIndex: 200,
+                    position: 'absolute',
+                    bottom: 0,
                 }}
             >
                 <ProposalNextButton
                     nextStep={tryComplete}
-                    isDisabled={!eventConfiguration?.roomExtras?.length} />
+                    isDisabled={!eventConfiguration?.roomExtras?.length}
+                />
                 <ProposalBackButton previousStep={previousStep} />
             </Box>
-        </Box >
+        </Box>
     );
 };
 

@@ -59,7 +59,9 @@ const EventConfigurator2 = ({ locationId, sx, }: EventConfiguratorProps) => {
         } else {
             navItems.push(
                 {
-                    label: 'Anlass', id: 'category',
+                    label: 'Event erstellen',
+                    id: 'category',
+                    subTitle: 'Erstelle dein Event und erhalte ein erstes Angebot in 2 Minuten',
                     control: <CategorySelector stepCompleted={nextStep} />,
                     hasButton: true,
                 },
@@ -69,14 +71,18 @@ const EventConfigurator2 = ({ locationId, sx, }: EventConfiguratorProps) => {
 
     navItems.push(
         {
-            label: 'Allgemeines', id: 'general',
+            label: 'Event erstellen',
+            id: 'general',
+            subTitle: 'Wie viele seid ihr und wann wollt ihr kommen?',
             control: <GeneralSelector
                 previousStep={navItems.length > 0 ? prevStep : undefined}
                 stepCompleted={nextStep} />,
             hasButton: true,
         },
         {
-            label: 'Venue', id: 'venue',
+            label: 'Event erstellen',
+            id: 'venue',
+            subTitle: 'Wo möchtet ihr feiern?',
             control: <VenueSelector
                 previousStep={prevStep}
                 stepCompleted={nextStep} />,
@@ -91,7 +97,9 @@ const EventConfigurator2 = ({ locationId, sx, }: EventConfiguratorProps) => {
             .length > 0) {
         navItems.push(
             {
-                label: 'Catering', id: 'catering',
+                label: 'Event erstellen',
+                id: 'catering',
+                subTitle: 'Was möchtet ihr essen und trinken?',
                 control: <PackageSelector
                     previousStep={prevStep}
                     stepCompleted={nextStep}
@@ -111,7 +119,9 @@ const EventConfigurator2 = ({ locationId, sx, }: EventConfiguratorProps) => {
             .length > 0) {
         navItems.push(
             {
-                label: 'Packages', id: 'packages',
+                label: 'Event erstellen',
+                id: 'packages',
+                subTitle: 'Was braucht ihr zusätzlich?',
                 control: <PackageSelector
                     previousStep={prevStep}
                     stepCompleted={nextStep}
@@ -127,7 +137,9 @@ const EventConfigurator2 = ({ locationId, sx, }: EventConfiguratorProps) => {
     // Add remaining items
     navItems.push(
         {
-            label: 'PersonalData', id: 'personalData',
+            label: 'Event erstellen',
+            id: 'personalData',
+            subTitle: 'Wie können wir dich erreichen?',
             control: <PersonalDataSelector
                 previousStep={prevStep}
                 stepCompleted={nextStep}
@@ -135,22 +147,28 @@ const EventConfigurator2 = ({ locationId, sx, }: EventConfiguratorProps) => {
             hasButton: true,
         },
         {
-            label: 'CompanyData', id: 'company',
+            label: 'Event erstellen',
+            id: 'company',
+            subTitle: 'An welches Unternehmen schicken wir unser Angebot?',
             control: <CompanyDataSelector
                 previousStep={prevStep}
                 stepCompleted={nextStep} />,
             hasButton: false,
         },
         {
-            label: 'Summary', id: 'summary',
+            label: 'Zusammenfassung',
+            id: 'summary',
+            subTitle: 'Passen deine Angaben? Dann schicken wir dir ein erstes Angebot zu',
             control: <ProposalSummary
                 previousStep={prevStep}
-                previousStepdAndSkip={() => prevStep(2)}
+                previousStepAndSkip={() => prevStep(2)}
                 proposalSent={nextStep} />,
             hasButton: false,
         },
         {
-            label: 'Thanks', id: 'thanks',
+            label: 'Danke :)',
+            id: 'thanks',
+            subTitle: null,
             control: <ProposalThanks />,
             hasButton: false,
         }
@@ -184,75 +202,76 @@ const EventConfigurator2 = ({ locationId, sx, }: EventConfiguratorProps) => {
             height: '100dvh',
         }}>
             {/* Headlines */}
-            <Box
-                sx={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    textAlign: 'center',
-                    gap: 1,
-                    pt: 2, pr: 8, pb: 0, pl: 8,
-                }}
-            >
-                <Typography variant='h4' sx={{
-                    fontSize: { xs: '28px', sm: '36px' },
-                    fontWeight: 700
-                }}>
-                    {selectedIndex == navItems.length - 2
-                        ? 'Zusammenfassung'
-                        : 'Event erstellen'}
-                </Typography>
-                <Typography variant='body1' >
-                    Erstelle dein Event und erhalte ein erstes Angebot in 2 Minuten
-                </Typography>
-            </Box>
+            {selectedIndex < navItems.length - 1 &&
+                <>
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            textAlign: 'center',
+                            gap: 1,
+                            pt: 0, pr: 8, pb: 0, pl: 8,
+                        }}
+                    >
+                        <Typography variant='h4' sx={{
+                            fontSize: { xs: '28px', sm: '36px' },
+                            fontWeight: 700
+                        }}>
+                            {navItems[selectedIndex].label}
+                        </Typography>
+                        {navItems[selectedIndex].subTitle &&
+                            <Typography variant='body1'>
+                                {navItems[selectedIndex].subTitle}
+                            </Typography>}
+                    </Box>
+                    {/* Navigation Bar */}
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            justifyContent: 'center',
+                            gap: 2,
+                            mt: 2,
+                            mb: 2,
+                            opacity: selectedIndex < navItems.length - 1
+                                ? 1
+                                : 0.2,
+                            pointerEvents: selectedIndex < navItems.length - 1
+                                ? 'auto'
+                                : 'none',
+                        }}
+                    >
+                        {navItems
+                            .filter(item => item.hasButton === true)
+                            .map((item, index) => (
+                                <Box
+                                    key={item.id}
+                                    onClick={() => handleNavClick(index)}
+                                    sx={{
+                                        display: 'flex',
+                                        flexDirection: 'row',
+                                        alignItems: 'center',
+                                        minWidth: '20px',
+                                        height: '13px',
+                                        cursor: 'pointer',
+                                        backgroundColor: 'transparent',
+                                    }}
+                                >
+                                    <Box
+                                        sx={{
+                                            width: '100%',
+                                            height: '3px',
+                                            backgroundColor: index <= selectedIndex
+                                                ? theme.palette.customColors.blue.main
+                                                : theme.palette.customColors.text.inactive,
+                                        }}
+                                    >
 
-            {/* Navigation Bar */}
-            <Box
-                sx={{
-                    display: 'flex',
-                    justifyContent: 'center',
-                    gap: 2,
-                    mt: 2,
-                    mb: 2,
-                    opacity: selectedIndex < navItems.length - 1
-                        ? 1
-                        : 0.2,
-                    pointerEvents: selectedIndex < navItems.length - 1
-                        ? 'auto'
-                        : 'none',
-                }}
-            >
-                {navItems
-                    .filter(item => item.hasButton === true)
-                    .map((item, index) => (
-                        <Box
-                            key={item.id}
-                            onClick={() => handleNavClick(index)}
-                            sx={{
-                                display: 'flex',
-                                flexDirection: 'row',
-                                alignItems: 'center',
-                                minWidth: '20px',
-                                height: '13px',
-                                cursor: 'pointer',
-                                backgroundColor: 'transparent',
-                            }}
-                        >
-                            <Box
-                                sx={{
-                                    width: '100%',
-                                    height: '3px',
-                                    backgroundColor: index <= selectedIndex
-                                        ? theme.palette.customColors.blue.main
-                                        : theme.palette.customColors.text.inactive,
-                                }}
-                            >
-
-                            </Box>
-                        </Box>
-                    ))}
-            </Box>
+                                    </Box>
+                                </Box>
+                            ))}
+                    </Box>
+                </>}
 
             {/* Selected Control */}
             <Box
@@ -282,6 +301,20 @@ const EventConfigurator2 = ({ locationId, sx, }: EventConfiguratorProps) => {
             >
                 {navItems[selectedIndex].control}
             </Box>
+
+            {/* Fix Footer (Buttons) 
+            <Box
+                ref={scrollableBoxRef}
+                sx={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'top',
+                    width: { xs: '100%' },
+                    height: '100px',
+                }}
+            >
+                footer
+            </Box>*/}
         </Box>
     );
 };

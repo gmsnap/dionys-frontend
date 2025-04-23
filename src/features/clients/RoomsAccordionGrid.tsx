@@ -1,5 +1,18 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Grid2, SxProps, Theme, Typography, FormControl, InputLabel, Select, MenuItem, Switch, FormControlLabel } from '@mui/material';
+import {
+    Box,
+    Grid2,
+    SxProps,
+    Theme,
+    Typography,
+    FormControl,
+    InputLabel,
+    Select,
+    MenuItem,
+    Switch,
+    FormControlLabel,
+    Button
+} from '@mui/material';
 import { HandCoins, Ruler } from 'lucide-react';
 import AccordionGridItem from '@/components/AccordionGridItem';
 import useStore from '@/stores/eventStore';
@@ -12,7 +25,6 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
-import Button from '@mui/material/Button';
 import { RoomSeatingModel } from '@/models/RoomSeatingModel';
 
 interface VenueSelectorProps {
@@ -24,7 +36,7 @@ const seatingTypeOptions = [
     { value: "mixed", label: "Gemischt" },
     { value: "standing", label: "Stehplätze" },
     { value: "seated", label: "Sitzplätze" },
-]
+];
 
 const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
     const { eventConfiguration, location, setEventConfiguration } = useStore();
@@ -65,7 +77,7 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
                     if (hasExclusiveOverlap || hasSeatings) {
                         setPendingRoomId(roomId);
                         setDialogOpen(true);
-                        setSelectedSeating(seatings?.[0]?.seating || ''); // Default to first seating if available
+                        setSelectedSeating(seatings?.[0]?.seating || '');
                         setIsExclusive(false);
                         return;
                     }
@@ -119,6 +131,8 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
 
         setDialogOpen(false);
         setPendingRoomId(null);
+        setSelectedSeating('');
+        setIsExclusive(false);
     };
 
     const getOtherRooms = () => {
@@ -175,6 +189,16 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
         const bookingStart = new Date(eventConfiguration.date);
         const bookingEnd = new Date(eventConfiguration.endDate);
 
+        const basePrice = calculateBookingPrice({
+            bookingStart,
+            bookingEnd,
+            persons: eventConfiguration.persons,
+            basePrice: room.price,
+            basePriceType: room.priceType,
+            isExclusive: false,
+            schedules: room.roomPricings,
+        });
+
         const exclusivePrice = calculateBookingPrice({
             bookingStart,
             bookingEnd,
@@ -186,47 +210,35 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
             filters: ['exclusive'],
         });
 
-        const roomBasePrice = calculateBookingPrice({
-            bookingStart,
-            bookingEnd,
-            persons: eventConfiguration.persons,
-            basePrice: room.price,
-            basePriceType: room.priceType,
-            isExclusive: false,
-            schedules: room.roomPricings,
-        });
-
         return (
             <>
-                <FormControl fullWidth sx={{ mt: 2 }} disabled={!hasSeatingOptions}>
-                    <InputLabel>Seating</InputLabel>
-                    <Select
-                        value={selectedSeating}
-                        label="Seating"
-                        onChange={(e) => setSelectedSeating(e.target.value)}
-                    >
-                        {room.roomSeatings?.map((seating: RoomSeatingModel) => (
-                            <MenuItem key={seating.id} value={seating.seating}>
-                                {
-                                    (seatingTypeOptions?.find(o => o.value === seating.seating)?.label
-                                        ?? seating.seating) +
-                                    " ( + " +
-                                    formatPrice(
-                                        calculateSeating(
-                                            roomBasePrice,
-                                            bookingStart,
-                                            bookingEnd,
-                                            eventConfiguration.persons ?? 0,
-                                            room.roomSeatings,
-                                            seating.seating
-                                        )
-                                    ) +
-                                    ")"
-                                }
-                            </MenuItem>
-                        ))}
-                    </Select>
-                </FormControl>
+                {room.roomSeatings?.length ? (
+                    <FormControl fullWidth sx={{ mt: 2 }} disabled={!hasSeatingOptions}>
+                        <InputLabel>Seating</InputLabel>
+                        <Select
+                            value={selectedSeating}
+                            label="Seating"
+                            onChange={(e) => setSelectedSeating(e.target.value)}
+                        >
+                            {room.roomSeatings.map((seating: RoomSeatingModel) => {
+                                const seatingPrice = calculateSeating(
+                                    basePrice,
+                                    bookingStart,
+                                    bookingEnd,
+                                    eventConfiguration.persons ?? 0,
+                                    room.roomSeatings,
+                                    seating.seating
+                                );
+                                return (
+                                    <MenuItem key={seating.id} value={seating.seating}>
+                                        {(seatingTypeOptions?.find(o => o.value === seating.seating)?.label ?? seating.seating) +
+                                            (seatingPrice > 0 ? ` (+ ${formatPrice(seatingPrice)})` : '')}
+                                    </MenuItem>
+                                );
+                            })}
+                        </Select>
+                    </FormControl>
+                ) : null}
                 <FormControlLabel
                     control={
                         <Switch
@@ -235,7 +247,7 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
                             disabled={!hasExclusiveOption}
                         />
                     }
-                    label={`Exklusiv buchen${hasExclusiveOption ? ` (Aufpreis: ${formatPrice(exclusivePrice)})` : ''}`}
+                    label={`Exklusiv buchen${hasExclusiveOption ? ` (+ ${formatPrice(exclusivePrice)})` : ''}`}
                     sx={{ mt: 2 }}
                 />
             </>
@@ -259,16 +271,17 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
         eventConfiguration?.roomExtras?.some(r => r.roomId === roomId && r.isExclusive);
 
     const getSeating = (roomId: number) =>
-        eventConfiguration?.roomExtras?.find(r => r.roomId === roomId)?.seating ?? undefined;
+        eventConfiguration?.roomExtras?.find(r => r.roomId === roomId)?.seating ?? '';
 
     return (
         <>
-            {matchingRooms && matchingRooms.length > 0 ?
+            {matchingRooms && matchingRooms.length > 0 ? (
                 <Grid2 container spacing={1} sx={{ ...sx }}>
                     {matchingRooms.map((room) => {
                         const isSelected = isRoomSelected(room.id);
-                        const isExclusive = isRoomExclusive(room.id);
+                        const isExclusive = isRoomExclusive(room.id) === true;
                         const seating = getSeating(room.id);
+
                         const calculatedPrice =
                             eventConfiguration?.date &&
                                 eventConfiguration?.endDate &&
@@ -280,7 +293,7 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
                                         persons: eventConfiguration.persons,
                                         basePrice: room.price,
                                         basePriceType: room.priceType,
-                                        isExclusive: false,
+                                        isExclusive,
                                         schedules: room.roomPricings,
                                         seatings: room.roomSeatings,
                                         seating,
@@ -298,8 +311,11 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
                                     title={room.name}
                                     subTitle={
                                         `${formatRoomSize(room.size)}, ${calculatedPrice}` +
-                                        ` | ${room.minPersons} - ${room.maxPersons} Personen` +
-                                        ` | ${isExclusive ? 'Exklusiv' : ''}`
+                                        ` | ${room.minPersons} - ${room.maxPersons} Personen | ` +
+                                        [
+                                            isExclusive ? 'Exklusiv' : null,
+                                            seating ? seatingTypeOptions.find(o => o.value === seating)?.label || seating : null
+                                        ].filter(Boolean).join(', ')
                                     }
                                     information={room.description}
                                     infoItems={[
@@ -316,13 +332,14 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
                             </Grid2>
                         );
                     })}
-                </Grid2> :
+                </Grid2>
+            ) : (
                 <Typography variant='h5' sx={{ textAlign: 'center', mt: 6, mb: 2 }}>
                     Keine passenden Räume gefunden
                 </Typography>
-            }
+            )}
 
-            {otherRooms && otherRooms.length > 0 &&
+            {otherRooms && otherRooms.length > 0 && (
                 <>
                     <Box
                         sx={{
@@ -350,6 +367,7 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
                                             isExclusive: false,
                                             schedules: room.roomPricings,
                                             seatings: room.roomSeatings,
+                                            seating: '',
                                         })
                                     )
                                     : "?";
@@ -384,7 +402,7 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
                         })}
                     </Grid2>
                 </>
-            }
+            )}
 
             <Dialog
                 open={dialogOpen}
