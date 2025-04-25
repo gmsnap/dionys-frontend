@@ -419,139 +419,17 @@ const RoomPricings = ({ roomId }: Props) => {
                         <AccordionDetails sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
                             <Paper sx={{ p: 2, mb: 2 }}>
                                 <Grid2 container spacing={2} alignItems="center">
-                                    {/* Room Pricing Type */}
-                                    <Grid2 size={{ xs: 12, sm: 6, md: 1.2 }}>
-                                        <FormControl fullWidth size="small">
-                                            <InputLabel>Typ</InputLabel>
-                                            <Select
-                                                value={pricing.roomPricingType || "basic"}
-                                                label="Typ"
-                                                onChange={(e) => handlePricingChange(index, "roomPricingType", e.target.value)}
-                                            >
-                                                {roomPricingTypeOptions.map((type) => (
-                                                    <MenuItem key={type.value} value={type.value}>
-                                                        {type.label}
-                                                    </MenuItem>
-                                                ))}
-                                            </Select>
-                                        </FormControl>
-                                    </Grid2>
-
-                                    {/* Day of week and time selectors */}
-                                    <Grid2 size={{ xs: 12, sm: 6, md: 1.2 }}>
-                                        <FormControl fullWidth size="small">
-                                            <InputLabel>Starttag</InputLabel>
-                                            <Select
-                                                value={pricing.startDayOfWeek}
-                                                label="Starttag"
-                                                onChange={(e) => handlePricingChange(index, "startDayOfWeek", e.target.value)}
-                                            >
-                                                {germanDaysOfWeek.map((day) => (
-                                                    <MenuItem key={`start-${day.value}`} value={day.value}>
-                                                        {day.label}
-                                                    </MenuItem>
-                                                ))}
-                                            </Select>
-                                        </FormControl>
-                                    </Grid2>
-
-                                    <Grid2 size={{ xs: 12, sm: 6, md: 1.2 }}>
-                                        <FormControl fullWidth size="small">
-                                            <InputLabel>Startzeit</InputLabel>
-                                            <Select
-                                                value={pricing.startTime}
-                                                label="Startzeit"
-                                                onChange={(e) => handlePricingChange(index, "startTime", e.target.value)}
-                                            >
-                                                {timeOptions.map((time) => (
-                                                    <MenuItem key={`start-ratio-${time.value}`} value={time.value}>
-                                                        {time.label}
-                                                    </MenuItem>
-                                                ))}
-                                            </Select>
-                                        </FormControl>
-                                    </Grid2>
-
-                                    <Grid2 size={{ xs: 12, sm: 6, md: 1.2 }}>
-                                        <FormControl fullWidth size="small">
-                                            <InputLabel>Endtag</InputLabel>
-                                            <Select
-                                                value={pricing.endDayOfWeek}
-                                                label="Endtag"
-                                                onChange={(e) => handlePricingChange(index, "endDayOfWeek", e.target.value)}
-                                            >
-                                                {germanDaysOfWeek.map((day) => (
-                                                    <MenuItem key={`end-${day.value}`} value={day.value}>
-                                                        {day.label}
-                                                    </MenuItem>
-                                                ))}
-                                            </Select>
-                                        </FormControl>
-                                    </Grid2>
-
-                                    <Grid2 size={{ xs: 12, sm: 6, md: 1.2 }}>
-                                        <FormControl fullWidth size="small">
-                                            <InputLabel>Endzeit</InputLabel>
-                                            <Select
-                                                value={pricing.endTime}
-                                                label="Endzeit"
-                                                onChange={(e) => handlePricingChange(index, "endTime", e.target.value)}
-                                            >
-                                                {timeOptions.map((time) => (
-                                                    <MenuItem key={`end-time-${time.value}`} value={time.value}>
-                                                        {time.label}
-                                                    </MenuItem>
-                                                ))}
-                                            </Select>
-                                        </FormControl>
-                                    </Grid2>
-
-                                    <Grid2 size={{ xs: 12, sm: 6, md: 1.2 }}>
-                                        <FormControl fullWidth size="small">
-                                            <InputLabel>Preistyp</InputLabel>
-                                            <Select
-                                                value={pricing.priceType}
-                                                label="Preistyp"
-                                                onChange={(e) => handlePricingChange(index, "priceType", e.target.value)}
-                                            >
-                                                {priceTypeOptions.map((type) => (
-                                                    <MenuItem key={type.value} value={type.value}>
-                                                        {type.label}
-                                                    </MenuItem>
-                                                ))}
-                                            </Select>
-                                        </FormControl>
-                                    </Grid2>
-
-                                    {/* Price field with currency formatting */}
-                                    <Grid2 size={{ xs: 12, sm: 6, md: 1.2 }}>
-                                        <TextField
-                                            fullWidth
-                                            label="Preis"
-                                            size="small"
-                                            value={editingPriceIndex === index ? editingPriceValue : formatPriceForDisplay(pricing.price)}
-                                            onFocus={() => handlePriceFocus(index)}
-                                            onChange={handlePriceChange}
-                                            onBlur={handlePriceBlur}
-                                            slotProps={{
-                                                input: {
-                                                    startAdornment: <InputAdornment position="start">€</InputAdornment>,
-                                                },
-                                            }}
-                                        />
-                                    </Grid2>
-
-                                    {/* Exclusive type dropdown - hidden for 'extra' */}
-                                    {pricing.roomPricingType === "basic" && (
-                                        <Grid2 size={{ xs: 12, sm: 6, md: 1.2 }}>
+                                    {/* Row 1: Room Pricing Type, Custom Name, Price Type, Price */}
+                                    <Grid2 container spacing={2} size={{ xs: 12 }}>
+                                        <Grid2 size={{ xs: 12, sm: 6, md: 3 }}>
                                             <FormControl fullWidth size="small">
-                                                <InputLabel>Exklusivität</InputLabel>
+                                                <InputLabel>Typ</InputLabel>
                                                 <Select
-                                                    value={pricing.exclusiveType || "none"}
-                                                    label="Exklusivität"
-                                                    onChange={(e) => handlePricingChange(index, "exclusiveType", e.target.value)}
+                                                    value={pricing.roomPricingType || "basic"}
+                                                    label="Typ"
+                                                    onChange={(e) => handlePricingChange(index, "roomPricingType", e.target.value)}
                                                 >
-                                                    {exclusiveTypeOptions.map((type) => (
+                                                    {roomPricingTypeOptions.map((type) => (
                                                         <MenuItem key={type.value} value={type.value}>
                                                             {type.label}
                                                         </MenuItem>
@@ -559,18 +437,28 @@ const RoomPricings = ({ roomId }: Props) => {
                                                 </Select>
                                             </FormControl>
                                         </Grid2>
-                                    )}
-
-                                    {/* Exclusive Price Type - hidden for 'extra' */}
-                                    {pricing.roomPricingType === "basic" && (
-                                        <Grid2 size={{ xs: 12, sm: 6, md: 1.2 }}>
+                                        <Grid2 size={{ xs: 12, sm: 6, md: 3 }}>
+                                            <TextField
+                                                fullWidth
+                                                label="Bezeichnung (optional)"
+                                                size="small"
+                                                value={
+                                                    editingCustomNameIndex === index
+                                                        ? editingCustomNameValue
+                                                        : pricing.customName || ""
+                                                }
+                                                onFocus={() => handleCustomNameFocus(index)}
+                                                onChange={handleCustomNameChange}
+                                                onBlur={handleCustomNameBlur}
+                                            />
+                                        </Grid2>
+                                        <Grid2 size={{ xs: 12, sm: 6, md: 3 }}>
                                             <FormControl fullWidth size="small">
-                                                <InputLabel>Exklusivität Preistyp</InputLabel>
+                                                <InputLabel>Preistyp</InputLabel>
                                                 <Select
-                                                    value={pricing.exclusivePriceType || ""}
-                                                    label="Exklusivität Preistyp"
-                                                    disabled={pricing.exclusiveType === "none" || !pricing.exclusiveType}
-                                                    onChange={(e) => handlePricingChange(index, "exclusivePriceType", e.target.value)}
+                                                    value={pricing.priceType}
+                                                    label="Preistyp"
+                                                    onChange={(e) => handlePricingChange(index, "priceType", e.target.value)}
                                                 >
                                                     {priceTypeOptions.map((type) => (
                                                         <MenuItem key={type.value} value={type.value}>
@@ -580,26 +468,15 @@ const RoomPricings = ({ roomId }: Props) => {
                                                 </Select>
                                             </FormControl>
                                         </Grid2>
-                                    )}
-
-                                    {/* Exclusive Price field - hidden for 'extra' */}
-                                    {pricing.roomPricingType === "basic" && (
-                                        <Grid2 size={{ xs: 12, sm: 6, md: 1.2 }}>
+                                        <Grid2 size={{ xs: 12, sm: 6, md: 3 }}>
                                             <TextField
                                                 fullWidth
-                                                label="Aufpreis Exklusivität"
+                                                label="Preis"
                                                 size="small"
-                                                disabled={pricing.exclusiveType === "none" || !pricing.exclusiveType}
-                                                value={
-                                                    editingExclusivePriceIndex === index
-                                                        ? editingExclusivePriceValue
-                                                        : pricing.exclusivePrice !== null
-                                                            ? formatPriceForDisplay(pricing.exclusivePrice)
-                                                            : ""
-                                                }
-                                                onFocus={() => handleExclusivePriceFocus(index)}
-                                                onChange={handleExclusivePriceChange}
-                                                onBlur={handleExclusivePriceBlur}
+                                                value={editingPriceIndex === index ? editingPriceValue : formatPriceForDisplay(pricing.price)}
+                                                onFocus={() => handlePriceFocus(index)}
+                                                onChange={handlePriceChange}
+                                                onBlur={handlePriceBlur}
                                                 slotProps={{
                                                     input: {
                                                         startAdornment: <InputAdornment position="start">€</InputAdornment>,
@@ -607,54 +484,166 @@ const RoomPricings = ({ roomId }: Props) => {
                                                 }}
                                             />
                                         </Grid2>
-                                    )}
-
-                                    {/* Custom Name field */}
-                                    <Grid2 size={{ xs: 12, sm: 6, md: 1.2 }}>
-                                        <TextField
-                                            fullWidth
-                                            label="Bezeichnung (optional)"
-                                            size="small"
-                                            value={
-                                                editingCustomNameIndex === index
-                                                    ? editingCustomNameValue
-                                                    : pricing.customName || ""
-                                            }
-                                            onFocus={() => handleCustomNameFocus(index)}
-                                            onChange={handleCustomNameChange}
-                                            onBlur={handleCustomNameBlur}
-                                        />
                                     </Grid2>
 
-                                    {/* Action buttons */}
-                                    <Grid2 size={{ xs: 12, sm: 6, md: 1.2 }}>
-                                        <Box sx={{ display: "flex", gap: 1, justifyContent: "end" }}>
-                                            <IconButton
-                                                color="primary"
-                                                onClick={() => handleSavePricing(pricing, index)}
-                                                aria-label="Speichern"
-                                                disabled={!modifiedRows.has(index)}
-                                            >
-                                                <Save
-                                                    color={
-                                                        !modifiedRows.has(index)
-                                                            ? theme.palette.customColors.blue.halflight
-                                                            : theme.palette.customColors.blue.main
-                                                    }
-                                                />
-                                            </IconButton>
-                                            <IconButton color="error" onClick={() => handleDeletePricing(index)} aria-label="Löschen">
-                                                <Trash2 color="red" />
-                                            </IconButton>
-                                        </Box>
-                                    </Grid2>
-
-                                    {/* Show row-specific error message */}
-                                    {slotErrors[index] && (
-                                        <Grid2 size={{ xs: 12 }}>
-                                            <Typography color="error">{slotErrors[index]}</Typography>
+                                    {/* Row 2: Start Day, Start Time, End Day, End Time */}
+                                    <Grid2 container spacing={2} size={{ xs: 12 }}>
+                                        <Grid2 size={{ xs: 12, sm: 6, md: 3 }}>
+                                            <FormControl fullWidth size="small">
+                                                <InputLabel>Starttag</InputLabel>
+                                                <Select
+                                                    value={pricing.startDayOfWeek}
+                                                    label="Starttag"
+                                                    onChange={(e) => handlePricingChange(index, "startDayOfWeek", e.target.value)}
+                                                >
+                                                    {germanDaysOfWeek.map((day) => (
+                                                        <MenuItem key={`start-${day.value}`} value={day.value}>
+                                                            {day.label}
+                                                        </MenuItem>
+                                                    ))}
+                                                </Select>
+                                            </FormControl>
                                         </Grid2>
-                                    )}
+                                        <Grid2 size={{ xs: 12, sm: 6, md: 3 }}>
+                                            <FormControl fullWidth size="small">
+                                                <InputLabel>Startzeit</InputLabel>
+                                                <Select
+                                                    value={pricing.startTime}
+                                                    label="Startzeit"
+                                                    onChange={(e) => handlePricingChange(index, "startTime", e.target.value)}
+                                                >
+                                                    {timeOptions.map((time) => (
+                                                        <MenuItem key={`start-ratio-${time.value}`} value={time.value}>
+                                                            {time.label}
+                                                        </MenuItem>
+                                                    ))}
+                                                </Select>
+                                            </FormControl>
+                                        </Grid2>
+                                        <Grid2 size={{ xs: 12, sm: 6, md: 3 }}>
+                                            <FormControl fullWidth size="small">
+                                                <InputLabel>Endtag</InputLabel>
+                                                <Select
+                                                    value={pricing.endDayOfWeek}
+                                                    label="Endtag"
+                                                    onChange={(e) => handlePricingChange(index, "endDayOfWeek", e.target.value)}
+                                                >
+                                                    {germanDaysOfWeek.map((day) => (
+                                                        <MenuItem key={`end-${day.value}`} value={day.value}>
+                                                            {day.label}
+                                                        </MenuItem>
+                                                    ))}
+                                                </Select>
+                                            </FormControl>
+                                        </Grid2>
+                                        <Grid2 size={{ xs: 12, sm: 6, md: 3 }}>
+                                            <FormControl fullWidth size="small">
+                                                <InputLabel>Endzeit</InputLabel>
+                                                <Select
+                                                    value={pricing.endTime}
+                                                    label="Endzeit"
+                                                    onChange={(e) => handlePricingChange(index, "endTime", e.target.value)}
+                                                >
+                                                    {timeOptions.map((time) => (
+                                                        <MenuItem key={`end-time-${time.value}`} value={time.value}>
+                                                            {time.label}
+                                                        </MenuItem>
+                                                    ))}
+                                                </Select>
+                                            </FormControl>
+                                        </Grid2>
+                                    </Grid2>
+
+                                    {/* Row 3: Exclusive Fields, Action Buttons, Error */}
+                                    <Grid2 container spacing={2} size={{ xs: 12 }}>
+                                        {pricing.roomPricingType === "basic" && (
+                                            <>
+                                                <Typography>Exklusivität</Typography>
+                                                <Grid2 size={{ xs: 12, sm: 6, md: 3 }}>
+                                                    <FormControl fullWidth size="small">
+                                                        <InputLabel>Exklusivität</InputLabel>
+                                                        <Select
+                                                            value={pricing.exclusiveType || "none"}
+                                                            label="Exklusivität"
+                                                            onChange={(e) => handlePricingChange(index, "exclusiveType", e.target.value)}
+                                                        >
+                                                            {exclusiveTypeOptions.map((type) => (
+                                                                <MenuItem key={type.value} value={type.value}>
+                                                                    {type.label}
+                                                                </MenuItem>
+                                                            ))}
+                                                        </Select>
+                                                    </FormControl>
+                                                </Grid2>
+                                                <Grid2 size={{ xs: 12, sm: 6, md: 3 }}>
+                                                    <FormControl fullWidth size="small">
+                                                        <InputLabel>Exklusivität Preistyp</InputLabel>
+                                                        <Select
+                                                            value={pricing.exclusivePriceType || ""}
+                                                            label="Exklusivität Preistyp"
+                                                            disabled={pricing.exclusiveType === "none" || !pricing.exclusiveType}
+                                                            onChange={(e) => handlePricingChange(index, "exclusivePriceType", e.target.value)}
+                                                        >
+                                                            {priceTypeOptions.map((type) => (
+                                                                <MenuItem key={type.value} value={type.value}>
+                                                                    {type.label}
+                                                                </MenuItem>
+                                                            ))}
+                                                        </Select>
+                                                    </FormControl>
+                                                </Grid2>
+                                                <Grid2 size={{ xs: 12, sm: 6, md: 3 }}>
+                                                    <TextField
+                                                        fullWidth
+                                                        label="Aufpreis Exklusivität"
+                                                        size="small"
+                                                        disabled={pricing.exclusiveType === "none" || !pricing.exclusiveType}
+                                                        value={
+                                                            editingExclusivePriceIndex === index
+                                                                ? editingExclusivePriceValue
+                                                                : pricing.exclusivePrice !== null
+                                                                    ? formatPriceForDisplay(pricing.exclusivePrice)
+                                                                    : ""
+                                                        }
+                                                        onFocus={() => handleExclusivePriceFocus(index)}
+                                                        onChange={handleExclusivePriceChange}
+                                                        onBlur={handleExclusivePriceBlur}
+                                                        slotProps={{
+                                                            input: {
+                                                                startAdornment: <InputAdornment position="start">€</InputAdornment>,
+                                                            },
+                                                        }}
+                                                    />
+                                                </Grid2>
+                                            </>
+                                        )}
+                                        <Grid2 size={{ xs: 12, md: pricing.roomPricingType === "basic" ? 3 : 12 }}>
+                                            <Box sx={{ display: "flex", gap: 1, justifyContent: "end" }}>
+                                                <IconButton
+                                                    color="primary"
+                                                    onClick={() => handleSavePricing(pricing, index)}
+                                                    aria-label="Speichern"
+                                                    disabled={!modifiedRows.has(index)}
+                                                >
+                                                    <Save
+                                                        color={
+                                                            !modifiedRows.has(index)
+                                                                ? theme.palette.customColors.blue.halflight
+                                                                : theme.palette.customColors.blue.main
+                                                        }
+                                                    />
+                                                </IconButton>
+                                                <IconButton color="error" onClick={() => handleDeletePricing(index)} aria-label="Löschen">
+                                                    <Trash2 color="red" />
+                                                </IconButton>
+                                            </Box>
+                                        </Grid2>
+                                        {slotErrors[index] && (
+                                            <Grid2 size={{ xs: 12 }}>
+                                                <Typography color="error">{slotErrors[index]}</Typography>
+                                            </Grid2>
+                                        )}
+                                    </Grid2>
                                 </Grid2>
                             </Paper>
                         </AccordionDetails>
