@@ -332,8 +332,10 @@ const RoomSeatings = ({ roomId }: Props) => {
                                 }}
                             >
                                 <Typography variant="subtitle1">
-                                    {seating.seating} |{" "}
-                                    {new Intl.NumberFormat("de-DE", { maximumFractionDigits: 0 }).format(seating.price)} €
+                                    {seating.seating}, {" "}
+                                    {seating.isAbsolute
+                                        ? `${new Intl.NumberFormat("de-DE", { maximumFractionDigits: 0 }).format(seating.price)} €`
+                                        : `${new Intl.NumberFormat("de-DE", { maximumFractionDigits: 2 }).format(seating.price)}%`}
                                 </Typography>
                             </AccordionSummary>
                         )}

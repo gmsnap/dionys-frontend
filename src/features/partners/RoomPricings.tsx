@@ -410,7 +410,7 @@ const RoomPricings = ({ roomId }: Props) => {
                                         )}
                                     </Box>
                                     {germanShortDaysOfWeek.find((d) => d.value === pricing.startDayOfWeek)?.label},{" "}
-                                    {pricing.startTime.slice(0, 5)} |{" "}
+                                    {pricing.startTime.slice(0, 5)}, {" "}
                                     {new Intl.NumberFormat("de-DE", { maximumFractionDigits: 0 }).format(pricing.price)} €
                                 </Typography>
                             </AccordionSummary>
@@ -420,6 +420,9 @@ const RoomPricings = ({ roomId }: Props) => {
                             <Paper sx={{ p: 2, mb: 2 }}>
                                 <Grid2 container spacing={2} alignItems="center">
                                     {/* Row 1: Room Pricing Type, Custom Name, Price Type, Price */}
+                                    <Grid2 size={{ xs: 12 }}>
+                                        <Typography variant="subtitle2" sx={{ mb: 1 }}>Preisdetails</Typography>
+                                    </Grid2>
                                     <Grid2 container spacing={2} size={{ xs: 12 }}>
                                         <Grid2 size={{ xs: 12, sm: 6, md: 3 }}>
                                             <FormControl fullWidth size="small">
@@ -487,6 +490,9 @@ const RoomPricings = ({ roomId }: Props) => {
                                     </Grid2>
 
                                     {/* Row 2: Start Day, Start Time, End Day, End Time */}
+                                    <Grid2 size={{ xs: 12 }}>
+                                        <Typography variant="subtitle2" sx={{ mb: 1 }}>Zeitfenster</Typography>
+                                    </Grid2>
                                     <Grid2 container spacing={2} size={{ xs: 12 }}>
                                         <Grid2 size={{ xs: 12, sm: 6, md: 3 }}>
                                             <FormControl fullWidth size="small">
@@ -555,10 +561,14 @@ const RoomPricings = ({ roomId }: Props) => {
                                     </Grid2>
 
                                     {/* Row 3: Exclusive Fields, Action Buttons, Error */}
+                                    {pricing.roomPricingType === "basic" && (
+                                        <Grid2 size={{ xs: 12 }}>
+                                            <Typography variant="subtitle2" sx={{ mb: 1 }}>Exklusivität</Typography>
+                                        </Grid2>
+                                    )}
                                     <Grid2 container spacing={2} size={{ xs: 12 }}>
                                         {pricing.roomPricingType === "basic" && (
                                             <>
-                                                <Typography>Exklusivität</Typography>
                                                 <Grid2 size={{ xs: 12, sm: 6, md: 3 }}>
                                                     <FormControl fullWidth size="small">
                                                         <InputLabel>Exklusivität</InputLabel>
