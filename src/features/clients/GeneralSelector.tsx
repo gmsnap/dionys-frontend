@@ -163,6 +163,7 @@ const GeneralSelector = ({
                                         fullWidth
                                         variant="outlined"
                                         type="number"
+                                        placeholder="0"
                                         error={!!errors.persons}
                                         helperText={errors.persons?.message}
                                         onKeyDown={(e) => handleKeyDown(e, 0)}
@@ -212,6 +213,7 @@ const GeneralSelector = ({
                                         fullWidth
                                         variant="outlined"
                                         type="number"
+                                        placeholder="0"
                                         error={!!errors.duration}
                                         helperText={errors.duration?.message}
                                         onKeyDown={(e) => handleKeyDown(e, 3)}

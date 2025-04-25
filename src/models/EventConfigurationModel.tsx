@@ -43,6 +43,9 @@ export const EventConfValidationSchema = yup.object().shape({
         .required('Event Type ist erforderlich'),
     persons: yup
         .number()
+        .transform((value, originalValue) =>
+            originalValue === '' || originalValue === null ? undefined : value
+        )
         .required('Teilnehmerzahl ist erforderlich')
         .positive('Wählen Sie eine gültige Anzahl an Personen'),
     date: yup
@@ -62,6 +65,9 @@ export const EventConfValidationSchema = yup.object().shape({
         ),
     duration: yup
         .number()
+        .transform((value, originalValue) =>
+            originalValue === '' || originalValue === null ? undefined : value
+        )
         .required('Dauer ist erforderlich')
         .positive('Die Dauer muss positiv sein'),
     roomConfigurationId: yup

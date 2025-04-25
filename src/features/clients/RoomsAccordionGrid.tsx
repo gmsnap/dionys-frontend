@@ -71,7 +71,7 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
                         schedules
                     );
 
-                    const hasExclusiveOverlap = overlaps.some(schedule => schedule.exclusivePriceType !== "none");
+                    const hasExclusiveOverlap = overlaps.some(schedule => schedule.exclusiveType !== "none");
                     const hasSeatings = seatings && seatings.length > 0;
 
                     if (hasExclusiveOverlap || hasSeatings) {
@@ -183,7 +183,7 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
             )
             : [];
 
-        const hasExclusiveOption = overlaps.some(schedule => schedule.exclusivePriceType !== "none");
+        const hasExclusiveOption = overlaps.some(schedule => schedule.exclusiveType !== "none");
         const hasSeatingOptions = room.roomSeatings && room.roomSeatings.length > 0;
 
         const bookingStart = new Date(eventConfiguration.date);
@@ -239,17 +239,17 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
                         </Select>
                     </FormControl>
                 ) : null}
-                <FormControlLabel
-                    control={
-                        <Switch
-                            checked={isExclusive}
-                            onChange={(e) => setIsExclusive(e.target.checked)}
-                            disabled={!hasExclusiveOption}
-                        />
-                    }
-                    label={`Exklusiv buchen${hasExclusiveOption ? ` (+ ${formatPrice(exclusivePrice)})` : ''}`}
-                    sx={{ mt: 2 }}
-                />
+                {hasExclusiveOption &&
+                    <FormControlLabel
+                        control={
+                            <Switch
+                                checked={isExclusive}
+                                onChange={(e) => setIsExclusive(e.target.checked)}
+                            />
+                        }
+                        label={`Exklusiv buchen (+ ${formatPrice(exclusivePrice)})`}
+                        sx={{ mt: 2 }}
+                    />}
             </>
         );
     };
@@ -318,6 +318,7 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
                                         ].filter(Boolean).join(', ')
                                     }
                                     information={room.description}
+                                    additionalNotes={room.services}
                                     infoItems={[
                                         {
                                             icon: <Ruler color={iconColor} />,
@@ -385,6 +386,7 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
                                             ` | ${room.minPersons} - ${room.maxPersons} Personen`
                                         }
                                         information={room.description}
+                                        additionalNotes={room.services}
                                         infoItems={[
                                             {
                                                 icon: <Ruler color={iconColor} />,
