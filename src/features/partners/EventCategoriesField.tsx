@@ -10,13 +10,15 @@ interface Props {
     errors: any;
 }
 
-const EventCategoriesField: React.FC<Props> = ({ control, errors }) => {
+const EventCategoriesField: React.FC<Props> = ({ control, errors }) => { 
     return (
         <Controller
             name="eventCategories"
             control={control}
             render={({ field }) => (
                 <>
+                {console.log("F:")}
+                {console.log(field)}
                     {/* Display Selected Categories */}
                     <Box display="flex" flexDirection="column">
                         {(field.value || []).map((category: EventCategories) => (
