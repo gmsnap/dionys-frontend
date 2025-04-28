@@ -15,6 +15,7 @@ export interface RoomModel {
     images: string[];
     eventCategories: string[];
     roomConfigurations: RoomConfigurationModel[];
+    services: string | null;
     roomPricings?: RoomPricingModel[];
     roomSeatings?: RoomSeatingModel[];
     RoomsEventConfigurations?: {
@@ -35,4 +36,5 @@ export const createEmptyRoomModel = (locationId: number): RoomModel => ({
     images: [],
     eventCategories: [],
     roomConfigurations: [],
+    services: null,
 })
