@@ -74,6 +74,7 @@ export const SignUp = ({ onSuccess }: Props) => {
                                     fullWidth
                                     error={!!errors.email}
                                     helperText={errors.email?.message}
+                                    onChange={(e) => field.onChange(e.target.value.toLowerCase())}
                                 />
                             )}
                         />

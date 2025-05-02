@@ -30,7 +30,8 @@ import { WaitIcon } from "@/components/WaitIcon"
 // Price type options
 const priceTypeOptions = [
     { value: "hour", label: "Fix pro Stunde" },
-    { value: "person", label: "Pro Person u. Stunde" },
+    { value: "person", label: "Pro Person" },
+    { value: "personHour", label: "Pro Person u. Stunde" },
     { value: "once", label: "einmalig" },
     { value: "none", label: "kostenlos" },
 ]
@@ -39,7 +40,8 @@ const priceTypeOptions = [
 const reconfigPriceTypeOptions = [
     { value: "none", label: "Kein Aufpreis" },
     { value: "hour", label: "Fix pro Stunde" },
-    { value: "person", label: "Pro Person u. Stunde" },
+    { value: "person", label: "Fix pro Person" },
+    { value: "personHour", label: "Pro Person u. Stunde" },
     { value: "once", label: "einmalig" },
 ]
 
@@ -330,8 +332,10 @@ const RoomSeatings = ({ roomId }: Props) => {
                                 }}
                             >
                                 <Typography variant="subtitle1">
-                                    {seating.seating} |{" "}
-                                    {new Intl.NumberFormat("de-DE", { maximumFractionDigits: 0 }).format(seating.price)} €
+                                    {seating.seating}, {" "}
+                                    {seating.isAbsolute
+                                        ? `${new Intl.NumberFormat("de-DE", { maximumFractionDigits: 0 }).format(seating.price)} €`
+                                        : `${new Intl.NumberFormat("de-DE", { maximumFractionDigits: 2 }).format(seating.price)}%`}
                                 </Typography>
                             </AccordionSummary>
                         )}

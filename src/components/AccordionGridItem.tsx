@@ -15,6 +15,7 @@ interface GridItemProps {
     title: string;
     subTitle?: string;
     information?: string;
+    additionalNotes?: string | null;
     infoItems?: InfoItem[];
     isActive?: boolean;
 }
@@ -27,6 +28,7 @@ const GridItem: React.FC<GridItemProps> = ({
     title,
     subTitle,
     information,
+    additionalNotes,
     infoItems,
     isActive,
 }) => {
@@ -145,6 +147,18 @@ const GridItem: React.FC<GridItemProps> = ({
                         <Typography variant='subtitle2' sx={{ lineHeight: '24px' }}>{item.label}</Typography>
                     </Box>
                 ))}
+                {additionalNotes &&
+                    <Typography
+                        variant="body2"
+                        sx={{
+                            whiteSpace: 'pre-wrap',
+                            fontWeight: 'bold',
+                            mt: 4,
+                        }}
+                    >
+                        {additionalNotes}
+                    </Typography>
+                }
                 <Typography
                     variant="body2"
                     component="div"

@@ -14,6 +14,7 @@ const staticTranslations = {
   "once": "einmalig",
   "hour": "pro Stunde",
   "person": "pro Person",
+  "personHour": "pro Person/Stunde",
   "consumption": "Mindestverzehr",
   "none": "kostenlos",
 };

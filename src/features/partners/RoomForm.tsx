@@ -77,6 +77,9 @@ const roomValidationSchema = yup.object().shape({
             'Mindestens eine Kategorie notwendig',
             (value) => value != null && value.length > 0
         ),
+    services: yup
+        .string()
+        .nullable(),
 });
 
 const controlWidth = 7;
@@ -236,6 +239,7 @@ const RoomForm = ({
                     throw new Error(`Failed to fetch room with id ${roomId}`);
                 }
                 const roomData = await response.json();
+                console.log(roomData)
                 reset(roomData);
             } catch (err) {
                 if (err instanceof Error) {
@@ -376,6 +380,54 @@ const RoomForm = ({
                                                 name="description"
                                                 control={control}
                                                 error={errors.description?.message}
+                                            />
+                                        )}
+                                    />
+                                </Grid2>
+                            </Grid2>
+                        </Grid2>
+
+                        {/* Services */}
+                        <Grid2 size={{ sm: controlWidth }}>
+                            <Grid2 container alignItems="top">
+                                <Grid2 size={{ xs: labelWidth }}>
+                                    <Typography
+                                        variant="label"
+                                        sx={{
+                                            display: 'inline',
+                                            lineHeight: 1.2,
+                                            mb: 0,
+                                            mt: 0,
+                                        }}
+                                    >
+                                        Inklusivleistungen (optional)
+                                    </Typography>
+                                </Grid2>
+                                <Grid2 size={{ xs: 12, sm: 10, md: 6 }}>
+                                    <Controller
+                                        name="services"
+                                        control={control}
+                                        render={({ field }) => (
+                                            <TextField
+                                                {...field}
+                                                fullWidth
+                                                variant="outlined"
+                                                multiline={true}
+                                                minRows={3}
+                                                sx={{
+                                                    pt: 0,
+                                                    mt: 0,
+                                                    '& .MuiOutlinedInput-root': {
+                                                        alignItems: 'flex-start',
+                                                        paddingTop: 0,
+                                                        paddingBottom: 0,
+                                                    },
+                                                    '& .MuiOutlinedInput-inputMultiline': {
+                                                        paddingTop: '4px',
+                                                        paddingBottom: '4px',
+                                                        lineHeight: 1.4,
+                                                    },
+                                                }}
                                             />
                                         )}
                                     />

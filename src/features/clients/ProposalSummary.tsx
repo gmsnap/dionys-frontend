@@ -39,6 +39,10 @@ const ProposalSummary = ({
     const [sending, setIsSending] = useState(false);
     const [openTermsDialog, setOpenTermsDialog] = useState(false);
     const [termsAccepted, setTermsAccepted] = useState(false);
+    const [dialogContent, setDialogContent] = useState<{ path: string; title: string }>({
+        path: '/terms-of-service/',
+        title: 'AGB'
+    });
 
     const {
         control,
@@ -46,7 +50,8 @@ const ProposalSummary = ({
         formState: { errors },
     } = useForm();
 
-    const handleOpenTermsDialog = () => {
+    const handleOpenTermsDialog = (path: string, title: string) => {
+        setDialogContent({ path, title });
         setOpenTermsDialog(true);
     };
 
@@ -125,7 +130,8 @@ const ProposalSummary = ({
                     overflowY: 'auto',
                     ml: 2,
                     mr: 2,
-                    pb: { xs: 20, sm: 16 },
+                    pr: { xs: 1, sm: 2 },
+                    pb: { xs: 28, sm: 28 },
                 }}
             >
                 <Typography variant='body1'>
@@ -186,11 +192,42 @@ const ProposalSummary = ({
                     bottom: 0,
                 }}
             >
+                <Typography variant='body2' sx={{ textAlign: 'center', mt: 2, mb: 0, p: 2 }}>
+                    Mit dem Anklicken von &quot;Angebot anfordern&quot; stimme ich den{' '}
+                    <Typography
+                        variant='body2'
+                        component="span"
+                        sx={{
+                            fontWeight: 700,
+                            color: 'primary.main',
+                            textDecoration: 'underline',
+                            cursor: 'pointer'
+                        }}
+                        onClick={() => handleOpenTermsDialog('/terms-of-service/', 'AGB')}
+                    >
+                        AGB
+                    </Typography>{' '}
+                    und{' '}
+                    <Typography
+                        variant='body2'
+                        component="span"
+                        sx={{
+                            fontWeight: 700,
+                            color: 'primary.main',
+                            textDecoration: 'underline',
+                            cursor: 'pointer'
+                        }}
+                        onClick={() => handleOpenTermsDialog('/privacy/', 'Datenschutzbestimmungen')}
+                    >
+                        Datenschutzbestimmungen
+                    </Typography>{' '}
+                    von DIONYS zu.
+                </Typography>
                 <ProposalNextButton
-                    nextStep={handleOpenTermsDialog}
+                    nextStep={sendProposal}
                     isDisabled={sending}
                     title="Angebot anfordern"
-                    sx={{ mt: 2, mb: 0, pb: 0 }}
+                    sx={{ mt: 0, mb: 0, pb: 0 }}
                 />
                 <ProposalBackButton
                     previousStep={
@@ -215,7 +252,7 @@ const ProposalSummary = ({
                     },
                 }}
             >
-                <DialogTitle>AGB Akzeptieren</DialogTitle>
+                <DialogTitle>{dialogContent.title}</DialogTitle>
                 <DialogContent dividers sx={{ p: 0, overflow: 'hidden' }}>
                     <Box
                         sx={{
@@ -225,8 +262,8 @@ const ProposalSummary = ({
                         }}
                     >
                         <iframe
-                            src="https://d18yz6yiwm54x7.cloudfront.net/terms-of-service/"
-                            title="Terms and Conditions"
+                            src={`${window.location.origin}${dialogContent.path}`}
+                            title={dialogContent.title}
                             style={{
                                 width: '100%',
                                 height: '100%',
@@ -236,34 +273,13 @@ const ProposalSummary = ({
                     </Box>
                 </DialogContent>
                 <DialogActions sx={{ flexDirection: 'column', alignItems: 'flex-start', p: 2 }}>
-                    <FormControlLabel
-                        control={
-                            <Checkbox
-                                checked={termsAccepted}
-                                onChange={(e) => setTermsAccepted(e.target.checked)}
-                                color="primary"
-                            />
-                        }
-                        label="Ich stimme den Allgemeinen Geschäftsbedingungen zu"
-                        sx={{ mb: 1 }}
-                    />
-                    <Box sx={{ display: 'flex', gap: 2, width: '100%' }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 2, width: '100%' }}>
                         <Button
                             variant="contained"
                             color="primary"
-                            onClick={handleAcceptTerms}
-                            disabled={!termsAccepted}
-                            sx={{ flex: 1 }}
-                        >
-                            Zustimmen
-                        </Button>
-                        <Button
-                            variant="outlined"
-                            color="secondary"
                             onClick={handleCloseTermsDialog}
-                            sx={{ flex: 1 }}
                         >
-                            Abbrechen
+                            Schliessen
                         </Button>
                     </Box>
                 </DialogActions>

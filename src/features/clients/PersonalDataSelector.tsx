@@ -119,6 +119,7 @@ const PersonalDataSelector = ({
                                         {...field}
                                         inputRef={givenNameRef}
                                         fullWidth
+                                        autoComplete="given-name"
                                         variant="outlined"
                                         error={!!errors.givenName}
                                         helperText={errors.givenName?.message}
@@ -143,6 +144,7 @@ const PersonalDataSelector = ({
                                         {...field}
                                         inputRef={familyNameRef}
                                         fullWidth
+                                        autoComplete="family-name"
                                         variant="outlined"
                                         error={!!errors.familyName}
                                         helperText={errors.familyName?.message}
@@ -167,6 +169,7 @@ const PersonalDataSelector = ({
                                         {...field}
                                         inputRef={emailRef}
                                         fullWidth
+                                        autoComplete="email"
                                         variant="outlined"
                                         type="email"
                                         error={!!errors.email}
@@ -192,6 +195,7 @@ const PersonalDataSelector = ({
                                         {...field}
                                         inputRef={phoneNumberRef}
                                         fullWidth
+                                        autoComplete="tel"
                                         variant="outlined"
                                         type="tel"
                                         error={!!errors.phoneNumber}
