@@ -134,6 +134,7 @@ const PackagesPageContent = ({ locationId, packageCategory }: Props) => {
                     packageId={packageId}
                     locationId={locationId}
                     companyId={partnerUser.companyId}
+                    packageCategory={packageCategory}
                     created={(id: number) => {
                         fetchPackagesFromApi(id);
                     }}

@@ -70,7 +70,7 @@ const EventPackageForm = ({
     const [responseMessage, setResponseMessage] = useState("");
 
     const defaultValues = {
-        ...createEmptyEventPackageModel(0),
+        ...createEmptyEventPackageModel(0, packageCategory ?? AvailablePackageCategories[0] as PackageCategories),
         ...(packageCategory !== undefined && { packageCategory: packageCategory }),
     };
 
