@@ -15,6 +15,7 @@ export interface EventPackageModel {
     maxPersons: number | null;
     images: string[];
     eventCategories: string[];
+    roomIds?: number[];
 }
 
 export const createEmptyEventPackageModel = (
@@ -32,6 +33,7 @@ export const createEmptyEventPackageModel = (
     maxPersons: null,
     images: [],
     eventCategories: [],
+    roomIds: [],
 });
 
 // Validation schema
@@ -99,6 +101,9 @@ export const EventPackageValidationSchema = yup.object().shape({
             'Mindestens eine Kategorie notwendig',
             (value) => value != null && value.length > 0
         ),
+    roomIds: yup.array()
+        .of(yup.number())
+        .optional(),
 });
 
 export const toBookingPackage = (model: EventPackageModel): BookingPackage => ({

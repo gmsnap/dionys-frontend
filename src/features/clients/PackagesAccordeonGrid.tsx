@@ -49,7 +49,15 @@ const PackagesAccordeonGrid = ({ packageCategory, sx }: Props) => {
     return (
         <Grid2 container spacing={1} sx={{ ...sx }}>
             {location.eventPackages
-                .filter((p) => !packageCategory || p.packageCategory === packageCategory)
+                .filter((p) => (!packageCategory || p.packageCategory === packageCategory) &&
+                    (!p.roomIds ||
+                        p.roomIds.length === 0 ||
+                        (
+                            eventConfiguration?.rooms &&
+                            Array.isArray(p.roomIds) &&
+                            eventConfiguration.rooms.some(room => p.roomIds!.includes(room.id))
+                        )
+                    ))
                 .map((p) => (
                     <Grid2 key={p.id} size={{ xs: 12 }}>
                         <AccordionGridItem
