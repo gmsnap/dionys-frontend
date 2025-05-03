@@ -4,7 +4,7 @@ import theme from '@/theme';
 
 interface PartnerContentLayoutProps {
     title?: string;
-    subTitle?: string;
+    description?: string;
     children: ReactNode;
     controls?: ReactNode;
     line?: boolean;
@@ -13,13 +13,13 @@ interface PartnerContentLayoutProps {
 
 const PartnerContentLayout: React.FC<PartnerContentLayoutProps> = ({
     title,
-    subTitle,
+    description,
     children,
     controls,
     line,
     margins,
 }) => {
-    const isMobile = useMediaQuery(theme.breakpoints.down("md"))
+    //const isMobile = useMediaQuery(theme.breakpoints.down("md"))
     const hasTitle = title && title.length > 0;
 
     return (
@@ -48,28 +48,35 @@ const PartnerContentLayout: React.FC<PartnerContentLayoutProps> = ({
                             >
                                 {title}
                             </Typography>
-                            {subTitle &&
-                                <Typography
-                                    variant={isMobile ? 'body2' : 'body1'}
-                                    sx={{
-                                        maxWidth: { xs: '100%', md: '60%' },
-                                        mt: 2,
-                                        ml: 3,
-                                    }}
-                                >
-                                    {subTitle}
-                                </Typography>
-                            }
                         </Box>
                         {controls && <Box sx={{ mr: 4 }}>{controls}</Box>}
                     </Box>
                     {line !== false && <Box
                         sx={{
-                            borderTop: (theme) => `1px solid ${theme.palette.customColors.blue.halfdark}`,
+                            borderTop: `1px solid ${theme.palette.customColors.blue.halfdark}`,
                             width: '100%',
                             mt: 3,
                         }}
                     />}
+                    {description &&
+                        <Typography
+                            variant='body1'
+                            sx={{
+                                color: theme.palette.customColors.blue.dark,
+                                maxWidth: { xs: '100%', md: '60%' },
+                                mt: 3,
+                                ml: 3,
+                            }}
+                        >
+                            {description.split('. ').map((part, index, array) => (
+                                <React.Fragment key={index}>
+                                    {part}
+                                    {index < array.length - 1 && '.'}
+                                    {index < array.length - 1 && <br />}
+                                </React.Fragment>
+                            ))}
+                        </Typography>
+                    }
                 </>
             }
             {/* Main Content */}
