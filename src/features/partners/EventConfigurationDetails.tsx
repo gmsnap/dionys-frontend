@@ -159,7 +159,7 @@ const EventConfigurationDetails = ({ model, onDeleted, sx }: Props) => {
             <Typography variant="h5" sx={{ mt: 2 }}>Pakete</Typography>
             {model.packages && model.packages.map((item, index) => (
                 <Box key={index} sx={{}}>
-                    <Typography>{item.title} ({formatPriceWithType(item.price, item.priceType)})</Typography>
+                    <Typography>{item.title} ({formatPriceWithType(item.price, item.priceType, item.pricingLabel)})</Typography>
                 </Box>
             ))}
 

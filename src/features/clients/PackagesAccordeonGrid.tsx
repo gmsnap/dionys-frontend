@@ -71,7 +71,7 @@ const PackagesAccordeonGrid = ({ packageCategory, sx }: Props) => {
                             subTitle={
                                 p.priceType === "none"
                                     ? undefined
-                                    : `${formatPriceWithType(p.price, p.priceType)}`
+                                    : `${formatPriceWithType(p.price, p.priceType, p.pricingLabel)}`
                             }
                             information={p.description}
                             infoItems={[
@@ -81,7 +81,7 @@ const PackagesAccordeonGrid = ({ packageCategory, sx }: Props) => {
                                 },
                                 {
                                     icon: <HandCoins color={iconColor} />,
-                                    label: formatPriceWithType(p.price, p.priceType),
+                                    label: formatPriceWithType(p.price, p.priceType, p.pricingLabel),
                                 },
                             ]}
                         />

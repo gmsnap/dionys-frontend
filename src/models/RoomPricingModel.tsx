@@ -12,9 +12,11 @@ export interface RoomPricingModel {
     endTime: string;    // 'HH:MM:SS'
     price: number;
     priceType: string;
+    pricingLabel: string;
     exclusiveType: string;
     exclusivePriceType: string | null;
     exclusivePrice: number | null;
+    exclusivePricingLabel: string;
     customName: string | null;
 }
 
@@ -28,9 +30,11 @@ export const createEmptyRoomPricingModel = (roomId: number): RoomPricingModel =>
     endTime: "",
     price: 0,
     priceType: "hour",
+    pricingLabel: "exact",
     exclusiveType: "optional",
     exclusivePriceType: "none",
     exclusivePrice: null,
+    exclusivePricingLabel: "exact",
     customName: null,
 })
 

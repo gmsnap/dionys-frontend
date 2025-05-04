@@ -37,6 +37,7 @@ import { AvailablePackageCategories, type PackageCategories } from "@/constants/
 import { formatPackageCategory } from "@/utils/formatPackageCategories"
 import RichTextField from "@/components/RichTextField"
 import { fetchRooms } from "@/services/roomService"
+import PricingLabelField from "./PricingLabelField"
 
 const controlWidth = 7
 const labelWidth = 4
@@ -455,6 +456,21 @@ const EventPackageForm = ({
                             </Grid2>
                             <Grid2 size={{ xs: 12, sm: 10, md: 6 }}>
                                 <PriceTypeField control={control} errors={errors} />
+                            </Grid2>
+                        </Grid2>
+
+                        {/* Price Label */}
+                        <Grid2 size={{ sm: controlWidth }}>
+                            <Grid2 container alignItems="top">
+                                <Grid2 size={{ xs: labelWidth }}>
+                                    <Typography variant="label">Preis-Label</Typography>
+                                </Grid2>
+                                <Grid2 size={{ xs: 12, sm: 10, md: 6 }}>
+                                    <PricingLabelField
+                                        control={control}
+                                        errors={errors}
+                                    />
+                                </Grid2>
                             </Grid2>
                         </Grid2>
 

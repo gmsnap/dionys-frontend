@@ -29,7 +29,7 @@ const EventPackageGrid = ({ sx, eventPackages, addButton = true, selectHandler, 
                         id={p.id}
                         image={p.images[0]}
                         title={p.title}
-                        priceTag={formatPriceWithType(p.price, p.priceType as PriceTypes)}
+                        priceTag={formatPriceWithType(p.price, p.priceType as PriceTypes, p.pricingLabel)}
                         listItems={[
                             ...(p.minPersons != null || p.maxPersons != null
                                 ? [{

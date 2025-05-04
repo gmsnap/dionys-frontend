@@ -297,7 +297,8 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
                                         schedules: room.roomPricings,
                                         seatings: room.roomSeatings,
                                         seating,
-                                    })
+                                    }),
+                                    room.pricingLabel
                                 )
                                 : "?";
 
@@ -369,7 +370,8 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
                                             schedules: room.roomPricings,
                                             seatings: room.roomSeatings,
                                             seating: '',
-                                        })
+                                        }),
+                                        room.pricingLabel
                                     )
                                     : "?";
 
