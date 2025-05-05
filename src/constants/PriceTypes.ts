@@ -14,3 +14,12 @@ export const AvailablePriceTypes = [
     "consumption",
     "none",
 ];
+
+export type PricingLabels =
+    "exact" |
+    "from";
+
+export const AvailablePricingLabels = [
+    "exact",
+    "from",
+];

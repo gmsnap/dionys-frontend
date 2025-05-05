@@ -13,6 +13,9 @@ const PartnerPage: NextPageWithLayout = () => {
     const [locationId, setLocationId] = useState<number | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
 
+    const pageTitle = 'Food & Beverage';
+    const pageDescription = 'Erstelle Food & Beverage Pakete für standardisierte Essens- und Getränkeoptionen. Individuelle Optionen können als eigenes Paket angelegt werden.';
+
     useEffect(() => {
         if (partnerUser && partnerLocations) {
             setIsLoading(false);
@@ -21,7 +24,7 @@ const PartnerPage: NextPageWithLayout = () => {
 
     if (isLoading) {
         return (
-            <PartnerContentLayout title='Food & Beverage'>
+            <PartnerContentLayout title={pageTitle} description={pageDescription}>
                 <WaitIcon sx={{ mt: 20 }} />
             </PartnerContentLayout>
         );
@@ -29,7 +32,7 @@ const PartnerPage: NextPageWithLayout = () => {
 
     if (!partnerLocations || partnerLocations.length == 0) {
         return (
-            <PartnerContentLayout title='Food & Beverage'>
+            <PartnerContentLayout title={pageTitle} description={pageDescription}>
                 <Box sx={{
                     width: '100%',
                     mt: 10,
@@ -43,13 +46,16 @@ const PartnerPage: NextPageWithLayout = () => {
     }
 
     return (
-        <PartnerContentLayout title='Food & Beverage' controls={
-            <LocationsDropDown
-                partnerLocations={partnerLocations}
-                locationId={locationId}
-                onLocationChange={setLocationId}
-            />
-        }>
+        <PartnerContentLayout
+            title={pageTitle}
+            description={pageDescription}
+            controls={
+                <LocationsDropDown
+                    partnerLocations={partnerLocations}
+                    locationId={locationId}
+                    onLocationChange={setLocationId}
+                />
+            }>
             <PackagesPageContent
                 locationId={locationId}
                 packageCategory={"catering"}

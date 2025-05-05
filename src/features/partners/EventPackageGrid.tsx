@@ -1,7 +1,7 @@
 import React, { } from 'react';
 import { Box, SxProps, Theme, Grid2, Button } from '@mui/material';
 import GridItem from '@/components/GridItem';
-import { formatPrice, formatPriceWithType, translatePrice } from '@/utils/formatPrice';
+import { formatPriceWithType } from '@/utils/formatPrice';
 import { Pencil, User, X } from 'lucide-react';
 import GridAddItem from '@/components/GridAddItem';
 import { EventPackageModel } from '@/models/EventPackageModel';
@@ -29,7 +29,7 @@ const EventPackageGrid = ({ sx, eventPackages, addButton = true, selectHandler, 
                         id={p.id}
                         image={p.images[0]}
                         title={p.title}
-                        priceTag={formatPriceWithType(p.price, p.priceType as PriceTypes)}
+                        priceTag={formatPriceWithType(p.price, p.priceType as PriceTypes, p.pricingLabel)}
                         listItems={[
                             ...(p.minPersons != null || p.maxPersons != null
                                 ? [{

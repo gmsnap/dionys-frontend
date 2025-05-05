@@ -76,8 +76,7 @@ const PartnerPage: NextPageWithLayout = () => {
     return (
         <PartnerContentLayout
             title='Revenue Manager'
-            subTitle={subTtile}
-            line={false}
+            description={subTtile}
             margins={0}
         >
             <Box sx={{

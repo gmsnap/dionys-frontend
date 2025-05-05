@@ -278,7 +278,10 @@ const PartnerPage: NextPageWithLayout = () => {
 PartnerPage.getLayout = function getLayout(page: ReactElement) {
     return (
         <PartnerLayout>
-            <PartnerContentLayout title='Locations / Venues'>
+            <PartnerContentLayout
+                title='Locations / Venues'
+                description='Lege deine Event Locations an und kopiere den Integrationscode für deine Website. '
+            >
                 {page}
             </PartnerContentLayout>
         </PartnerLayout>

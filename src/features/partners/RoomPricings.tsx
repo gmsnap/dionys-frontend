@@ -18,8 +18,9 @@ import {
     Accordion,
     AccordionSummary,
     AccordionDetails,
+    Tooltip,
 } from "@mui/material"
-import { ChevronDown, Circle, CirclePlus, Plus, Save, Trash2 } from "lucide-react"
+import { ChevronDown, Circle, CircleHelp, CirclePlus, Plus, Save, Trash2 } from "lucide-react"
 import { useEffect, useState } from "react"
 import theme from "@/theme"
 import { useAuthContext } from "@/auth/AuthContext"
@@ -86,6 +87,16 @@ const roomPricingTypeOptions = [
     { value: "basic", label: "Grundpreis" },
     { value: "extra", label: "Aufpreis" },
 ]
+
+// Pricing labels options
+const pricingLabelOptions = [
+    { value: "exact", label: "genau" },
+    { value: "from", label: "ab" },
+]
+
+const roomPriceTypeInfo = "Der Grundpreis legt den Basispreis für deinen Raum fest. " +
+    "Zeitslots von Grundpreisen dürfen sich nicht überschneiden. \n" +
+    "Aufpreise fallen zusätzlich an festgelegten Zeitslots an. Aufpreise dürfen sich überschneiden.";
 
 interface Props {
     roomId?: number | null
@@ -424,13 +435,44 @@ const RoomPricings = ({ roomId }: Props) => {
                                         <Typography variant="subtitle2" sx={{ mb: 1 }}>Preisdetails</Typography>
                                     </Grid2>
                                     <Grid2 container spacing={2} size={{ xs: 12 }}>
-                                        <Grid2 size={{ xs: 12, sm: 6, md: 3 }}>
+                                        <Grid2 size={{ xs: 12, sm: 6, md: 2.4 }}>
                                             <FormControl fullWidth size="small">
-                                                <InputLabel>Typ</InputLabel>
+                                                <InputLabel id="room-pricing-type-label"
+                                                    sx={{
+                                                        flexShrink: 0,
+                                                        lineHeight: '1.5rem',
+                                                        display: 'flex',
+                                                        flexDirection: 'row',
+                                                    }}
+                                                >
+                                                    <Tooltip
+                                                        title={
+                                                            <Typography
+                                                                variant="body1"
+                                                                sx={{ whiteSpace: 'pre-line', fontSize: '13px', }}
+                                                            >
+                                                                {roomPriceTypeInfo}
+                                                            </Typography>
+                                                        }
+                                                        arrow
+                                                        enterTouchDelay={0}
+                                                        leaveTouchDelay={12000}
+                                                    >
+                                                        <Box sx={{ display: 'flex', flexDirection: 'row', backgroundColor: 'transparent' }}>
+                                                            <Typography sx={{ mr: 1 }}>Typ</Typography>
+                                                            <CircleHelp
+                                                                size="24"
+                                                                stroke="white"
+                                                                fill={theme.palette.customColors.blue.main}
+                                                            />
+                                                        </Box>
+                                                    </Tooltip>
+                                                </InputLabel>
                                                 <Select
-                                                    value={pricing.roomPricingType || "basic"}
+                                                    labelId="room-pricing-type-label"
+                                                    value={pricing.roomPricingType || 'basic'}
                                                     label="Typ"
-                                                    onChange={(e) => handlePricingChange(index, "roomPricingType", e.target.value)}
+                                                    onChange={(e) => handlePricingChange(index, 'roomPricingType', e.target.value)}
                                                 >
                                                     {roomPricingTypeOptions.map((type) => (
                                                         <MenuItem key={type.value} value={type.value}>
@@ -440,7 +482,7 @@ const RoomPricings = ({ roomId }: Props) => {
                                                 </Select>
                                             </FormControl>
                                         </Grid2>
-                                        <Grid2 size={{ xs: 12, sm: 6, md: 3 }}>
+                                        <Grid2 size={{ xs: 12, sm: 6, md: 2.4 }}>
                                             <TextField
                                                 fullWidth
                                                 label="Bezeichnung (optional)"
@@ -455,7 +497,7 @@ const RoomPricings = ({ roomId }: Props) => {
                                                 onBlur={handleCustomNameBlur}
                                             />
                                         </Grid2>
-                                        <Grid2 size={{ xs: 12, sm: 6, md: 3 }}>
+                                        <Grid2 size={{ xs: 12, sm: 6, md: 2.4 }}>
                                             <FormControl fullWidth size="small">
                                                 <InputLabel>Preistyp</InputLabel>
                                                 <Select
@@ -471,7 +513,24 @@ const RoomPricings = ({ roomId }: Props) => {
                                                 </Select>
                                             </FormControl>
                                         </Grid2>
-                                        <Grid2 size={{ xs: 12, sm: 6, md: 3 }}>
+                                        {/* Pricing Label */}
+                                        <Grid2 size={{ xs: 12, sm: 6, md: 2.4 }}>
+                                            <FormControl fullWidth size="small">
+                                                <InputLabel>Preis-Label</InputLabel>
+                                                <Select
+                                                    value={pricing.pricingLabel || "exact"}
+                                                    label="Preis-Label"
+                                                    onChange={(e) => handlePricingChange(index, "pricingLabel", e.target.value)}
+                                                >
+                                                    {pricingLabelOptions.map((label) => (
+                                                        <MenuItem key={label.value} value={label.value}>
+                                                            {label.label}
+                                                        </MenuItem>
+                                                    ))}
+                                                </Select>
+                                            </FormControl>
+                                        </Grid2>
+                                        <Grid2 size={{ xs: 12, sm: 6, md: 2.4 }}>
                                             <TextField
                                                 fullWidth
                                                 label="Preis"
@@ -587,16 +646,33 @@ const RoomPricings = ({ roomId }: Props) => {
                                                 </Grid2>
                                                 <Grid2 size={{ xs: 12, sm: 6, md: 3 }}>
                                                     <FormControl fullWidth size="small">
-                                                        <InputLabel>Exklusivität Preistyp</InputLabel>
+                                                        <InputLabel>Preistyp Exklusivität</InputLabel>
                                                         <Select
                                                             value={pricing.exclusivePriceType || ""}
-                                                            label="Exklusivität Preistyp"
+                                                            label="Preistyp Exklusivität"
                                                             disabled={pricing.exclusiveType === "none" || !pricing.exclusiveType}
                                                             onChange={(e) => handlePricingChange(index, "exclusivePriceType", e.target.value)}
                                                         >
                                                             {priceTypeOptions.map((type) => (
                                                                 <MenuItem key={type.value} value={type.value}>
                                                                     {type.label}
+                                                                </MenuItem>
+                                                            ))}
+                                                        </Select>
+                                                    </FormControl>
+                                                </Grid2>
+                                                {/* Pricing Label */}
+                                                <Grid2 size={{ xs: 12, sm: 6, md: 3 }}>
+                                                    <FormControl fullWidth size="small">
+                                                        <InputLabel>Preis-Label Exklusivität</InputLabel>
+                                                        <Select
+                                                            value={pricing.exclusivePricingLabel || "exact"}
+                                                            label="Preis-Label Exklusivität"
+                                                            onChange={(e) => handlePricingChange(index, "exclusivePricingLabel", e.target.value)}
+                                                        >
+                                                            {pricingLabelOptions.map((label) => (
+                                                                <MenuItem key={label.value} value={label.value}>
+                                                                    {label.label}
                                                                 </MenuItem>
                                                             ))}
                                                         </Select>
@@ -627,7 +703,7 @@ const RoomPricings = ({ roomId }: Props) => {
                                                 </Grid2>
                                             </>
                                         )}
-                                        <Grid2 size={{ xs: 12, md: pricing.roomPricingType === "basic" ? 3 : 12 }}>
+                                        <Grid2 size={{ xs: 12, md: pricing.roomPricingType === "basic" ? 12 : 12 }}>
                                             <Box sx={{ display: "flex", gap: 1, justifyContent: "end" }}>
                                                 <IconButton
                                                     color="primary"
