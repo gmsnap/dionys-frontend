@@ -344,156 +344,169 @@ const RoomSeatings = ({ roomId }: Props) => {
                         <AccordionDetails sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
                             <Paper key={index} sx={{ p: 2, mb: 2 }}>
                                 <Grid2 container spacing={2} alignItems="center">
-                                    {/* Seating type */}
-                                    <Grid2 size={{ xs: 12, sm: 6, md: 2 }}>
-                                        <FormControl fullWidth size="small">
-                                            <InputLabel>Sitzplatztyp</InputLabel>
-                                            <Select
-                                                value={seating.seating}
-                                                label="Sitzplatztyp"
-                                                onChange={(e) => handleSeatingChange(index, "seating", e.target.value)}
-                                            >
-                                                {seatingTypeOptions.map((type) => (
-                                                    <MenuItem key={type.value} value={type.value}>
-                                                        {type.label}
-                                                    </MenuItem>
-                                                ))}
-                                            </Select>
-                                        </FormControl>
+
+                                    {/* Row 1 */}
+                                    <Grid2 size={{ xs: 12 }}>
+                                        <Typography variant="subtitle2" sx={{ mb: 1 }}>Seating-Details</Typography>
+                                    </Grid2>
+                                    <Grid2 container spacing={2} size={{ xs: 12 }}>
+                                        {/* Seating type */}
+                                        <Grid2 size={{ xs: 12, sm: 6, md: 4 }}>
+                                            <FormControl fullWidth size="small">
+                                                <InputLabel>Sitzplatztyp</InputLabel>
+                                                <Select
+                                                    value={seating.seating}
+                                                    label="Sitzplatztyp"
+                                                    onChange={(e) => handleSeatingChange(index, "seating", e.target.value)}
+                                                >
+                                                    {seatingTypeOptions.map((type) => (
+                                                        <MenuItem key={type.value} value={type.value}>
+                                                            {type.label}
+                                                        </MenuItem>
+                                                    ))}
+                                                </Select>
+                                            </FormControl>
+                                        </Grid2>
+
+                                        {/* Price type */}
+                                        <Grid2 size={{ xs: 12, sm: 6, md: 4 }}>
+                                            <FormControl fullWidth size="small">
+                                                <InputLabel>Preistyp</InputLabel>
+                                                <Select
+                                                    value={seating.priceType}
+                                                    label="Preistyp"
+                                                    onChange={(e) => handleSeatingChange(index, "priceType", e.target.value)}
+                                                >
+                                                    {priceTypeOptions.map((type) => (
+                                                        <MenuItem key={type.value} value={type.value}>
+                                                            {type.label}
+                                                        </MenuItem>
+                                                    ))}
+                                                </Select>
+                                            </FormControl>
+                                        </Grid2>
+
+                                        {/* Is Absolute switch */}
+                                        <Grid2 size={{ xs: 12, sm: 6, md: 2 }}>
+                                            <FormControlLabel
+                                                control={
+                                                    <Switch
+                                                        checked={seating.isAbsolute}
+                                                        onChange={(e) => handleSeatingChange(index, "isAbsolute", e.target.checked)}
+                                                    />
+                                                }
+                                                label="Absolut"
+                                            />
+                                        </Grid2>
+
+                                        {/* Price field with currency or percentage formatting based on isAbsolute */}
+                                        <Grid2 size={{ xs: 12, sm: 6, md: 2 }}>
+                                            <TextField
+                                                fullWidth
+                                                label={seating.isAbsolute ? "Preis" : "Prozent"}
+                                                size="small"
+                                                value={editingPriceIndex === index ? editingPriceValue : formatPriceForDisplay(seating.price)}
+                                                onFocus={() => handlePriceFocus(index)}
+                                                onChange={handlePriceChange}
+                                                onBlur={handlePriceBlur}
+                                                slotProps={{
+                                                    input: {
+                                                        ...(seating.isAbsolute && {
+                                                            startAdornment: (
+                                                                <InputAdornment position="start">€</InputAdornment>
+                                                            ),
+                                                        }),
+                                                        ...(!seating.isAbsolute && {
+                                                            endAdornment: (
+                                                                <InputAdornment position="end">%</InputAdornment>
+                                                            ),
+                                                        }),
+                                                    },
+                                                }}
+                                            />
+                                        </Grid2>
                                     </Grid2>
 
-                                    {/* Price type */}
-                                    <Grid2 size={{ xs: 12, sm: 6, md: 2 }}>
-                                        <FormControl fullWidth size="small">
-                                            <InputLabel>Preistyp</InputLabel>
-                                            <Select
-                                                value={seating.priceType}
-                                                label="Preistyp"
-                                                onChange={(e) => handleSeatingChange(index, "priceType", e.target.value)}
-                                            >
-                                                {priceTypeOptions.map((type) => (
-                                                    <MenuItem key={type.value} value={type.value}>
-                                                        {type.label}
-                                                    </MenuItem>
-                                                ))}
-                                            </Select>
-                                        </FormControl>
+                                    {/* Row 2 */}
+                                    <Grid2 size={{ xs: 12 }}>
+                                        <Typography variant="subtitle2" sx={{ mb: 1 }}>Aufpreis Umbau</Typography>
                                     </Grid2>
+                                    <Grid2 container spacing={2} size={{ xs: 12 }}>
+                                        {/* Reconfig price type */}
+                                        <Grid2 size={{ xs: 12, sm: 6, md: 4 }}>
+                                            <FormControl fullWidth size="small">
+                                                <InputLabel>Aufpreis Umbau</InputLabel>
+                                                <Select
+                                                    value={seating.reconfigPriceType || "none"}
+                                                    label="Aufpreis Umbau"
+                                                    onChange={(e) => handleSeatingChange(index, "reconfigPriceType", e.target.value)}
+                                                >
+                                                    {reconfigPriceTypeOptions.map((type) => (
+                                                        <MenuItem key={type.value} value={type.value}>
+                                                            {type.label}
+                                                        </MenuItem>
+                                                    ))}
+                                                </Select>
+                                            </FormControl>
+                                        </Grid2>
 
-                                    {/* Is Absolute switch */}
-                                    <Grid2 size={{ xs: 12, sm: 6, md: 1.2 }}>
-                                        <FormControlLabel
-                                            control={
-                                                <Switch
-                                                    checked={seating.isAbsolute}
-                                                    onChange={(e) => handleSeatingChange(index, "isAbsolute", e.target.checked)}
-                                                />
-                                            }
-                                            label="Absolut"
-                                        />
-                                    </Grid2>
+                                        {/* Reconfig Is Absolute switch - only enabled when reconfigPriceType is not "none" */}
+                                        <Grid2 size={{ xs: 12, sm: 6, md: 2 }}>
+                                            <FormControlLabel
+                                                control={
+                                                    <Switch
+                                                        checked={seating.reconfigIsAbsolute === true}
+                                                        disabled={seating.reconfigPriceType === "none"}
+                                                        onChange={(e) =>
+                                                            handleSeatingChange(
+                                                                index,
+                                                                "reconfigIsAbsolute",
+                                                                seating.reconfigPriceType === "none" ? null : e.target.checked,
+                                                            )
+                                                        }
+                                                    />
+                                                }
+                                                label="Absolut"
+                                            />
+                                        </Grid2>
 
-                                    {/* Price field with currency or percentage formatting based on isAbsolute */}
-                                    <Grid2 size={{ xs: 12, sm: 6, md: 1.2 }}>
-                                        <TextField
-                                            fullWidth
-                                            label={seating.isAbsolute ? "Preis" : "Prozent"}
-                                            size="small"
-                                            value={editingPriceIndex === index ? editingPriceValue : formatPriceForDisplay(seating.price)}
-                                            onFocus={() => handlePriceFocus(index)}
-                                            onChange={handlePriceChange}
-                                            onBlur={handlePriceBlur}
-                                            slotProps={{
-                                                input: {
-                                                    ...(seating.isAbsolute && {
-                                                        startAdornment: (
-                                                            <InputAdornment position="start">€</InputAdornment>
-                                                        ),
-                                                    }),
-                                                    ...(!seating.isAbsolute && {
-                                                        endAdornment: (
-                                                            <InputAdornment position="end">%</InputAdornment>
-                                                        ),
-                                                    }),
-                                                },
-                                            }}
-                                        />
-                                    </Grid2>
-
-                                    {/* Reconfig price type */}
-                                    <Grid2 size={{ xs: 12, sm: 6, md: 2 }}>
-                                        <FormControl fullWidth size="small">
-                                            <InputLabel>Aufpreis Umbau</InputLabel>
-                                            <Select
-                                                value={seating.reconfigPriceType || "none"}
-                                                label="Aufpreis Umbau"
-                                                onChange={(e) => handleSeatingChange(index, "reconfigPriceType", e.target.value)}
-                                            >
-                                                {reconfigPriceTypeOptions.map((type) => (
-                                                    <MenuItem key={type.value} value={type.value}>
-                                                        {type.label}
-                                                    </MenuItem>
-                                                ))}
-                                            </Select>
-                                        </FormControl>
-                                    </Grid2>
-
-                                    {/* Reconfig Is Absolute switch - only enabled when reconfigPriceType is not "none" */}
-                                    <Grid2 size={{ xs: 12, sm: 6, md: 1.2 }}>
-                                        <FormControlLabel
-                                            control={
-                                                <Switch
-                                                    checked={seating.reconfigIsAbsolute === true}
-                                                    disabled={seating.reconfigPriceType === "none"}
-                                                    onChange={(e) =>
-                                                        handleSeatingChange(
-                                                            index,
-                                                            "reconfigIsAbsolute",
-                                                            seating.reconfigPriceType === "none" ? null : e.target.checked,
-                                                        )
-                                                    }
-                                                />
-                                            }
-                                            label="Absolut"
-                                        />
-                                    </Grid2>
-
-                                    {/* Reconfig Price field - only enabled when reconfigPriceType is not "none" */}
-                                    <Grid2 size={{ xs: 12, sm: 6, md: 1.2 }}>
-                                        <TextField
-                                            fullWidth
-                                            label={seating.reconfigIsAbsolute ? "Aufpreis EUR" : "Aufpreis %"}
-                                            size="small"
-                                            disabled={seating.reconfigPriceType === "none"}
-                                            value={
-                                                editingReconfigPriceIndex === index
-                                                    ? editingReconfigPriceValue
-                                                    : seating.reconfigPrice !== null
-                                                        ? formatPriceForDisplay(seating.reconfigPrice)
-                                                        : ""
-                                            }
-                                            onFocus={() => handleReconfigPriceFocus(index)}
-                                            onChange={handleReconfigPriceChange}
-                                            onBlur={handleReconfigPriceBlur}
-                                            slotProps={{
-                                                input: {
-                                                    ...(seating.reconfigIsAbsolute && {
-                                                        startAdornment: (
-                                                            <InputAdornment position="start">€</InputAdornment>
-                                                        ),
-                                                    }),
-                                                    ...(!seating.reconfigIsAbsolute && {
-                                                        endAdornment: (
-                                                            <InputAdornment position="end">%</InputAdornment>
-                                                        ),
-                                                    }),
-                                                },
-                                            }}
-                                        />
+                                        {/* Reconfig Price field - only enabled when reconfigPriceType is not "none" */}
+                                        <Grid2 size={{ xs: 12, sm: 6, md: 2 }}>
+                                            <TextField
+                                                fullWidth
+                                                label={seating.reconfigIsAbsolute ? "Aufpreis EUR" : "Aufpreis %"}
+                                                size="small"
+                                                disabled={seating.reconfigPriceType === "none"}
+                                                value={
+                                                    editingReconfigPriceIndex === index
+                                                        ? editingReconfigPriceValue
+                                                        : seating.reconfigPrice !== null
+                                                            ? formatPriceForDisplay(seating.reconfigPrice)
+                                                            : ""
+                                                }
+                                                onFocus={() => handleReconfigPriceFocus(index)}
+                                                onChange={handleReconfigPriceChange}
+                                                onBlur={handleReconfigPriceBlur}
+                                                slotProps={{
+                                                    input: {
+                                                        ...(seating.reconfigIsAbsolute && {
+                                                            startAdornment: (
+                                                                <InputAdornment position="start">€</InputAdornment>
+                                                            ),
+                                                        }),
+                                                        ...(!seating.reconfigIsAbsolute && {
+                                                            endAdornment: (
+                                                                <InputAdornment position="end">%</InputAdornment>
+                                                            ),
+                                                        }),
+                                                    },
+                                                }}
+                                            />
+                                        </Grid2>
                                     </Grid2>
 
                                     {/* Action buttons */}
-                                    <Grid2 size={{ xs: 12, sm: 6, md: 1.2 }}>
+                                    <Grid2 size={{ xs: 12, }}>
                                         <Box sx={{ display: "flex", gap: 1, justifyContent: "end" }}>
                                             <IconButton
                                                 color="primary"
