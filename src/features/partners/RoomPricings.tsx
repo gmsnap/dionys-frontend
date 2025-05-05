@@ -455,6 +455,8 @@ const RoomPricings = ({ roomId }: Props) => {
                                                             </Typography>
                                                         }
                                                         arrow
+                                                        enterTouchDelay={0}
+                                                        leaveTouchDelay={12000}
                                                     >
                                                         <Box sx={{ display: 'flex', flexDirection: 'row', backgroundColor: 'transparent' }}>
                                                             <Typography sx={{ mr: 1 }}>Typ</Typography>
