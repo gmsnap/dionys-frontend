@@ -57,12 +57,12 @@ export const createRoomPricing = async (
 
         if (!response.ok) {
             const errResult = await response.json();
-            onError?.(errResult?.message ?? "Unkekannter Fehler");
+            onError?.(errResult?.message ?? "Unbekannter Fehler");
             return;
         }
 
         const result = await response.json();
-        onSuccess?.(result);
+        onSuccess?.(result?.model);
         return;
     } catch (err) {
         if (err instanceof Error) {
