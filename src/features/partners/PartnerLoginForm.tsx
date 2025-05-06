@@ -33,8 +33,9 @@ const PartnerLoginForm = ({ credentials }: Props) => {
             'Folke.Mehrtens@ok-online-solutions.com',
         ];
 
-        if (usersToIgnore.includes(usr)) {
-            return usr;
+        const match = usersToIgnore.find(u => u.toLowerCase() === usr.toLowerCase());
+        if (match) {
+            return match;
         }
 
         return usr.toLowerCase();
