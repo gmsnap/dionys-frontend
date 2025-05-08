@@ -1,5 +1,3 @@
-"use client"
-
 import { useForm, Controller } from "react-hook-form"
 import { useState, useEffect } from "react"
 import {

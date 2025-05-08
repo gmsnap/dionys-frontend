@@ -1,6 +1,6 @@
-import { PriceTypes, PricingLabels } from "@/constants/PriceTypes";
 import { RoomPricingModel } from "./RoomPricingModel";
 import { RoomSeatingModel } from "./RoomSeatingModel";
+import { PriceTypes, PricingLabels } from "@/utils/pricingManager";
 
 export interface RoomModel {
     id: number;

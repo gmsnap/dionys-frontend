@@ -24,8 +24,9 @@ import { ChevronDown, Circle, CircleHelp, CirclePlus, Plus, Save, Trash2 } from 
 import { useEffect, useState } from "react"
 import theme from "@/theme"
 import { useAuthContext } from "@/auth/AuthContext"
-import { doPricingSlotsOverlap } from "@/utils/pricingManager"
+import { AvailablePriceTypes, doPricingSlotsOverlap, PriceTypes } from "@/utils/pricingManager"
 import { WaitIcon } from "@/components/WaitIcon"
+import { translatePrice } from "@/utils/formatPrice"
 
 // German days of week
 const germanDaysOfWeek = [
@@ -505,9 +506,9 @@ const RoomPricings = ({ roomId }: Props) => {
                                                     label="Preistyp"
                                                     onChange={(e) => handlePricingChange(index, "priceType", e.target.value)}
                                                 >
-                                                    {priceTypeOptions.map((type) => (
-                                                        <MenuItem key={type.value} value={type.value}>
-                                                            {type.label}
+                                                    {AvailablePriceTypes.map((priceType) => (
+                                                        <MenuItem key={priceType} value={priceType as PriceTypes}>
+                                                            {translatePrice(priceType as PriceTypes)}
                                                         </MenuItem>
                                                     ))}
                                                 </Select>

@@ -1,6 +1,3 @@
-import { PriceTypes } from "@/constants/PriceTypes";
-import { EventConfigurationModel } from "@/models/EventConfigurationModel";
-
 const baseUrl = process.env.NEXT_PUBLIC_API_URL;
 export const evntConfUrl = `${baseUrl}/eventConfigurations`;
 

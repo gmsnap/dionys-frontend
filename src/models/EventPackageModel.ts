@@ -1,7 +1,6 @@
 import * as yup from 'yup';
 import { PackageCategories } from "@/constants/PackageCategories";
-import { PriceTypes, PricingLabels } from '@/constants/PriceTypes';
-import { BookingPackage } from '@/utils/pricingManager';
+import { BookingPackage, PriceTypes, PricingLabels } from '@/utils/pricingManager';
 
 export interface EventPackageModel {
     id: number;

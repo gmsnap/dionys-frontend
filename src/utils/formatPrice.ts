@@ -1,4 +1,4 @@
-import { PriceTypes, PricingLabels } from "@/constants/PriceTypes";
+import { PriceTypes, PricingLabels } from "./pricingManager";
 
 const staticTranslations = {
   "day": "pro Tag",

@@ -1,4 +1,4 @@
-import { addDays, differenceInMinutes, isAfter, isBefore, isEqual } from "date-fns";
+import { addDays, differenceInDays, differenceInMinutes, eachDayOfInterval, isAfter, isBefore, isEqual, startOfDay } from "date-fns";
 
 export interface PricingSlot {
     roomPricingType: string;
@@ -65,27 +65,67 @@ export interface Booking {
 
 export type PriceTypes =
     "day" |
-    "once" |
     "hour" |
     "person" |
     "personHour" |
+    "once" |
     "consumption" |
     "none";
+
+export const AvailablePriceTypes = [
+    "day",
+    "hour",
+    "person",
+    "personHour",
+    "once",
+    "consumption",
+    "none",
+];
+
+export type PricingLabels =
+    "exact" |
+    "from";
+
+export const AvailablePricingLabels = [
+    "exact",
+    "from",
+];
 
 const calculatePriceByPriceType = (
     price: number,
     priceType: string,
-    hours: number | null,
+    startDate: Date,
+    endDate: Date,
     persons: number | null
 ) => {
+    const hours = differenceInMinutes(endDate, startDate) / 60;
+
     switch (priceType) {
         case "hour":
+            console.log("-- hour: ", hours, " --");
             return hours ? hours * price : 0;
         case "person":
+            console.log("-- person --");
             return persons ? persons * price : 0;
         case "personHour":
+            console.log("-- personHour --");
             return hours && persons ? hours * persons * price : 0;
+        case "day":
+            const days = eachDayOfInterval({ start: startDate, end: endDate });
+            const uniqueDays = new Set(days.map(day => startOfDay(day).toISOString()));
+
+            console.log("-- days");
+            console.log("S ", startDate);
+            console.log("E ", endDate);
+            console.log("D ", uniqueDays.size);
+            console.log("days --");
+
+            return uniqueDays.size ? uniqueDays.size * price : 0;
         case "once":
+            console.log("-- once --");
+            return price;
+        case "consumption":
+            console.log("-- consumption --");
             return price;
         case "none":
         default:
@@ -94,16 +134,12 @@ const calculatePriceByPriceType = (
 };
 
 export const calculateBooking = (booking: Booking) => {
-    let diffInHours = 0;
     if (!booking.date || !booking.endDate) {
         return 0;
     }
 
     const bookingStart = booking.date;
     const bookingEnd = booking.endDate;
-
-    const diffInMs = bookingEnd.getTime() - bookingStart.getTime();
-    diffInHours = diffInMs / (1000 * 60 * 60);
 
     const persons = booking.persons ?? 1;
 
@@ -135,8 +171,10 @@ export const calculateBooking = (booking: Booking) => {
             packagesPrice += calculatePriceByPriceType(
                 p.price,
                 p.priceType as PriceTypes,
-                diffInHours,
-                persons);
+                bookingStart,
+                bookingEnd,
+                persons
+            );
         });
     }
 
@@ -233,14 +271,19 @@ export const calculateBookingPrice = ({
                 const segmentStart = isBefore(bookingStart, scheduleStart) ? scheduleStart : bookingStart;
                 const segmentEnd = isAfter(bookingEnd, scheduleEnd) ? scheduleEnd : bookingEnd;
 
-                if (isBefore(segmentStart, segmentEnd)) {
-                    const durationHours = differenceInMinutes(segmentEnd, segmentStart) / 60;
+                console.log("<--")
+                console.log((schedule as any).id)
+                console.log(scheduleStart)
+                console.log(scheduleEnd)
+                console.log("-->")
 
+                if (isBefore(segmentStart, segmentEnd)) {
                     if (includePrice) {
                         const price = calculatePriceByPriceType(
                             schedule.price,
                             schedule.priceType,
-                            durationHours,
+                            segmentStart,
+                            segmentEnd,
                             persons
                         );
 
@@ -262,7 +305,8 @@ export const calculateBookingPrice = ({
                         totalPrice += calculatePriceByPriceType(
                             schedule.exclusivePrice,
                             schedule.exclusivePriceType,
-                            durationHours,
+                            segmentStart,
+                            segmentEnd,
                             persons
                         );
                     }
@@ -282,7 +326,14 @@ export const calculateBookingPrice = ({
         if (!includePrice) return 0;
 
         if (basePriceType === "once" || basePriceType === "day") {
-            return basePrice + calculateSeating(totalPrice, bookingStart, bookingEnd, persons, seatings, seating);
+            return basePrice + calculateSeating(
+                totalPrice,
+                bookingStart,
+                bookingEnd,
+                persons,
+                seatings,
+                seating
+            );
         }
 
         if (basePriceType === "none" || basePriceType === "consumption") {
@@ -293,40 +344,51 @@ export const calculateBookingPrice = ({
     // Sort and merge only basic ranges
     basicRanges.sort((a, b) => a.start.getTime() - b.start.getTime());
 
-    const mergedRanges: { start: Date; end: Date }[] = [];
+    const mergedBasicRanges: { start: Date; end: Date }[] = [];
 
     for (const range of basicRanges) {
-        if (mergedRanges.length === 0) {
-            mergedRanges.push(range);
+        if (mergedBasicRanges.length === 0) {
+            mergedBasicRanges.push(range);
             continue;
         }
 
-        const lastRange = mergedRanges[mergedRanges.length - 1];
+        const lastRange = mergedBasicRanges[mergedBasicRanges.length - 1];
 
         if (isBefore(lastRange.end, range.start)) {
-            mergedRanges.push(range);
+            mergedBasicRanges.push(range);
         } else if (isBefore(lastRange.end, range.end)) {
             lastRange.end = range.end;
         }
     }
 
-    let unaccountedStart = new Date(bookingStart);
+    if (includePrice) {
+        let unaccountedStart = bookingStart;
 
-    for (const range of mergedRanges) {
-        if (isBefore(unaccountedStart, range.start)) {
-            const durationHours = differenceInMinutes(range.start, unaccountedStart) / 60;
-            if (includePrice) {
-                const price = calculatePriceByPriceType(basePrice, basePriceType, durationHours, persons);
-                totalPrice += price;
+        // Time periods that are convered by ranges
+        for (const range of mergedBasicRanges) {
+            if (isBefore(unaccountedStart, range.start)) {
+                const price = calculatePriceByPriceType(
+                    basePrice,
+                    basePriceType,
+                    unaccountedStart,
+                    range.start,
+                    persons
+                );
+                //totalPrice += price;
             }
+            unaccountedStart = new Date(Math.max(unaccountedStart.getTime(), range.end.getTime()));
         }
-        unaccountedStart = new Date(Math.max(unaccountedStart.getTime(), range.end.getTime()));
-    }
 
-    if (isBefore(unaccountedStart, bookingEnd)) {
-        const durationHours = differenceInMinutes(bookingEnd, unaccountedStart) / 60;
-        if (includePrice) {
-            const price = calculatePriceByPriceType(basePrice, basePriceType, durationHours, persons);
+        // Remaining time period, not covered by ranges
+        if (isBefore(unaccountedStart, bookingEnd)) {
+            console.log("UNCOVERED RANGES!!!");
+            const price = calculatePriceByPriceType(
+                basePrice,
+                basePriceType,
+                unaccountedStart,
+                bookingEnd,
+                persons
+            );
             totalPrice += price;
         }
     }
@@ -360,7 +422,8 @@ export const calculateSeating = (
         const seatingPrice = calculatePriceByPriceType(
             seatingBasePrice,
             seatingToApply.priceType,
-            durationHours,
+            bookingStart,
+            bookingEnd,
             persons
         );
 
@@ -375,7 +438,8 @@ export const calculateSeating = (
             const reconfigPrice = calculatePriceByPriceType(
                 reconfigBasePrice,
                 seatingToApply.reconfigPriceType,
-                durationHours,
+                bookingStart,
+                bookingEnd,
                 persons
             );
 
