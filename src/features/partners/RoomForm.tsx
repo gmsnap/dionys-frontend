@@ -20,13 +20,13 @@ import { Save } from 'lucide-react';
 import { roomsBaseUrl, handleDeleteRoom } from '@/services/roomService';
 import ImageUploadForm from '@/features/partners/ImageUploadForm';
 import DeleteButton from '@/components/DeleteButton';
-import EventCategoriesField from '@/features/partners/EventCategoriesField';
 import { useAuthContext } from '@/auth/AuthContext';
 import { fetchLocationsByCompanyId } from '@/services/locationService';
 import PriceInput from '@/components/PriceInput';
 import PriceTypeField from './PriceTypeField';
 import RichTextField from '@/components/RichTextField';
 import PricingLabelField from './PricingLabelField';
+import EventCategoriesField2 from './EventCategoriesField2';
 
 // Validation schema
 const roomValidationSchema = yup.object().shape({
@@ -602,7 +602,7 @@ const RoomForm = ({
                                     <Typography variant="label">Kategorien</Typography>
                                 </Grid2>
                                 <Grid2 size={{ xs: 12, sm: 10, md: 6 }}>
-                                    <EventCategoriesField
+                                    <EventCategoriesField2
                                         control={control}
                                         errors={errors}
                                     />

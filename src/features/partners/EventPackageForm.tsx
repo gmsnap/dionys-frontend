@@ -20,7 +20,6 @@ import { yupResolver } from "@hookform/resolvers/yup"
 import { Save } from "lucide-react"
 import ImageUploadForm from "@/features/partners/ImageUploadForm"
 import DeleteButton from "@/components/DeleteButton"
-import EventCategoriesField from "@/features/partners/EventCategoriesField"
 import { useAuthContext } from "@/auth/AuthContext"
 import { fetchLocationsByCompanyId } from "@/services/locationService"
 import {
@@ -36,6 +35,7 @@ import { formatPackageCategory } from "@/utils/formatPackageCategories"
 import RichTextField from "@/components/RichTextField"
 import { fetchRooms } from "@/services/roomService"
 import PricingLabelField from "./PricingLabelField"
+import EventCategoriesField2 from "./EventCategoriesField2"
 
 const controlWidth = 7
 const labelWidth = 4
@@ -573,7 +573,7 @@ const EventPackageForm = ({
                                 <Typography variant="label">Kategorien</Typography>
                             </Grid2>
                             <Grid2 size={{ xs: 12, sm: 10, md: 6 }}>
-                                <EventCategoriesField control={control} errors={errors} />
+                                <EventCategoriesField2 control={control} errors={errors} />
                             </Grid2>
                         </Grid2>
 
