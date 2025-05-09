@@ -1,4 +1,4 @@
-import { addDays, differenceInDays, differenceInMinutes, eachDayOfInterval, isAfter, isBefore, isEqual, startOfDay } from "date-fns";
+import { addDays, differenceInDays, differenceInMinutes, eachDayOfInterval, isAfter, isBefore, isEqual, startOfDay, set } from "date-fns";
 
 export interface PricingSlot {
     roomPricingType: string;
@@ -219,106 +219,102 @@ export const calculateBookingPrice = ({
     };
 
     schedules?.forEach((schedule) => {
+        // Check if schedule days overlap with booking days
         const bookingStartDay = convertToCustomDay(bookingStart.getDay());
         const bookingEndDay = convertToCustomDay(bookingEnd.getDay());
 
-        let isBookingInScheduleDays = false;
-
+        let daysOverlap = false;
         if (schedule.startDayOfWeek <= schedule.endDayOfWeek) {
-            isBookingInScheduleDays =
+            daysOverlap =
                 (bookingStartDay >= schedule.startDayOfWeek && bookingStartDay <= schedule.endDayOfWeek) ||
-                (bookingEndDay >= schedule.startDayOfWeek && bookingEndDay <= schedule.endDayOfWeek);
+                (bookingEndDay >= schedule.startDayOfWeek && bookingEndDay <= schedule.endDayOfWeek) ||
+                (bookingStartDay <= schedule.startDayOfWeek && bookingEndDay >= schedule.endDayOfWeek);
         } else {
-            isBookingInScheduleDays =
+            daysOverlap =
                 (bookingStartDay >= schedule.startDayOfWeek || bookingStartDay <= schedule.endDayOfWeek) ||
-                (bookingEndDay >= schedule.startDayOfWeek || bookingEndDay <= schedule.endDayOfWeek);
+                (bookingEndDay >= schedule.startDayOfWeek || bookingEndDay <= schedule.endDayOfWeek) ||
+                (bookingStartDay <= schedule.endDayOfWeek && bookingEndDay >= schedule.startDayOfWeek);
         }
 
-        if (!isBookingInScheduleDays) return;
+        if (!daysOverlap) return;
 
-        const currentDate = new Date(bookingStart);
+        // Calculate the schedule's full time range relative to bookingStart
+        const weekStart = startOfDay(bookingStart);
+        const startDayOffset = (schedule.startDayOfWeek - convertToCustomDay(weekStart.getDay()) + 7) % 7;
+        const endDayOffset = (schedule.endDayOfWeek - convertToCustomDay(weekStart.getDay()) + 7) % 7;
 
-        while (currentDate < bookingEnd) {
-            const currentDay = convertToCustomDay(currentDate.getDay());
-            let isInScheduleDays = false;
+        // Set schedule start
+        let scheduleStart = new Date(weekStart);
+        scheduleStart.setDate(weekStart.getDate() + startDayOffset);
+        const [startHour, startMinute] = schedule.startTime.split(":").map(Number);
+        scheduleStart = set(scheduleStart, { hours: startHour, minutes: startMinute, seconds: 0, milliseconds: 0 });
 
-            if (schedule.startDayOfWeek <= schedule.endDayOfWeek) {
-                isInScheduleDays = currentDay >= schedule.startDayOfWeek && currentDay <= schedule.endDayOfWeek;
-            } else {
-                isInScheduleDays = currentDay >= schedule.startDayOfWeek || currentDay <= schedule.endDayOfWeek;
-            }
+        // Set schedule end
+        let scheduleEnd = new Date(weekStart);
+        scheduleEnd.setDate(weekStart.getDate() + endDayOffset);
+        const [endHour, endMinute] = schedule.endTime.split(":").map(Number);
+        scheduleEnd = set(scheduleEnd, { hours: endHour, minutes: endMinute, seconds: 0, milliseconds: 0 });
 
-            if (isInScheduleDays) {
-                const scheduleStart = new Date(currentDate);
-                const scheduleEnd = new Date(currentDate);
+        // Handle overnight schedules (same day, e.g., 8 PM to 2 AM)
+        if (schedule.endTime <= schedule.startTime && schedule.startDayOfWeek === schedule.endDayOfWeek) {
+            scheduleEnd.setDate(scheduleEnd.getDate() + 1);
+        }
 
-                scheduleStart.setHours(
-                    parseInt(schedule.startTime.split(":")[0], 10),
-                    parseInt(schedule.startTime.split(":")[1], 10),
-                    0
+        // If schedule ends before it starts (e.g., wraps around week), adjust
+        if (isBefore(scheduleEnd, scheduleStart)) {
+            scheduleEnd.setDate(scheduleEnd.getDate() + 7);
+        }
+
+        console.log("<-- Schedule Details -->");
+        console.log("Schedule ID:", (schedule as any).id);
+        console.log("Schedule Start:", scheduleStart);
+        console.log("Schedule End:", scheduleEnd);
+        console.log("Booking Start:", bookingStart);
+        console.log("Booking End:", bookingEnd);
+        console.log("-->");
+
+        // Determine the overlapping segment
+        const segmentStart = isBefore(bookingStart, scheduleStart) ? scheduleStart : bookingStart;
+        const segmentEnd = isAfter(bookingEnd, scheduleEnd) ? scheduleEnd : bookingEnd;
+
+        // Only process if there is a valid overlap
+        if (isBefore(segmentStart, segmentEnd) || isEqual(segmentStart, segmentEnd)) {
+            if (includePrice) {
+                const price = calculatePriceByPriceType(
+                    schedule.price,
+                    schedule.priceType,
+                    segmentStart,
+                    segmentEnd,
+                    persons
                 );
 
-                scheduleEnd.setHours(
-                    parseInt(schedule.endTime.split(":")[0], 10),
-                    parseInt(schedule.endTime.split(":")[1], 10),
-                    0
-                );
+                totalPrice += price;
 
-                if (schedule.endTime < schedule.startTime) {
-                    scheduleEnd.setDate(scheduleEnd.getDate() + 1);
-                }
-
-                const segmentStart = isBefore(bookingStart, scheduleStart) ? scheduleStart : bookingStart;
-                const segmentEnd = isAfter(bookingEnd, scheduleEnd) ? scheduleEnd : bookingEnd;
-
-                console.log("<--")
-                console.log((schedule as any).id)
-                console.log(scheduleStart)
-                console.log(scheduleEnd)
-                console.log("-->")
-
-                if (isBefore(segmentStart, segmentEnd)) {
-                    if (includePrice) {
-                        const price = calculatePriceByPriceType(
-                            schedule.price,
-                            schedule.priceType,
-                            segmentStart,
-                            segmentEnd,
-                            persons
-                        );
-
-                        totalPrice += price;
-
-                        if (schedule.roomPricingType === "extra") {
-                            extraRanges.push({ start: segmentStart, end: segmentEnd, price });
-                        }
-                    }
-
-                    if (
-                        includeExclusive &&
-                        schedule.roomPricingType === "basic" &&
-                        isExclusive &&
-                        schedule.exclusiveType &&
-                        schedule.exclusivePriceType &&
-                        schedule.exclusivePrice
-                    ) {
-                        totalPrice += calculatePriceByPriceType(
-                            schedule.exclusivePrice,
-                            schedule.exclusivePriceType,
-                            segmentStart,
-                            segmentEnd,
-                            persons
-                        );
-                    }
-
-                    if (schedule.roomPricingType === "basic") {
-                        basicRanges.push({ start: segmentStart, end: segmentEnd });
-                    }
+                if (schedule.roomPricingType === "extra") {
+                    extraRanges.push({ start: segmentStart, end: segmentEnd, price });
                 }
             }
 
-            currentDate.setDate(currentDate.getDate() + 1);
-            currentDate.setHours(0, 0, 0, 0);
+            if (
+                includeExclusive &&
+                schedule.roomPricingType === "basic" &&
+                isExclusive &&
+                schedule.exclusiveType &&
+                schedule.exclusivePriceType &&
+                schedule.exclusivePrice
+            ) {
+                totalPrice += calculatePriceByPriceType(
+                    schedule.exclusivePrice,
+                    schedule.exclusivePriceType,
+                    segmentStart,
+                    segmentEnd,
+                    persons
+                );
+            }
+
+            if (schedule.roomPricingType === "basic") {
+                basicRanges.push({ start: segmentStart, end: segmentEnd });
+            }
         }
     });
 
@@ -364,7 +360,7 @@ export const calculateBookingPrice = ({
     if (includePrice) {
         let unaccountedStart = bookingStart;
 
-        // Time periods that are convered by ranges
+        // Time periods that are covered by ranges
         for (const range of mergedBasicRanges) {
             if (isBefore(unaccountedStart, range.start)) {
                 const price = calculatePriceByPriceType(
@@ -398,7 +394,6 @@ export const calculateBookingPrice = ({
 
     return totalPrice;
 };
-
 
 export const calculateSeating = (
     totalPrice: number,
