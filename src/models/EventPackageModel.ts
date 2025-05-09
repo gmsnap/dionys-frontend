@@ -1,7 +1,6 @@
 import * as yup from 'yup';
-import { AvailablePackageCategories, PackageCategories } from "@/constants/PackageCategories";
-import { PriceTypes } from '@/constants/PriceTypes';
-import { BookingPackage } from '@/utils/pricingManager';
+import { PackageCategories } from "@/constants/PackageCategories";
+import { BookingPackage, PriceTypes, PricingLabels } from '@/utils/pricingManager';
 
 export interface EventPackageModel {
     id: number;
@@ -11,24 +10,31 @@ export interface EventPackageModel {
     packageCategory: PackageCategories;
     price: number;
     priceType: PriceTypes;
+    pricingLabel: PricingLabels;
     minPersons: number | null;
     maxPersons: number | null;
     images: string[];
     eventCategories: string[];
+    roomIds?: number[];
 }
 
-export const createEmptyEventPackageModel = (locationId: number): EventPackageModel => ({
+export const createEmptyEventPackageModel = (
+    locationId: number,
+    category: PackageCategories
+): EventPackageModel => ({
     id: 0,
     locationId: locationId,
     title: '',
     description: '',
-    packageCategory: AvailablePackageCategories[0] as PackageCategories,
+    packageCategory: category,
     price: 0,
     priceType: 'person',
+    pricingLabel: 'exact',
     minPersons: null,
     maxPersons: null,
     images: [],
     eventCategories: [],
+    roomIds: [],
 });
 
 // Validation schema
@@ -96,6 +102,9 @@ export const EventPackageValidationSchema = yup.object().shape({
             'Mindestens eine Kategorie notwendig',
             (value) => value != null && value.length > 0
         ),
+    roomIds: yup.array()
+        .of(yup.number())
+        .optional(),
 });
 
 export const toBookingPackage = (model: EventPackageModel): BookingPackage => ({

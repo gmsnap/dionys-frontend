@@ -93,7 +93,15 @@ const EventConfigurator2 = ({ locationId, sx, }: EventConfiguratorProps) => {
     // Conditionally add Catering PackageSelector
     if (location?.eventPackages &&
         location.eventPackages
-            .filter((p) => p.packageCategory === AvailablePackageCategories[0] as PackageCategories)
+            .filter((p) => p.packageCategory === AvailablePackageCategories[0] as PackageCategories &&
+                (!p.roomIds ||
+                    p.roomIds.length === 0 ||
+                    (
+                        eventConfiguration?.rooms &&
+                        Array.isArray(p.roomIds) &&
+                        eventConfiguration.rooms.some(room => p.roomIds!.includes(room.id))
+                    )
+                ))
             .length > 0) {
         navItems.push(
             {
@@ -115,7 +123,15 @@ const EventConfigurator2 = ({ locationId, sx, }: EventConfiguratorProps) => {
     // Conditionally add Equipment PackageSelector
     if (location?.eventPackages &&
         location.eventPackages
-            .filter((p) => p.packageCategory === AvailablePackageCategories[1] as PackageCategories)
+            .filter((p) => p.packageCategory === AvailablePackageCategories[1] as PackageCategories &&
+                (!p.roomIds ||
+                    p.roomIds.length === 0 ||
+                    (
+                        eventConfiguration?.rooms &&
+                        Array.isArray(p.roomIds) &&
+                        eventConfiguration.rooms.some(room => p.roomIds!.includes(room.id))
+                    )
+                ))
             .length > 0) {
         navItems.push(
             {

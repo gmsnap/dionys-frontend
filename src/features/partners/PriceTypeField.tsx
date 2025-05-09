@@ -1,7 +1,7 @@
 import { FormControl, FormHelperText, MenuItem, Select } from "@mui/material";
 import { Controller } from "react-hook-form";
-import { AvailablePriceTypes, PriceTypes } from "@/constants/PriceTypes";
 import { translatePrice } from "@/utils/formatPrice";
+import { AvailablePriceTypes, PriceTypes } from "@/utils/pricingManager";
 
 interface FieldProps {
     control: any;

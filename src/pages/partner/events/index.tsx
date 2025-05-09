@@ -195,7 +195,10 @@ const PartnerPage: NextPageWithLayout = () => {
             )}
 
             {/* Content with Headline */}
-            <PageHeadline title='Dashboard' />
+            <PageHeadline
+                title='Dashboard'
+                description='Deine persönliche Seite für den Überblick und die Verwaltung von Veranstaltungen'
+            />
             <Box sx={{
                 mt: { xs: 5, md: 10 },
                 display: 'flex',

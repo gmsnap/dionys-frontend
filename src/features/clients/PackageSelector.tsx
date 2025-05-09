@@ -19,7 +19,7 @@ const PackageSelector = ({
     packageCategory,
     sx
 }: SelectorProps) => {
-    const { eventConfiguration, location, setEventConfiguration } = useStore();
+    const { eventConfiguration, location } = useStore();
 
     const tryComplete = (): void => {
         stepCompleted?.();

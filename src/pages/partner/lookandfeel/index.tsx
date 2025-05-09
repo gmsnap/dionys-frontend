@@ -13,6 +13,9 @@ const PartnerPage: NextPageWithLayout = () => {
     const [locationId, setLocationId] = useState<number | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
 
+    const pageTitle = 'Look & Feel';
+    const pageDescription = 'Erstelle individuelle Look & Feel Pakete für non-F&B Optionen wie Musik, Deko, und Entertainment.';
+
     useEffect(() => {
         if (partnerUser && partnerLocations) {
             setIsLoading(false);
@@ -21,7 +24,7 @@ const PartnerPage: NextPageWithLayout = () => {
 
     if (isLoading) {
         return (
-            <PartnerContentLayout title='Look & Feel'>
+            <PartnerContentLayout title={pageTitle} description={pageDescription}>
                 <WaitIcon sx={{ mt: 20 }} />
             </PartnerContentLayout>
         );
@@ -29,7 +32,7 @@ const PartnerPage: NextPageWithLayout = () => {
 
     if (!partnerLocations || partnerLocations.length == 0) {
         return (
-            <PartnerContentLayout title='Look & Feel'>
+            <PartnerContentLayout title={pageTitle} description={pageDescription}>
                 <Box sx={{
                     width: '100%',
                     mt: 10,
@@ -43,13 +46,16 @@ const PartnerPage: NextPageWithLayout = () => {
     }
 
     return (
-        <PartnerContentLayout title='Look & Feel' controls={
-            <LocationsDropDown
-                partnerLocations={partnerLocations}
-                locationId={locationId}
-                onLocationChange={setLocationId}
-            />
-        }>
+        <PartnerContentLayout
+            title={pageTitle}
+            description={pageDescription}
+            controls={
+                <LocationsDropDown
+                    partnerLocations={partnerLocations}
+                    locationId={locationId}
+                    onLocationChange={setLocationId}
+                />
+            }>
             <PackagesPageContent
                 locationId={locationId}
                 packageCategory={"equipment"}

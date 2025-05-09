@@ -1,6 +1,6 @@
-import { ReactElement, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import useStore from '@/stores/partnerStore';
-import { Box, List, ListItem, ListItemButton, ListItemText, Typography } from '@mui/material';
+import { Box, List, ListItem, ListItemButton, ListItemText } from '@mui/material';
 import { EventPackageModel } from '@/models/EventPackageModel';
 import { fetchEventPackages, fetchEventPackagesByCompany } from '@/services/eventPackageService';
 import theme from '@/theme';
@@ -134,6 +134,7 @@ const PackagesPageContent = ({ locationId, packageCategory }: Props) => {
                     packageId={packageId}
                     locationId={locationId}
                     companyId={partnerUser.companyId}
+                    packageCategory={packageCategory}
                     created={(id: number) => {
                         fetchPackagesFromApi(id);
                     }}

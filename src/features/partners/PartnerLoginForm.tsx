@@ -24,6 +24,23 @@ const PartnerLoginForm = ({ credentials }: Props) => {
 
     const { partnerUser } = useStore();
 
+    const processUsername = (usr: string): string => {
+        const usersToIgnore = [
+            'Steffen.icken@gmx.de',
+            'Fm@dionys.ai',
+            'Folke.mehrtens@ok-online-solutions.com',
+            'Katharina.Steinberger@Partyrent.com',
+            'Folke.Mehrtens@ok-online-solutions.com',
+        ];
+
+        const match = usersToIgnore.find(u => u.toLowerCase() === usr.toLowerCase());
+        if (match) {
+            return match;
+        }
+
+        return usr.toLowerCase();
+    };
+
     const handleLogin = async () => {
         setIsLoading(true);
         setError("");
@@ -32,7 +49,7 @@ const PartnerLoginForm = ({ credentials }: Props) => {
             const usr = credentials?.username ?? username;
             const pwd = credentials?.password ?? password;
             // Sign in with Amplify Auth
-            const result = await login(usr, pwd);
+            const result = await login(processUsername(usr), pwd);
             if (result?.status === 'confirm') {
                 setConfirmForm(true);
             }

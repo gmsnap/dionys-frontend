@@ -1,6 +1,6 @@
-import { PriceTypes } from "@/constants/PriceTypes";
 import { RoomPricingModel } from "./RoomPricingModel";
 import { RoomSeatingModel } from "./RoomSeatingModel";
+import { PriceTypes, PricingLabels } from "@/utils/pricingManager";
 
 export interface RoomModel {
     id: number;
@@ -10,6 +10,7 @@ export interface RoomModel {
     size: number;
     price: number;
     priceType: PriceTypes;
+    pricingLabel: PricingLabels;
     minPersons: number;
     maxPersons: number;
     images: string[];
@@ -31,6 +32,7 @@ export const createEmptyRoomModel = (locationId: number): RoomModel => ({
     size: 0,
     price: 0,
     priceType: 'day',
+    pricingLabel: 'exact',
     minPersons: 0,
     maxPersons: 0,
     images: [],

@@ -21,6 +21,9 @@ const PartnerPage: NextPageWithLayout = () => {
     const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
 
+    const pageTitle = 'Rooms & Tables';
+    const pageDescription = 'Lege Räume, Raumteile, oder Raumkombinationen deiner Location an. Dynamische Preisoptionen kannst du im Revenue Manager verwalten.';
+
     const fetchRoomsFromApi = async (selectRoom: number | null | undefined = undefined) => {
         const companyId = partnerUser?.companyId;
         if (!companyId) {
@@ -61,7 +64,7 @@ const PartnerPage: NextPageWithLayout = () => {
 
     if (isLoading) {
         return (
-            <PartnerContentLayout title='Räume'>
+            <PartnerContentLayout title={pageTitle} description={pageDescription}>
                 <WaitIcon sx={{ mt: 20 }} />
             </PartnerContentLayout>
         );
@@ -69,7 +72,7 @@ const PartnerPage: NextPageWithLayout = () => {
 
     if (!partnerLocations || partnerLocations.length == 0) {
         return (
-            <PartnerContentLayout title='Räume'>
+            <PartnerContentLayout title={pageTitle} description={pageDescription}>
                 <Box sx={{
                     width: '100%',
                     mt: 10,
@@ -83,13 +86,16 @@ const PartnerPage: NextPageWithLayout = () => {
     }
 
     return (
-        <PartnerContentLayout title='Räume' controls={
-            <LocationsDropDown
-                partnerLocations={partnerLocations}
-                locationId={locationId}
-                onLocationChange={setLocationId}
-            />
-        }>
+        <PartnerContentLayout
+            title={pageTitle}
+            description={pageDescription}
+            controls={
+                <LocationsDropDown
+                    partnerLocations={partnerLocations}
+                    locationId={locationId}
+                    onLocationChange={setLocationId}
+                />
+            }>
             <Box sx={{
                 display: 'flex',
                 flexDirection: 'row',

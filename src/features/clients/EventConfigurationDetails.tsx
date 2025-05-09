@@ -42,7 +42,8 @@ const EventConfigurationDetails = ({
                     schedules: room.roomPricings,
                     seatings: room.roomSeatings,
                     seating,
-                })
+                }),
+                room.pricingLabel
             );
             return (
                 <Typography key={name}>
@@ -91,7 +92,7 @@ const EventConfigurationDetails = ({
                     <Typography variant="h5" sx={{ mt: 2 }}>Pakete</Typography>
                     {model.packages.map((item, index) => (
                         <Box key={index} sx={{}}>
-                            <Typography>{item.title} ({formatPriceWithType(item.price, item.priceType)})</Typography>
+                            <Typography>{item.title} ({formatPriceWithType(item.price, item.priceType, item.pricingLabel)})</Typography>
                         </Box>
                     ))}
                 </>
