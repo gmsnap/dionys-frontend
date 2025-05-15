@@ -207,37 +207,38 @@ const MessagePage: NextPageWithLayout = () => {
   };
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files?.[0]) {
+    if (event.target.files?.[0]) 
+    {
       setUploading(true);
       const file = event.target.files[0];
 
       setSelectedFile((prev) => [...prev, file]);
       
       try {
-          // Call API to get presigned URL and upload the file
-          const response = await fetch(generateUploadUrlEndpoint, {
-              method: "POST",
-              body: JSON.stringify({ image: file.name }),
-              headers: { "Content-Type": "application/json" },
-          });
-          const { uploadUrl, imageUrl } = await response.json();
+        // Call API to get presigned URL and upload the file
+        const response = await fetch(generateUploadUrlEndpoint, {
+          method: "POST",
+          body: JSON.stringify({ image: file.name }),
+          headers: { "Content-Type": "application/json" },
+        });
+        const { uploadUrl, imageUrl } = await response.json();
 
-          // Upload to S3 or server
-          await fetch(uploadUrl, {
-              method: "PUT",
-              body: file,
-          });
-          const fileData = {
-            name: file.name,
-            url: imageUrl,
-          } as AttachmentFileData;
-          setUploadedFileUrls((prev) => [...prev, fileData]);
-          // Notify parent about the new image URL
-          //onImageUpload(imageUrl);
+        // Upload to S3 or server
+        await fetch(uploadUrl, {
+          method: "PUT",
+          body: file,
+        });
+
+        const fileData = {
+          name: file.name,
+          url: imageUrl,
+        } as AttachmentFileData;
+
+        setUploadedFileUrls((prev) => [...prev, fileData]); 
       } catch (error) {
-          console.error("Image upload failed", error);
+        console.error("Image upload failed", error);
       } finally {
-          setUploading(false);
+        setUploading(false);
       }
     }
   };
@@ -245,163 +246,166 @@ const MessagePage: NextPageWithLayout = () => {
 
 
         
-          const handleSend = async () => {
-            if (!newMessage || !currentConversation) return;
-          
-            let lastReceived;
-            for (const msg of messages) {
-              if (msg.receiver === sender) {
-                lastReceived = msg;
-              }
-            }
-          
-            if (!lastReceived) {
-              lastReceived = {
-                sender : currentConversation.booker?.email ?? '',
-                subject : "Buchungsanfrage Location " + currentConversation.location?.title,
-                messageId : ''
-              }
+  const handleSend = async () => {
 
-            }
+    if (!newMessage || !currentConversation) return;
+  
+    let lastReceived;
+    for (const msg of messages) {
+      if (msg.receiver === sender) {
+        lastReceived = msg;
+      }
+    }
+  
+    if (!lastReceived) {
+      lastReceived = {
+        sender : currentConversation.booker?.email ?? '',
+        subject : "Buchungsanfrage Location " + currentConversation.location?.title,
+        messageId : ''
+      }
+    }
           
-            // create form data
-            const formData = new FormData();
-            formData.append('partnerId', partnerId?.toString() || '');
-            formData.append('conversation', currentConversation.id.toString() || '');
-            formData.append('sender', sender);
-            formData.append('receiver', lastReceived.sender);
-            formData.append('subject', lastReceived.subject);
-            formData.append('inreplyto', lastReceived.messageId);
-            formData.append('content', newMessage);
-            formData.append('attachments', JSON.stringify(uploadedFileUrls));
-          
-            const res = await fetch(`http://localhost:3015/v1/partner/messages/sendMessageForConversation/`, {
-              method: 'POST',
-              body: formData,
-            });
-          
-            if (res.ok) {
-              const responseData = await res.json();
-              setMessages((prev) => [...prev, responseData]);
-              setNewMessage('');
-              setSelectedFile([]);
-              setUploadedFileUrls([]); // Clear after send
-            } else {
-              alert('Fehler beim Senden der Nachricht.');
-            }
-          };
+    // create form data
+    const formData = new FormData();
+    formData.append('partnerId', partnerId?.toString() || '');
+    formData.append('conversation', currentConversation.id.toString() || '');
+    formData.append('sender', sender);
+    formData.append('receiver', lastReceived.sender);
+    formData.append('subject', lastReceived.subject);
+    formData.append('inreplyto', lastReceived.messageId);
+    formData.append('content', newMessage);
+    formData.append('attachments', JSON.stringify(uploadedFileUrls));
+  
+    // send message data to api
+    const res = await fetch(`http://localhost:3015/v1/partner/messages/sendMessageForConversation/`, {
+      method: 'POST',
+      body: formData,
+    });
+         
+    
+    if (res.ok) {
+      const responseData = await res.json();
+      //console.log("response: ", JSON.stringify(responseData));
+      setMessages((prev) => [...prev, responseData]);
+      setNewMessage('');
+      setSelectedFile([]);
+      setUploadedFileUrls([]); // Clear after send
+    } else {
+      alert('Fehler beim Senden der Nachricht.');
+    }
+  };
 
-    return (
-        <Box>
-            <PageHeadline title='Messages' />
-            <Box sx={{
-                mt: { xs: 5, md: 10 },
-                display: 'flex',
-                flexDirection: 'row',
-                gap: 1,
-                ml: 2,
-                mb: 5
-            }}>
-            </Box>
-            <Container maxWidth="lg">
-      <Box display="flex" height="65vh" mt={4}>
-        {/* Linke Spalte: Konversationen */}
-        <Box
-          width="33%"
-          borderRight="1px solid #ccc"
-          pr={2}
-          sx={{ overflowY: 'auto' }}
-        >
-          <Typography variant="h6" gutterBottom>
-            Konversationen
-          </Typography>
-          <List>
-            {conversations.map(conv => (
-              <ListItem
-                key={conv.id}
-                button
-                onClick={() => loadConversation(conv)}
-                selected={conv.id === currentConversation?.id}
-                sx={{
-                  borderRadius: 1,
-                  mb: 1,
-                  bgcolor: conv.id === currentConversation?.id ? '#e6f5fa' : '#eeeeee',
-                  width: '100%',
-                  display: 'flex',
-                  justifyContent: 'space-between', // Verteilt Inhalt links und rechts
-                  alignItems: 'center',
-                  cursor: 'pointer',
-                }}
-              >
-                <Typography sx={{ fontSize: '14px', textAlign: 'left', margin: '0px' }} gutterBottom>
-                  {`Anfrage ${conv.id}: ${conv.location?.title}`}
-                </Typography>
-                <Typography sx={{ fontSize: '14px', textAlign: 'right', fontWeight: 'bold', margin: '0px' }} gutterBottom>
-                  {conv.newMessage ? `Neue Nachrichten: ${conv.newMessage}` : ''}
-                </Typography>
-              </ListItem>
-            ))}
-          </List>
-        </Box>
-
-        {/* Rechte Spalte: Chat */}
-        <Box width="67%" pl={2} display="flex" flexDirection="column">
-          <Typography sx={{ fontSize: '18px', textAlign: 'center' }} variant="h4" gutterBottom>
-            {currentConversation ? `Anfrage: ${currentConversation.id}` : 'Keine Konversation ausgewählt'}
-            {currentConversation ? ` - ${currentConversation.location?.title}` : ''}
-          </Typography>
-          <Typography sx={{ fontSize: '18px', textAlign: 'center' }} variant="h4" gutterBottom>
-            {currentConversation ? `Datum: ${currentConversation.formatedTime}` : ''}
-          </Typography>
-          <Typography sx={{ fontSize: '18px', textAlign: 'center' }} variant="h4" gutterBottom>
-            {currentConversation ? `Personen: ${currentConversation.persons}` : ''}
-          </Typography>
-
-          <Paper elevation={3} sx={{ flex: 1, overflow: 'auto', padding: 2 }}>
+  return (
+    <Box>
+      <PageHeadline title='Messages' />
+      <Box sx={{
+          mt: { xs: 5, md: 10 },
+          display: 'flex',
+          flexDirection: 'row',
+          gap: 1,
+          ml: 2,
+          mb: 5
+        }}>
+      </Box>
+      <Container maxWidth="lg">
+        <Box display="flex" height="65vh" mt={4}>
+          {/* Linke Spalte: Konversationen */}
+          <Box
+            width="33%"
+            borderRight="1px solid #ccc"
+            pr={2}
+            sx={{ overflowY: 'auto' }}
+          >
+            <Typography variant="h6" gutterBottom>
+              Konversationen
+            </Typography>
             <List>
-              {messages.map((msg) => {
-                const isOwnMessage = msg.sender === sender;
-                return (
-                  <ListItem key={msg.id} sx={{ display: 'flex', justifyContent: 'center', px: 0 }}>
-                    <Avatar sx={{ width: 32, height: 32, mr: 1, visibility: isOwnMessage ? 'hidden' : 'visible' }}>
-                      {msg.sender.charAt(0).toUpperCase()}
-                    </Avatar>
-                    <Box sx={{ maxWidth: '70%', width: '100%' }}>
-                      <Box sx={{ bgcolor: isOwnMessage ? '#edf2f5' : '#e6f5fa', borderRadius: 2, px: 2, py: 1 }}>
-                        <Typography variant="body1">{msg.content}</Typography>
-                        {/* Falls Dateianhänge vorhanden sind */}
-                        {msg.attachments && msg.attachments.length > 0 && (
-                          <Box mt={1}>
-                            {msg.attachments.map((attachment: { name: string; url: string }, index: number) => (
-                              <Box key={index}>
-                                <a
-                                  href={attachment.url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  style={{ textDecoration: 'none', color: '#1976d2' }}
-                                >
-                                  📎 {attachment.name}
-                                </a>
-                              </Box>
-                            ))}
-                          </Box>
-                        )}
-                      </Box>
-                      <Typography variant="caption" display="block" textAlign={isOwnMessage ? 'right' : 'left'} mt={0.5} color="text.secondary">
-                        {msg.sender} • {new Date(msg.received).toLocaleTimeString()}
-                      </Typography>
-                    </Box>
-                    <Avatar sx={{ width: 32, height: 32, ml: 1, visibility: !isOwnMessage ? 'hidden' : 'visible' }}>
-                      {msg.sender.charAt(0).toUpperCase()}
-                    </Avatar>
-                  </ListItem>
-                );
-              })}
-              <div ref={messagesEndRef} />
+              {conversations.map(conv => (
+                <ListItem
+                  key={conv.id}
+                  button
+                  onClick={() => loadConversation(conv)}
+                  selected={conv.id === currentConversation?.id}
+                  sx={{
+                    borderRadius: 1,
+                    mb: 1,
+                    bgcolor: conv.id === currentConversation?.id ? '#e6f5fa' : '#eeeeee',
+                    width: '100%',
+                    display: 'flex',
+                    justifyContent: 'space-between', // Verteilt Inhalt links und rechts
+                    alignItems: 'center',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <Typography sx={{ fontSize: '14px', textAlign: 'left', margin: '0px' }} gutterBottom>
+                    {`Anfrage ${conv.id}: ${conv.location?.title}`}
+                  </Typography>
+                  <Typography sx={{ fontSize: '14px', textAlign: 'right', fontWeight: 'bold', margin: '0px' }} gutterBottom>
+                    {conv.newMessage ? `Neue Nachrichten: ${conv.newMessage}` : ''}
+                  </Typography>
+                </ListItem>
+              ))}
             </List>
-          </Paper>
+          </Box>
 
-          {currentConversation && (
+          {/* Rechte Spalte: Chat */}
+          <Box width="67%" pl={2} display="flex" flexDirection="column">
+            <Typography sx={{ fontSize: '18px', textAlign: 'center' }} variant="h4" gutterBottom>
+              {currentConversation ? `Anfrage: ${currentConversation.id}` : 'Keine Konversation ausgewählt'}
+              {currentConversation ? ` - ${currentConversation.location?.title}` : ''}
+            </Typography>
+            <Typography sx={{ fontSize: '18px', textAlign: 'center' }} variant="h4" gutterBottom>
+              {currentConversation ? `Datum: ${currentConversation.formatedTime}` : ''}
+            </Typography>
+            <Typography sx={{ fontSize: '18px', textAlign: 'center' }} variant="h4" gutterBottom>
+              {currentConversation ? `Personen: ${currentConversation.persons}` : ''}
+            </Typography>
+
+            <Paper elevation={3} sx={{ flex: 1, overflow: 'auto', padding: 2 }}>
+              <List>
+                {messages.map((msg) => {
+                  const isOwnMessage = msg.sender === sender;
+                  return (
+                    <ListItem key={msg.id} sx={{ display: 'flex', justifyContent: 'center', px: 0 }}>
+                      <Avatar sx={{ width: 32, height: 32, mr: 1, visibility: isOwnMessage ? 'hidden' : 'visible' }}>
+                        {msg.sender.charAt(0).toUpperCase()}
+                      </Avatar>
+                      <Box sx={{ maxWidth: '70%', width: '100%' }}>
+                        <Box sx={{ bgcolor: isOwnMessage ? '#edf2f5' : '#e6f5fa', borderRadius: 2, px: 2, py: 1 }}>
+                          <Typography variant="body1">{msg.content}</Typography>
+                          {/* Falls Dateianhänge vorhanden sind */}
+                          {msg.attachments && msg.attachments.length > 0 && (
+                            <Box mt={1}>
+                              {msg.attachments.map((attachment: { name: string; url: string }, index: number) => (
+                                <Box key={index}>
+                                  <a
+                                    href={attachment.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    style={{ textDecoration: 'none', color: '#1976d2' }}
+                                  >
+                                    📎 {attachment.name}
+                                  </a>
+                                </Box>
+                              ))}
+                            </Box>
+                          )}
+                        </Box>
+                        <Typography variant="caption" display="block" textAlign={isOwnMessage ? 'right' : 'left'} mt={0.5} color="text.secondary">
+                          {msg.sender} • {new Date(msg.received).toLocaleTimeString()}
+                        </Typography>
+                      </Box>
+                      <Avatar sx={{ width: 32, height: 32, ml: 1, visibility: !isOwnMessage ? 'hidden' : 'visible' }}>
+                        {msg.sender.charAt(0).toUpperCase()}
+                      </Avatar>
+                    </ListItem>
+                  );
+                })}
+                <div ref={messagesEndRef} />
+              </List>
+            </Paper>
+
+            {currentConversation && (
             <Box mt={2}>
               <TextField
                 label="Deine Antwort"
@@ -427,46 +431,45 @@ const MessagePage: NextPageWithLayout = () => {
                   <input type="file" hidden onChange={handleFileChange} />
                 </IconButton>
               </Box>
-              
               {selectedFile.length > 0 && (
-                <Box mt={1}>
-                  <Typography variant="body2" fontWeight="bold" gutterBottom>
-                    Ausgewählte Dateien:
-                  </Typography>
-                  <List>
-                    {selectedFile.map((file, index) => (
-                      <ListItem
-                        key={index}
-                        secondaryAction={
-                          <IconButton edge="end" aria-label="delete" onClick={() => handleDeleteFile(index)}>
-                            <DeleteIcon />
-                          </IconButton>
-                        }
-                      >
-                        <ListItemText primary={file.name} />
-                      </ListItem>
-                    ))}
-                  </List>
-                </Box>
+              <Box mt={1}>
+                <Typography variant="body2" fontWeight="bold" gutterBottom>
+                  Ausgewählte Dateien:
+                </Typography>
+                <List>
+                  {selectedFile.map((file, index) => (
+                    <ListItem
+                      key={index}
+                      secondaryAction={
+                        <IconButton edge="end" aria-label="delete" onClick={() => handleDeleteFile(index)}>
+                          <DeleteIcon />
+                        </IconButton>
+                      }
+                    >
+                      <ListItemText primary={file.name} />
+                    </ListItem>
+                  ))}
+                </List>
+              </Box>
               )}
             </Box>
-          )}
+            )}
+          </Box>
         </Box>
-      </Box>
-    </Container>
-        </Box>   
-    );
+      </Container>
+    </Box>   
+  );
 };
 
 // Use ClientLayout as the layout for this page
 MessagePage.getLayout = function getLayout(page: ReactElement) {
-    return (
-        <PartnerLayout>
-            <PartnerContentLayout>
-                {page}
-            </PartnerContentLayout>
-        </PartnerLayout>
-    );
+  return (
+    <PartnerLayout>
+      <PartnerContentLayout>
+        {page}
+      </PartnerContentLayout>
+    </PartnerLayout>
+  );
 };
 
 export default MessagePage;
