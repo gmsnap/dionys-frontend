@@ -133,7 +133,7 @@ const MessagePage: NextPageWithLayout = () => {
           // now loop all 
           for (const conversation of data) 
           {
-            console.log(eventConversation.date);
+            //console.log(eventConversation.date);
             if(eventConversation.date)
             {
               const date = new Date(eventConversation.date);
@@ -142,7 +142,7 @@ const MessagePage: NextPageWithLayout = () => {
                 timeStyle: 'short',
                 }).format(date);
                 eventConversation.formatedTime = germanDate;
-                console.log(eventConversation.formatedTime);
+                //console.log(eventConversation.formatedTime);
             }
 
 
