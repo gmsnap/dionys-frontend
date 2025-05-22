@@ -243,7 +243,51 @@ const MessagePage: NextPageWithLayout = () => {
     }
   };
 
+  const getRequestTime = (conf: number) => {
+    const now = Date.now(); // aktuelle Zeit in Millisekunden
+    const inputTime = conf; // Unix-Timestamp ist in Sekunden → umrechnen in Millisekunden
+    const diffMs = now - inputTime;
 
+    const oneMinute = 60 * 1000;
+    const oneHour = 60 * oneMinute;
+    const oneDay = 24 * oneHour;
+    const sixDays = 6 * oneDay;
+
+    if (diffMs > sixDays) {
+      return getDayFormatted(conf); // z. B. "22.05.2025"
+    }
+
+    if (diffMs < oneHour) {
+      const minutes = Math.floor(diffMs / oneMinute);
+      return `${minutes} Minute${minutes !== 1 ? 'n' : ''}`;
+    }
+
+    if (diffMs < oneDay) {
+      const hours = Math.floor(diffMs / oneHour);
+      return `${hours} Stunde${hours !== 1 ? 'n' : ''}`;
+    }
+
+    const days = Math.floor(diffMs / oneDay);
+    return `${days} Tag${days !== 1 ? 'e' : ''}`;
+  }
+
+  const getDayTime = (conf: number) => {
+    const startTime = conf ? new Intl.DateTimeFormat('de-DE', { hour: '2-digit', minute: '2-digit' }).format(new Date(conf)) : '?';
+    return `${startTime} Uhr`;
+  }
+
+  const getDayFormatted = (conf: number) => {
+    const startDate = conf ? new Intl.DateTimeFormat('de-DE').format(new Date(conf)) : '?';
+    const startDay = conf ? new Intl.DateTimeFormat('de-DE', { weekday: 'short' }).format(new Date(conf)) : '?';
+    return `${startDay}, ${startDate}`;
+  }
+
+  const formatDates = (conf: EventConfigurationModel) => {
+    const startDate = conf.date ? new Intl.DateTimeFormat('de-DE').format(new Date(conf.date)) : '?';
+    const startTime = conf.date ? new Intl.DateTimeFormat('de-DE', { hour: '2-digit', minute: '2-digit' }).format(new Date(conf.date)) : '?';
+    const endTime = conf.endDate ? new Intl.DateTimeFormat('de-DE', { hour: '2-digit', minute: '2-digit' }).format(new Date(conf.endDate)) : '?';
+    return `${startDate}, ${startTime} - ${endTime} Uhr`;
+  }
 
         
   const handleSend = async () => {
@@ -307,17 +351,17 @@ const MessagePage: NextPageWithLayout = () => {
           mb: 5
         }}>
       </Box>
-      <Container maxWidth="lg">
+      <Container >
         <Box display="flex" height="65vh" mt={4}>
           {/* Linke Spalte: Konversationen */}
           <Box
-            width="33%"
+            width="20%"
             borderRight="1px solid #ccc"
             pr={2}
             sx={{ overflowY: 'auto' }}
           >
             <Typography variant="h6" gutterBottom>
-              Konversationen
+              Posteingang
             </Typography>
             <List>
               {conversations.map(conv => (
@@ -349,18 +393,10 @@ const MessagePage: NextPageWithLayout = () => {
           </Box>
 
           {/* Rechte Spalte: Chat */}
-          <Box width="67%" pl={2} display="flex" flexDirection="column">
+          <Box width="50%" pl={2} display="flex" flexDirection="column">
             <Typography sx={{ fontSize: '18px', textAlign: 'center' }} variant="h4" gutterBottom>
-              {currentConversation ? `Anfrage: ${currentConversation.id}` : 'Keine Konversation ausgewählt'}
-              {currentConversation ? ` - ${currentConversation.location?.title}` : ''}
+              {currentConversation ? `${currentConversation.booker?.givenName} ${currentConversation.booker?.familyName} | Anfrage für ${currentConversation.formatedTime} | ${currentConversation.location?.title} | ${currentConversation.location?.title}` : 'Keine Konversation ausgewählt'}
             </Typography>
-            <Typography sx={{ fontSize: '18px', textAlign: 'center' }} variant="h4" gutterBottom>
-              {currentConversation ? `Datum: ${currentConversation.formatedTime}` : ''}
-            </Typography>
-            <Typography sx={{ fontSize: '18px', textAlign: 'center' }} variant="h4" gutterBottom>
-              {currentConversation ? `Personen: ${currentConversation.persons}` : ''}
-            </Typography>
-
             <Paper elevation={3} sx={{ flex: 1, overflow: 'auto', padding: 2 }}>
               <List>
                 {messages.map((msg) => {
@@ -372,12 +408,12 @@ const MessagePage: NextPageWithLayout = () => {
                       </Avatar>
                       <Box sx={{ maxWidth: '70%', width: '100%' }}>
                         <Box sx={{ bgcolor: isOwnMessage ? '#edf2f5' : '#e6f5fa', borderRadius: 2, px: 2, py: 1 }}>
-                          <Typography variant="body1">{msg.content}</Typography>
+                          <Typography textAlign={isOwnMessage ? 'right' : 'left'} variant="body1">{msg.content}</Typography>
                           {/* Falls Dateianhänge vorhanden sind */}
                           {msg.attachments && msg.attachments.length > 0 && (
                             <Box mt={1}>
                               {msg.attachments.map((attachment: { name: string; url: string }, index: number) => (
-                                <Box key={index}>
+                                <Box key={index} textAlign={isOwnMessage ? 'right' : 'left'}>
                                   <a
                                     href={attachment.url}
                                     target="_blank"
@@ -452,6 +488,193 @@ const MessagePage: NextPageWithLayout = () => {
                 </List>
               </Box>
               )}
+            </Box>
+            )}
+          </Box>
+          <Box width="30%">
+            {currentConversation && (
+              <Box sx={{
+                mt: { xs: 2, md: 2 },
+                pt: { xs: 2, md: 2 },
+                ml: 2,
+                pl: 2,
+                pr: 2,
+                width: '100%',
+                bgcolor: '#f2f2f2',
+              }}>
+              <Typography gutterBottom>
+                {`Anfrage ${currentConversation.id}`}
+              </Typography>
+              <Typography gutterBottom>
+                {`Angefragt am ${getRequestTime(currentConversation.date ? currentConversation.date : 0)} Uhr`}
+              </Typography>
+              <Typography sx={{ fontSize: '18px', fontWeight: 'bold', textAlign: 'center', pt: 3, }} gutterBottom>
+                {`${currentConversation.booker?.givenName} ${currentConversation.booker?.familyName}`}
+              </Typography>
+              <Typography sx={{ fontSize: '18px', textAlign: 'center' }} gutterBottom>
+                { currentConversation.booker?.bookingCompany ? `${currentConversation.booker?.bookingCompany}` : ''}
+              </Typography>
+              <Box>
+                <Box sx={{
+                  mt: { xs: 3, md: 3 },
+                  display: 'flex',
+                  flexDirection: 'row',
+                  gap: 1,
+                  ml: 2,
+                  mb: 5
+                }}>
+                  <Box width="50%">
+                    <Typography sx={{fontWeight: 'bold'}} gutterBottom>
+                      Start
+                    </Typography>
+                    <Typography gutterBottom>
+                      {`${getDayTime(currentConversation.date ? currentConversation.date : 0)}`}  
+                    </Typography>
+                    <Typography gutterBottom>
+                      {`${getDayFormatted(currentConversation.date ? currentConversation.date : 0)}`}  
+                    </Typography>
+                  </Box>
+                  <Box width="50%">
+                    <Typography sx={{fontWeight: 'bold'}} gutterBottom>
+                      Ende
+                    </Typography>
+                    <Typography gutterBottom>
+                      {`${getDayTime(currentConversation.endDate ? currentConversation.endDate : 0)}`}
+                    </Typography>
+                    <Typography gutterBottom>
+                      {`${getDayFormatted(currentConversation.endDate ? currentConversation.endDate : 0)}`}
+                    </Typography>
+                  </Box>
+                </Box>
+                <Box>
+                  <Box sx={{
+                    mt: { xs: 1, md: 1 },
+                    display: 'flex',
+                    flexDirection: 'row',
+                    gap: 1,
+                    ml: 2,
+                    mb: 5
+                  }}>
+                    <Box width="50%">
+                      <Typography sx={{fontWeight: 'bold'}} gutterBottom>
+                        Anzahl Personen
+                      </Typography>
+                      <Typography gutterBottom>
+                        {`${currentConversation.persons} Personen`}
+                      </Typography>
+                    </Box>
+                    <Box width="50%">
+                      <Typography sx={{fontWeight: 'bold'}} gutterBottom>
+                        Event Kategorie
+                      </Typography>
+                      <Typography gutterBottom>
+                        {`${currentConversation.eventCategory}`}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Box>
+                <Box>
+                  <Box sx={{
+                    mt: { xs: 1, md: 1 },
+                    display: 'flex',
+                    flexDirection: 'row',
+                    gap: 1,
+                    ml: 2,
+                    mb: 5
+                  }}>
+                    <Box width="50%">
+                      <Typography sx={{fontWeight: 'bold'}} gutterBottom>
+                        Räume
+                      </Typography>
+                      {currentConversation.rooms?.map((room, index) => (
+                        <Typography key={index}>
+                          {room.name}
+                        </Typography>
+                      ))}
+                    </Box>
+                    <Box width="50%">
+                      <Typography sx={{fontWeight: 'bold'}} gutterBottom>
+                        Leistungen
+                      </Typography>
+                      {currentConversation.roomExtras?.map((extra, index) => (
+                        <Typography key={index}>
+                          {extra.seating}
+                        </Typography>
+                      ))}
+                    </Box>
+                  </Box>
+                </Box>
+                <Box>
+                  <Box sx={{
+                    mt: { xs: 1, md: 1 },
+                    display: 'flex',
+                    flexDirection: 'row',
+                    gap: 1,
+                    ml: 2,
+                    mb: 5
+                  }}>
+                    <Box width="50%">
+                      <Typography sx={{fontWeight: 'bold'}} gutterBottom>
+                        Angebotspreis
+                      </Typography>
+                      <Typography gutterBottom>
+                        €7.800 (Brutto) 
+                      </Typography>
+                    </Box>
+                    <Box width="50%">
+                      
+                    </Box>
+                  </Box>
+                </Box>
+                <Box>
+                  <Box sx={{
+                    mt: { xs: 1, md: 1 },
+                    display: 'flex',
+                    flexDirection: 'row',
+                    gap: 1,
+                    ml: 2,
+                    mb: 5
+                  }}>
+                    <Box width="50%">
+                      <Typography sx={{fontWeight: 'bold'}} gutterBottom>
+                        Telefon
+                      </Typography>
+                      <Typography gutterBottom>
+                        {`${currentConversation.booker?.phoneNumber}`}
+                      </Typography>
+                    </Box>
+                    <Box width="50%">
+                      <Typography sx={{fontWeight: 'bold'}} gutterBottom>
+                        E-Mail
+                      </Typography>
+                      <Typography gutterBottom>
+                        {`${currentConversation.booker?.email}`}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Box>
+                <Box>
+                  <Box sx={{
+                    mt: { xs: 1, md: 1 },
+                    display: 'flex',
+                    flexDirection: 'row',
+                    gap: 1,
+                    ml: 2,
+                    mb: 5
+                  }}>
+                    <Box width="50%">
+                      <Typography sx={{fontWeight: 'bold'}} gutterBottom>
+                        Rechnungsanschrift
+                      </Typography>
+                      <Typography gutterBottom>
+                        {`${currentConversation.booker?.bookingCompany?.streetAddress}`}
+                      </Typography>
+                    </Box>
+                    <Box width="50%">
+                    </Box>
+                  </Box>
+                </Box>
+              </Box>
             </Box>
             )}
           </Box>
