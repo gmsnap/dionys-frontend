@@ -243,10 +243,15 @@ const MessagePage: NextPageWithLayout = () => {
     }
   };
 
-  const getRequestTime = (conf: number) => {
+  const getRequestTime = (created: string) => {
     const now = Date.now(); // aktuelle Zeit in Millisekunden
-    const inputTime = conf; // Unix-Timestamp ist in Sekunden → umrechnen in Millisekunden
-    const diffMs = now - inputTime;
+    const createdDate = new Date(created).getTime();
+    //console.log("now: ", now);
+    //console.log("now format: ", getDayFormatted(now));
+    //console.log("then: ", createdDate);
+    //console.log("then format: ", getDayFormatted(createdDate));
+    //const inputTime = conf; // Unix-Timestamp ist in Sekunden → umrechnen in Millisekunden
+    const diffMs = now - createdDate;
 
     const oneMinute = 60 * 1000;
     const oneHour = 60 * oneMinute;
@@ -254,21 +259,21 @@ const MessagePage: NextPageWithLayout = () => {
     const sixDays = 6 * oneDay;
 
     if (diffMs > sixDays) {
-      return getDayFormatted(conf); // z. B. "22.05.2025"
+      return 'am ' + getDayFormatted(createdDate); // z. B. "22.05.2025"
     }
 
     if (diffMs < oneHour) {
       const minutes = Math.floor(diffMs / oneMinute);
-      return `${minutes} Minute${minutes !== 1 ? 'n' : ''}`;
+      return `vor ${minutes} Minute${minutes !== 1 ? 'n' : ''}`;
     }
 
     if (diffMs < oneDay) {
       const hours = Math.floor(diffMs / oneHour);
-      return `${hours} Stunde${hours !== 1 ? 'n' : ''}`;
+      return `vor ${hours} Stunde${hours !== 1 ? 'n' : ''}`;
     }
 
     const days = Math.floor(diffMs / oneDay);
-    return `${days} Tag${days !== 1 ? 'e' : ''}`;
+    return `vor ${days} Tag${days !== 1 ? 'e' : ''}`;
   }
 
   const getDayTime = (conf: number) => {
@@ -506,7 +511,7 @@ const MessagePage: NextPageWithLayout = () => {
                 {`Anfrage ${currentConversation.id}`}
               </Typography>
               <Typography gutterBottom>
-                {`Angefragt am ${getRequestTime(currentConversation.date ? currentConversation.date : 0)} Uhr`}
+                {`Angefragt ${getRequestTime(currentConversation.createdAt)}`}
               </Typography>
               <Typography sx={{ fontSize: '18px', fontWeight: 'bold', textAlign: 'center', pt: 3, }} gutterBottom>
                 {`${currentConversation.booker?.givenName} ${currentConversation.booker?.familyName}`}
