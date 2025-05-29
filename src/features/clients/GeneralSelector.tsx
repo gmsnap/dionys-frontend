@@ -135,6 +135,7 @@ const GeneralSelector = ({
                     display: 'flex',
                     flexDirection: 'column',
                     flexGrow: 1,
+                    alignItems: 'center',
                     overflowY: 'auto', // Ensure form content can scroll
                 }}
             >
@@ -144,7 +145,8 @@ const GeneralSelector = ({
                     sx={{
                         ml: 2,
                         mr: 2,
-                        pb: { xs: 20, sm: 16 } // Add bottom padding for buttons
+                        pb: { xs: 20, sm: 16 }, // Add bottom padding for buttons
+                        maxWidth: '500px'
                     }}
                 >
                     {/* Persons */}
@@ -152,7 +154,7 @@ const GeneralSelector = ({
                         <Grid2 size={{ xs: 12, sm: labelWidth }}>
                             <Typography variant="label">Teilnehmer</Typography>
                         </Grid2>
-                        <Grid2 size={{ xs: 12, sm: 8, md: 6 }}>
+                        <Grid2 size={{ xs: 12, sm: 8 }}>
                             <Controller
                                 name="persons"
                                 control={control}
@@ -202,7 +204,7 @@ const GeneralSelector = ({
                         <Grid2 size={{ xs: 12, sm: labelWidth }}>
                             <Typography variant="label">Dauer (in Stunden)</Typography>
                         </Grid2>
-                        <Grid2 size={{ xs: 12, sm: 8, md: 6 }}>
+                        <Grid2 size={{ xs: 12, sm: 8 }}>
                             <Controller
                                 name="duration"
                                 control={control}
@@ -241,6 +243,7 @@ const GeneralSelector = ({
                     display={'flex'}
                     gap={2}
                     sx={{
+                        justifyContent: 'center',
                         width: '100%',
                         xs: 12,
                         mt: 2,
@@ -256,6 +259,7 @@ const GeneralSelector = ({
                         type="submit"
                         sx={{
                             width: '100%',
+                            maxWidth: '300px',
                         }}
                         onClick={() => handleSubmit(onSubmit)()}
                     >

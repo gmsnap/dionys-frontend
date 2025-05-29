@@ -93,6 +93,7 @@ const PersonalDataSelector = ({
                     display: 'flex',
                     flexDirection: 'column',
                     flexGrow: 1,
+                    alignItems: 'center',
                     overflowY: 'auto', // Ensure form content can scroll
                 }}
             >
@@ -102,7 +103,8 @@ const PersonalDataSelector = ({
                     sx={{
                         ml: 2,
                         mr: 2,
-                        pb: { xs: 24, sm: 20 } // Add bottom padding for buttons
+                        pb: { xs: 20, sm: 16 }, // Add bottom padding for buttons
+                        maxWidth: '500px'
                     }}
                 >
                     {/* Given Name */}
@@ -110,7 +112,7 @@ const PersonalDataSelector = ({
                         <Grid2 size={{ xs: 12, sm: labelWidth }}>
                             <Typography variant="label">Vorname</Typography>
                         </Grid2>
-                        <Grid2 size={{ xs: 12, sm: 8, md: 6 }}>
+                        <Grid2 size={{ xs: 12, sm: 8 }}>
                             <Controller
                                 name="givenName"
                                 control={control}
@@ -135,7 +137,7 @@ const PersonalDataSelector = ({
                         <Grid2 size={{ xs: 12, sm: labelWidth }}>
                             <Typography variant="label">Nachname</Typography>
                         </Grid2>
-                        <Grid2 size={{ xs: 12, sm: 8, md: 6 }}>
+                        <Grid2 size={{ xs: 12, sm: 8 }}>
                             <Controller
                                 name="familyName"
                                 control={control}
@@ -160,7 +162,7 @@ const PersonalDataSelector = ({
                         <Grid2 size={{ xs: 12, sm: labelWidth }}>
                             <Typography variant="label">Email</Typography>
                         </Grid2>
-                        <Grid2 size={{ xs: 12, sm: 8, md: 6 }}>
+                        <Grid2 size={{ xs: 12, sm: 8 }}>
                             <Controller
                                 name="email"
                                 control={control}
@@ -186,7 +188,7 @@ const PersonalDataSelector = ({
                         <Grid2 size={{ xs: 12, sm: labelWidth }}>
                             <Typography variant="label">Telefon</Typography>
                         </Grid2>
-                        <Grid2 size={{ xs: 12, sm: 8, md: 6 }}>
+                        <Grid2 size={{ xs: 12, sm: 8 }}>
                             <Controller
                                 name="phoneNumber"
                                 control={control}

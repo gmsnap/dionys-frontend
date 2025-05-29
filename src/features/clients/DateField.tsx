@@ -28,7 +28,7 @@ const DateField: React.FC<DateFieldProps> = ({ control, errors, labelWidth, inpu
                 <Grid2 size={{ sm: labelWidth }}>
                     <Typography variant="label">Datum</Typography>
                 </Grid2>
-                <Grid2 size={{ xs: 12, sm: 8, md: 6 }}>
+                <Grid2 size={{ xs: 12, sm: 8 }}>
                     <Controller
                         name="date"
                         control={control}
