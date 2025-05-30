@@ -51,19 +51,24 @@ const germanShortDaysOfWeek = [
 
 // Generate time options in 30 min steps
 const generateTimeOptions = () => {
-    const options = []
+    const options = [];
     for (let hour = 0; hour < 24; hour++) {
         for (let minute = 0; minute < 60; minute += 30) {
-            const hourStr = hour.toString().padStart(2, "0")
-            const minuteStr = minute.toString().padStart(2, "0")
+            const hourStr = hour.toString().padStart(2, "0");
+            const minuteStr = minute.toString().padStart(2, "0");
             options.push({
                 value: `${hourStr}:${minuteStr}:00`,
                 label: `${hourStr}:${minuteStr}`,
-            })
+            });
         }
     }
-    return options
-}
+    // Add 23:59 as the "end of day" option
+    options.push({
+        value: "23:59:00",
+        label: "Ende des Tages (00:00)",
+    });
+    return options;
+};
 
 const timeOptions = generateTimeOptions()
 
