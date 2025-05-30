@@ -36,7 +36,7 @@ const TimeField: React.FC<TimeFieldProps> = ({
                 <Grid2 size={{ sm: labelWidth }}>
                     <Typography variant="label">{labelText}</Typography>
                 </Grid2>
-                <Grid2 size={{ xs: 12, sm: 8, md: 6 }}>
+                <Grid2 size={{ xs: 12, sm: 8 }}>
                     <Controller
                         name={fieldName}
                         control={control}

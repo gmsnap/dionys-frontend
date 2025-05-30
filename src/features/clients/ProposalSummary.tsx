@@ -120,6 +120,7 @@ const ProposalSummary = ({
                 height: '100%',
                 display: 'flex',
                 flexDirection: 'column',
+                alignItems: 'center',
                 position: 'relative',
                 ...sx,
             }}
@@ -128,6 +129,7 @@ const ProposalSummary = ({
                 sx={{
                     flex: 1,
                     overflowY: 'auto',
+                    maxWidth: '700px',
                     ml: 2,
                     mr: 2,
                     pr: { xs: 1, sm: 2 },

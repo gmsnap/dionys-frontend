@@ -303,7 +303,11 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
                                 : "?";
 
                         return (
-                            <Grid2 key={room.id} size={{ xs: 12 }}>
+                            <Grid2
+                                key={room.id}
+                                size={{ xs: 12, md: matchingRooms.length === 1 ? 12 : 6, }}
+                                sx={{}}
+                            >
                                 <AccordionGridItem
                                     id={room.id}
                                     images={room.images.length > 0 ? room.images : []}
@@ -376,7 +380,10 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
                                     : "?";
 
                             return (
-                                <Grid2 key={room.id} size={{ xs: 12 }}>
+                                <Grid2
+                                    key={room.id}
+                                    size={{ xs: 12, md: otherRooms.length === 1 ? 12 : 6, }}
+                                >
                                     <AccordionGridItem
                                         id={room.id}
                                         images={room.images.length > 0 ? room.images : []}

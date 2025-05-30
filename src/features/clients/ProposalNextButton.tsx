@@ -18,6 +18,9 @@ const ProposalBackButton = ({
     sx,
 }: SelectorProps) => {
     const [disabled, setDisabled] = useState(isDisabled);
+
+    const buttonWidth = '300px';
+
     useEffect(() => { setDisabled(isDisabled); }, [isDisabled]);
 
     return (
@@ -39,6 +42,7 @@ const ProposalBackButton = ({
                         disabled={disabled}
                         sx={{
                             width: '100%',
+                            maxWidth: buttonWidth,
                             mt: 1,
                             mb: 1,
                         }}
@@ -54,6 +58,7 @@ const ProposalBackButton = ({
                         disabled={disabled}
                         sx={{
                             width: '100%',
+                            maxWidth: buttonWidth,
                             mt: 1,
                             mb: 1,
                         }}

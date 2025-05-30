@@ -4,6 +4,7 @@ export interface EventCategoryModel {
     categoryKey: string;
     categoryName: string;
     image: string | null;
+    effectiveImage?: string;
 }
 
 export const createEmptyEventCategoryModel = (companyId: number, categoryKey: string): EventCategoryModel => ({

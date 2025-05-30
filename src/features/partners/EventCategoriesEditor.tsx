@@ -4,11 +4,15 @@ import { Box, Typography } from "@mui/material";
 import SingleImageUploadForm from "./SingleImageUploadForm";
 import { useEffect, useState } from "react";
 import { createEmptyEventCategoryModel, EventCategoryModel } from "@/models/EventCategoryModel";
-import { createEventCategory, deleteEventCategory, fetchEventCategoriesByCompany } from "@/services/eventCategoryService";
+import { createEventCategory, deleteEventCategory, deleteEventCategoryByLocation, fetchEventCategoriesByCompany, fetchEventCategoriesByLocation, setEventCategoryImage } from "@/services/eventCategoryService";
 import { useAuthContext } from "@/auth/AuthContext";
 import useStore from '@/stores/partnerStore';
 
-const EventCategoriesEditor = () => {
+interface EventCategoriesEditorProps {
+    locationId?: number | null;
+}
+
+const EventCategoriesEditor = ({ locationId }: EventCategoriesEditorProps) => {
     const { authUser } = useAuthContext();
     const { partnerUser } = useStore();
     const [categoryModels, setCategoryModels] = useState<EventCategoryModel[]>([]);
@@ -18,11 +22,17 @@ const EventCategoriesEditor = () => {
     const setModels = async () => {
         if (partnerUser?.companyId) {
             const models =
-                await fetchEventCategoriesByCompany(
-                    partnerUser.companyId,
-                    setIsLoading,
-                    setError
-                );
+                locationId
+                    ? await fetchEventCategoriesByLocation(
+                        locationId,
+                        setIsLoading,
+                        setError
+                    )
+                    : await fetchEventCategoriesByCompany(
+                        partnerUser.companyId,
+                        setIsLoading,
+                        setError
+                    );
             if (models) {
                 setCategoryModels(models);
                 return;
@@ -41,6 +51,31 @@ const EventCategoriesEditor = () => {
         }
         try {
             let model = categoryModels.filter((m) => m.categoryKey === category)[0];
+            if (locationId) {
+                if (!model) {
+                    model = createEmptyEventCategoryModel(companyId, category);
+                    await createEventCategory(
+                        model,
+                        () => {
+                            // Success
+                            setModels();
+                        },
+                        () => {
+                            // Handle Error
+                        },
+                        authUser.idToken);
+                }
+                await setEventCategoryImage(
+                    locationId,
+                    model.categoryKey,
+                    image,
+                    () => { setModels(); },
+                    () => { },
+                    authUser.idToken);
+
+                return;
+            }
+
             if (!model) {
                 model = createEmptyEventCategoryModel(companyId, category);
             }
@@ -55,6 +90,7 @@ const EventCategoriesEditor = () => {
                     // Handle Error
                 },
                 authUser.idToken);
+
         } catch (error) {
             console.error("Image upload failed", error);
         }
@@ -71,6 +107,15 @@ const EventCategoriesEditor = () => {
         try {
             const model = categoryModels.filter((m) => m.categoryKey === category)[0];
             if (!model?.id) {
+                return;
+            }
+            if (locationId) {
+                await deleteEventCategoryByLocation(
+                    locationId,
+                    model.categoryKey,
+                    () => { },
+                    () => { },
+                    authUser.idToken);
                 return;
             }
             await deleteEventCategory(
@@ -100,7 +145,7 @@ const EventCategoriesEditor = () => {
                     <Box key={cat}>
                         <Typography>{formatEventCategoryStringSync(cat)}</Typography>
                         <SingleImageUploadForm
-                            image={categoryModel?.image ?? undefined}
+                            image={categoryModel?.effectiveImage ?? (categoryModel?.image ?? undefined)}
                             defaultImage={`/category-${cat}.jpg`}
                             onImageUpload={(url: string) => handleImageUpload(cat, url)}
                             onImageDelete={() => handleImageDelete(cat)}

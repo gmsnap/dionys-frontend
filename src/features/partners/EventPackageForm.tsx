@@ -1,5 +1,3 @@
-"use client"
-
 import { useForm, Controller } from "react-hook-form"
 import { useState, useEffect } from "react"
 import {
@@ -22,7 +20,6 @@ import { yupResolver } from "@hookform/resolvers/yup"
 import { Save } from "lucide-react"
 import ImageUploadForm from "@/features/partners/ImageUploadForm"
 import DeleteButton from "@/components/DeleteButton"
-import EventCategoriesField from "@/features/partners/EventCategoriesField"
 import { useAuthContext } from "@/auth/AuthContext"
 import { fetchLocationsByCompanyId } from "@/services/locationService"
 import {
@@ -38,6 +35,8 @@ import { formatPackageCategory } from "@/utils/formatPackageCategories"
 import RichTextField from "@/components/RichTextField"
 import { fetchRooms } from "@/services/roomService"
 import PricingLabelField from "./PricingLabelField"
+import EventCategoriesField2 from "./EventCategoriesField2"
+import { RoomModel } from "@/models/RoomModel"
 
 const controlWidth = 7
 const labelWidth = 4
@@ -267,19 +266,25 @@ const EventPackageForm = ({
         const loadRooms = async () => {
             if (watchedModel.locationId) {
                 try {
-                    setLoading(true)
-                    const roomsData = await fetchRooms(watchedModel.locationId, setLoading, setError)
-                    setRooms(roomsData || [])
+                    setLoading(true);
+                    const roomsData = await fetchRooms(watchedModel.locationId, setLoading, setError);
+                    setRooms(roomsData || []);
+
+                    // Pre-select all rooms for new package (packageId === 0)
+                    if (packageId === 0 && roomsData?.length > 0) {
+                        const allRoomIds = roomsData.map((room: RoomModel) => room.id);
+                        setValue("roomIds", allRoomIds);
+                    }
                 } catch (error) {
-                    console.error("Error fetching rooms", error)
+                    console.error("Error fetching rooms", error);
                 } finally {
-                    setLoading(false)
+                    setLoading(false);
                 }
             }
-        }
+        };
 
-        loadRooms()
-    }, [watchedModel.locationId])
+        loadRooms();
+    }, [watchedModel.locationId, packageId, setValue]);
 
     useEffect(() => {
         imagesChanged?.(images)
@@ -575,7 +580,7 @@ const EventPackageForm = ({
                                 <Typography variant="label">Kategorien</Typography>
                             </Grid2>
                             <Grid2 size={{ xs: 12, sm: 10, md: 6 }}>
-                                <EventCategoriesField control={control} errors={errors} />
+                                <EventCategoriesField2 control={control} errors={errors} />
                             </Grid2>
                         </Grid2>
 

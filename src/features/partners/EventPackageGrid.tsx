@@ -5,10 +5,10 @@ import { formatPriceWithType } from '@/utils/formatPrice';
 import { Pencil, User, X } from 'lucide-react';
 import GridAddItem from '@/components/GridAddItem';
 import { EventPackageModel } from '@/models/EventPackageModel';
-import { PriceTypes } from '@/constants/PriceTypes';
 import { handleDeleteEventPackage } from '@/services/eventPackageService';
 import theme from '@/theme';
 import { useAuthContext } from '@/auth/AuthContext';
+import { PriceTypes } from '@/utils/pricingManager';
 
 interface EventPackageGridProps {
     sx?: SxProps<Theme>;
