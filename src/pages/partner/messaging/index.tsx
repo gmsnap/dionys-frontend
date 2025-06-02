@@ -74,8 +74,8 @@ const MessagePage: NextPageWithLayout = () => {
   const [uploading, setUploading] = useState(false);
 
   //const conversationID = "1744817512889"; // from db
-  const sender = "booking@hans-reimer.com"; // from db
-  const partnerId = "1";//partnerUser?.companyId;
+  const sender = "Booking@VillaHirschberg.onmicrosoft.com"; // from db
+  const partnerId = partnerUser?.companyId || 1;
 
   // we have to use it later
   let eventConfigurations = [] as EventConfigurationModel[];
@@ -96,7 +96,7 @@ const MessagePage: NextPageWithLayout = () => {
       }
 
       const confs = await fetchEventConfigurationsByCompany(
-          Number.parseInt(partnerId),//partnerId,
+          partnerId,//partnerId,
           setIsLoading,
           setError
       );
@@ -246,11 +246,6 @@ const MessagePage: NextPageWithLayout = () => {
   const getRequestTime = (created: string) => {
     const now = Date.now(); // aktuelle Zeit in Millisekunden
     const createdDate = new Date(created).getTime();
-    //console.log("now: ", now);
-    //console.log("now format: ", getDayFormatted(now));
-    //console.log("then: ", createdDate);
-    //console.log("then format: ", getDayFormatted(createdDate));
-    //const inputTime = conf; // Unix-Timestamp ist in Sekunden → umrechnen in Millisekunden
     const diffMs = now - createdDate;
 
     const oneMinute = 60 * 1000;
