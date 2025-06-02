@@ -24,6 +24,7 @@ import { useAuthContext } from "@/auth/AuthContext";
 import BillingAddressFields from "./BillingAddressFields2";
 import LocationEmbedCode from "./LocationEmbedCode";
 import { WaitIcon } from '@/components/WaitIcon';
+import EventCategoriesEditor from "./EventCategoriesEditor";
 
 // Validation schema
 const locationValidationSchema = yup.object().shape({
@@ -533,6 +534,23 @@ const LocationForm = ({ locationId, submitButtonCaption, locationCreated }: Loca
                             />
                         </Box>
                     )}
+
+                    {locationId > 0 &&
+                        <Box sx={{
+                            mt: 5,
+                            mb: 4,
+                        }}>
+                            <Typography
+                                variant="h5"
+                                sx={{
+                                    color: 'primary.main',
+                                    mb: 2,
+                                }}>
+                                Event-Kategorie Bilder dieser Location (optional)
+                            </Typography>
+                            <EventCategoriesEditor locationId={locationId} />
+                        </Box >
+                    }
 
                     {idCode &&
                         <Box sx={{

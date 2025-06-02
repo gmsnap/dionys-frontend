@@ -1,6 +1,7 @@
 import * as yup from 'yup';
 import { PackageCategories } from "@/constants/PackageCategories";
 import { BookingPackage, PriceTypes, PricingLabels } from '@/utils/pricingManager';
+import { AvailableEventCategories } from '@/constants/EventCategories';
 
 export interface EventPackageModel {
     id: number;
@@ -33,7 +34,7 @@ export const createEmptyEventPackageModel = (
     minPersons: null,
     maxPersons: null,
     images: [],
-    eventCategories: [],
+    eventCategories: [...AvailableEventCategories],
     roomIds: [],
 });
 

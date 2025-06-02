@@ -46,48 +46,59 @@ const PackagesAccordeonGrid = ({ packageCategory, sx }: Props) => {
         );
     }
 
+    const filteredPackages = location.eventPackages.filter(
+        (p) =>
+            (!packageCategory || p.packageCategory === packageCategory) &&
+            (!p.roomIds ||
+                p.roomIds.length === 0 ||
+                (eventConfiguration?.rooms &&
+                    Array.isArray(p.roomIds) &&
+                    eventConfiguration.rooms.some((room) => p.roomIds!.includes(room.id)))
+            )
+    );
+
     return (
         <Grid2 container spacing={1} sx={{ ...sx }}>
-            {location.eventPackages
-                .filter((p) => (!packageCategory || p.packageCategory === packageCategory) &&
-                    (!p.roomIds ||
-                        p.roomIds.length === 0 ||
-                        (
-                            eventConfiguration?.rooms &&
-                            Array.isArray(p.roomIds) &&
-                            eventConfiguration.rooms.some(room => p.roomIds!.includes(room.id))
-                        )
-                    ))
-                .map((p) => (
-                    <Grid2 key={p.id} size={{ xs: 12 }}>
-                        <AccordionGridItem
-                            id={p.id}
-                            images={p.images.length > 0
-                                ? p.images
-                                : [`/p-category-${p.packageCategory}.jpg`]}
-                            isSelected={eventConfiguration?.packageIds?.includes(p.id)}
-                            selectRequested={(id) => togglePackage(id)}
-                            title={p.title}
-                            subTitle={
-                                p.priceType === "none"
-                                    ? undefined
-                                    : `${formatPriceWithType(p.price, p.priceType, p.pricingLabel)}`
-                            }
-                            information={p.description}
-                            infoItems={[
-                                {
-                                    icon: <Package color={iconColor} />,
-                                    label: formatPackageCategory(p.packageCategory),
-                                },
-                                {
-                                    icon: <HandCoins color={iconColor} />,
-                                    label: formatPriceWithType(p.price, p.priceType, p.pricingLabel),
-                                },
-                            ]}
-                        />
-                    </Grid2>
-                ))}
-        </Grid2 >
+            {filteredPackages.map((p) => (
+                <Grid2
+                    key={p.id}
+                    size={{
+                        xs: 12,
+                        sm: filteredPackages.length === 1 ? 12 : 6,
+                        md: filteredPackages.length === 1
+                            ? 12
+                            : filteredPackages.length === 2 ? 6 : 4,
+                    }}
+                    sx={{ flexGrow: 1 }}
+                >
+                    <AccordionGridItem
+                        id={p.id}
+                        images={p.images.length > 0
+                            ? p.images
+                            : [`/p-category-${p.packageCategory}.jpg`]}
+                        isSelected={eventConfiguration?.packageIds?.includes(p.id)}
+                        selectRequested={(id) => togglePackage(id)}
+                        title={p.title}
+                        subTitle={
+                            p.priceType === "none"
+                                ? undefined
+                                : `${formatPriceWithType(p.price, p.priceType, p.pricingLabel)}`
+                        }
+                        information={p.description}
+                        infoItems={[
+                            {
+                                icon: <Package color={iconColor} />,
+                                label: formatPackageCategory(p.packageCategory),
+                            },
+                            {
+                                icon: <HandCoins color={iconColor} />,
+                                label: formatPriceWithType(p.price, p.priceType, p.pricingLabel),
+                            },
+                        ]}
+                    />
+                </Grid2>
+            ))}
+        </Grid2>
     );
 };
 

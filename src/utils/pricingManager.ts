@@ -91,6 +91,10 @@ export const AvailablePricingLabels = [
     "from",
 ];
 
+const convertToCustomDay = (jsDay: number): number => {
+    return jsDay === 0 ? 6 : jsDay - 1;
+};
+
 const calculatePriceByPriceType = (
     price: number,
     priceType: string,
@@ -214,10 +218,6 @@ export const calculateBookingPrice = ({
     const includePrice = !filters || filters.includes('price');
     const includeExclusive = !filters || filters.includes('exclusive');
 
-    const convertToCustomDay = (jsDay: number): number => {
-        return jsDay === 0 ? 6 : jsDay - 1;
-    };
-
     schedules?.forEach((schedule) => {
         // Check if schedule days overlap with booking days
         const bookingStartDay = convertToCustomDay(bookingStart.getDay());
@@ -240,7 +240,7 @@ export const calculateBookingPrice = ({
 
         // Calculate the schedule's full time range relative to bookingStart
         const weekStart = startOfDay(bookingStart);
-        const startDayOffset = (schedule.startDayOfWeek - convertToCustomDay(weekStart.getDay()) + 7) % 7;
+        const startDayOffset = 0;//(convertToCustomDay(weekStart.getDay()) - schedule.startDayOfWeek + 7) % 7;
         const endDayOffset = (schedule.endDayOfWeek - convertToCustomDay(weekStart.getDay()) + 7) % 7;
 
         // Set schedule start
@@ -265,13 +265,18 @@ export const calculateBookingPrice = ({
             scheduleEnd.setDate(scheduleEnd.getDate() + 7);
         }
 
-        console.log("<-- Schedule Details -->");
-        console.log("Schedule ID:", (schedule as any).id);
-        console.log("Schedule Start:", scheduleStart);
-        console.log("Schedule End:", scheduleEnd);
-        console.log("Booking Start:", bookingStart);
-        console.log("Booking End:", bookingEnd);
-        console.log("-->");
+        //console.log("startDayOffset:", startDayOffset);
+        //console.log("endDayOffset:", endDayOffset);
+        //console.log("weekStart:", weekStart);
+        //console.log("isBefore(bookingStart, scheduleStart):", isBefore(bookingStart, scheduleStart));
+
+        //console.log("<-- Schedule Details -->");
+        //console.log("Schedule ID:", (schedule as any).id);
+        //console.log("Schedule Start:", scheduleStart);
+        //console.log("Schedule End:", scheduleEnd);
+        //console.log("Booking Start:", bookingStart);
+        //console.log("Booking End:", bookingEnd);
+        //console.log("-->");
 
         // Determine the overlapping segment
         const segmentStart = isBefore(bookingStart, scheduleStart) ? scheduleStart : bookingStart;
@@ -321,20 +326,24 @@ export const calculateBookingPrice = ({
     if (basicRanges.length === 0 && extraRanges.length === 0) {
         if (!includePrice) return 0;
 
-        if (basePriceType === "once" || basePriceType === "day") {
-            return basePrice + calculateSeating(
-                totalPrice,
-                bookingStart,
-                bookingEnd,
-                persons,
-                seatings,
-                seating
-            );
-        }
+        const p = calculatePriceByPriceType(
+            basePrice,
+            basePriceType,
+            bookingStart,
+            bookingEnd,
+            persons
+        );
 
-        if (basePriceType === "none" || basePriceType === "consumption") {
-            return 0;
-        }
+        const s = calculateSeating(
+            basePrice,
+            bookingStart,
+            bookingEnd,
+            persons,
+            seatings,
+            seating
+        );
+
+        return s + p;
     }
 
     // Sort and merge only basic ranges
@@ -506,11 +515,6 @@ export const getPricingSlotsForDates = (
     bookingEnd: Date,
     schedules: PricingSlot[] // Added parameter to pass the pricing slots to check
 ): PricingSlot[] => {
-    // Convert JS day (0=Sunday) to custom day (0=Monday)
-    const convertToCustomDay = (jsDay: number): number => {
-        return jsDay === 0 ? 6 : jsDay - 1;
-    };
-
     const overlappingSlots: PricingSlot[] = [];
 
     // If no schedules provided or dates are invalid, return empty array

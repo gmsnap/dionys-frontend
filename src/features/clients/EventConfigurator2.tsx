@@ -216,6 +216,7 @@ const EventConfigurator2 = ({ locationId, sx, }: EventConfiguratorProps) => {
             flexDirection: 'column',
             width: '100%',
             height: '100dvh',
+            backgroundColor: 'white'
         }}>
             {/* Headlines */}
             {selectedIndex < navItems.length - 1 &&
@@ -295,9 +296,9 @@ const EventConfigurator2 = ({ locationId, sx, }: EventConfiguratorProps) => {
                 sx={{
                     display: 'flex',
                     justifyContent: 'center',
-                    alignItems: 'top',
+                    alignItems: 'start',
                     width: { xs: '100%' },
-                    maxWidth: '600px',
+                    margin: '0 auto',
                     height: '100%',
                     overflow: 'auto',
                     scrollbarColor: '#888 transparent',
@@ -312,25 +313,11 @@ const EventConfigurator2 = ({ locationId, sx, }: EventConfiguratorProps) => {
                     '&::-webkit-scrollbar-thumb:hover': {
                         backgroundColor: 'rgba(0, 0, 0, 0.5)',
                     },
-                    margin: '0 auto',
+                    //backgroundColor: 'lightgray'
                 }}
             >
                 {navItems[selectedIndex].control}
             </Box>
-
-            {/* Fix Footer (Buttons) 
-            <Box
-                ref={scrollableBoxRef}
-                sx={{
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'top',
-                    width: { xs: '100%' },
-                    height: '100px',
-                }}
-            >
-                footer
-            </Box>*/}
         </Box>
     );
 };

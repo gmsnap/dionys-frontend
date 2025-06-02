@@ -68,6 +68,7 @@ const CompanyDataSelector = ({ previousStep, stepCompleted }: SelectorProps) => 
                     display: 'flex',
                     flexDirection: 'column',
                     flexGrow: 1,
+                    alignItems: 'center',
                     overflowY: 'auto', // Ensure form content can scroll
                 }}
             >
@@ -77,7 +78,8 @@ const CompanyDataSelector = ({ previousStep, stepCompleted }: SelectorProps) => 
                     sx={{
                         ml: 2,
                         mr: 2,
-                        pb: { xs: 20, sm: 16 } // Add bottom padding for buttons
+                        pb: { xs: 20, sm: 16 }, // Add bottom padding for buttons
+                        maxWidth: '500px'
                     }}
                 >
                     {/* Company Name */}
@@ -85,7 +87,7 @@ const CompanyDataSelector = ({ previousStep, stepCompleted }: SelectorProps) => 
                         <Grid2 size={{ xs: 12, sm: labelWidth }}>
                             <Typography variant="label">Unternehmensname</Typography>
                         </Grid2>
-                        <Grid2 size={{ xs: 12, sm: 8, md: 6 }}>
+                        <Grid2 size={{ xs: 12, sm: 8 }}>
                             <Controller
                                 name="companyName"
                                 control={control}
@@ -107,7 +109,7 @@ const CompanyDataSelector = ({ previousStep, stepCompleted }: SelectorProps) => 
                         <Grid2 size={{ xs: 12, sm: labelWidth }}>
                             <Typography variant="label">Kontakt-Person</Typography>
                         </Grid2>
-                        <Grid2 size={{ xs: 12, sm: 8, md: 6 }}>
+                        <Grid2 size={{ xs: 12, sm: 8 }}>
                             <Controller
                                 name="contactName"
                                 control={control}
@@ -129,7 +131,7 @@ const CompanyDataSelector = ({ previousStep, stepCompleted }: SelectorProps) => 
                         <Grid2 size={{ xs: 12, sm: labelWidth }}>
                             <Typography variant="label">Rechnungsanschrift</Typography>
                         </Grid2>
-                        <Grid2 size={{ xs: 12, sm: 8, md: 6 }}>
+                        <Grid2 size={{ xs: 12, sm: 8 }}>
                             <Controller
                                 name="streetAddress"
                                 control={control}
@@ -151,7 +153,7 @@ const CompanyDataSelector = ({ previousStep, stepCompleted }: SelectorProps) => 
                         <Grid2 size={{ xs: 12, sm: labelWidth }}>
                             <Typography variant="label">PLZ und Stadt</Typography>
                         </Grid2>
-                        <Grid2 size={{ xs: 12, sm: 8, md: 6 }}>
+                        <Grid2 size={{ xs: 12, sm: 8 }}>
                             <Controller
                                 name="city"
                                 control={control}
