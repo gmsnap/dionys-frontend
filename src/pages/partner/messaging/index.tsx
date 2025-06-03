@@ -43,6 +43,7 @@ interface ChatMessage {
 interface EventConversation extends EventConfigurationModel {
   newMessage: number;
   formatedTime: string;
+  extract: string;
 }
 
 interface Conversation {
@@ -60,9 +61,9 @@ const generateUploadUrlEndpoint =
 
 const MessagePage: NextPageWithLayout = () => {
   const { partnerUser, partnerLocations } = useStore();
-  const [locationId, setLocationId] = useState<number | null>(null);
+  //const [locationId, setLocationId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  //const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [conversations, setConversations] = useState<EventConversation[]>([]);
@@ -114,10 +115,8 @@ const MessagePage: NextPageWithLayout = () => {
 
       eventConfigurations = sortedConfs;
 
-
-
       try {
-        const res = await fetch(`http://localhost:3015/v1/partner/messages/getConversations/${partnerId}`);
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/partner/messages/getConversations/${partnerId}`);
         if (!res.ok) throw new Error(`Fehler: ${res.status}`);
 
         const data = await res.json() as Conversation[];
@@ -172,7 +171,7 @@ const MessagePage: NextPageWithLayout = () => {
         
   const loadConversation = async (conv: EventConversation) => {
     try {
-      const res = await fetch(`http://localhost:3015/v1/partner/messages/getConversationForId/${partnerId}/${conv.id}`);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/partner/messages/getConversationForId/${partnerId}/${conv.id}`);
       if (!res.ok) throw new Error(`Fehler: ${res.status}`);
       const data = await res.json() as ChatMessage[];
       console.log(JSON.stringify(data));
@@ -321,7 +320,7 @@ const MessagePage: NextPageWithLayout = () => {
     formData.append('attachments', JSON.stringify(uploadedFileUrls));
   
     // send message data to api
-    const res = await fetch(`http://localhost:3015/v1/partner/messages/sendMessageForConversation/`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/partner/messages/sendMessageForConversation/`, {
       method: 'POST',
       body: formData,
     });
