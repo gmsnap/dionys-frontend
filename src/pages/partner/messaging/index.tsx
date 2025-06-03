@@ -41,14 +41,21 @@ interface ChatMessage {
 }
 
 interface EventConversation extends EventConfigurationModel {
-  newMessage: number;
+  unreadMessages: number;
   formatedTime: string;
   extract: string;
+  messages: number;
+  answered: boolean;
+  lastMessage: string;
+  style: {};
 }
 
 interface Conversation {
   id: string;
-  amount: number;
+  entries: number;
+  extract: string;
+  received: string;
+  unread: number;
 }
 
 interface AttachmentFileData {
@@ -121,6 +128,8 @@ const MessagePage: NextPageWithLayout = () => {
 
         const data = await res.json() as Conversation[];
 
+        //console.log("data ", JSON.stringify(data));
+
         eventConversations = [];
 
         // loop events
@@ -141,14 +150,23 @@ const MessagePage: NextPageWithLayout = () => {
                 timeStyle: 'short',
                 }).format(date);
                 eventConversation.formatedTime = germanDate;
-                //console.log(eventConversation.formatedTime);
             }
 
 
             if(conversation.id === event.id.toString())
             {
-              eventConversation.newMessage = conversation.amount;
-              
+              eventConversation.unreadMessages = conversation.unread;
+
+              eventConversation.messages = conversation.entries;
+
+              eventConversation.lastMessage = conversation.received;
+
+              if(conversation.extract){
+                eventConversation.extract = conversation.extract.length > 20 ? conversation.extract.slice(0, 20) + "…" : conversation.extract; // extract
+              }
+
+              updateConversation(eventConversation);
+
               break;
             }
           }
@@ -156,7 +174,7 @@ const MessagePage: NextPageWithLayout = () => {
         }
 
         // get all requests from db, match the amounts to it.
-        console.log(data);
+        //console.log(data);
 
         setConversations(eventConversations);
       } catch (err) {
@@ -167,14 +185,34 @@ const MessagePage: NextPageWithLayout = () => {
     fetchConversationList();
   }, []);
 
-          
+  const updateConversation = (conversation: EventConversation) => {
+
+    if(conversation.unreadMessages){
+
+      const createdDate = new Date(conversation.lastMessage).getTime();
+      const currentDate = new Date().getTime();
+
+      if(currentDate - createdDate > 172800000){
+        conversation.style = { backgroundColor: 'red', borderWidth: '2px', borderColor: 'red' };
+      } else {
+        conversation.style = { backgroundColor: 'blue', borderWidth: '2px', borderColor: 'blue' };
+      }
+    } else {
+      if(conversation.messages){
+        conversation.style = { backgroundColor: 'white', borderWidth: '2px', borderColor: 'blue' };
+      } else {
+        conversation.style = {};
+      }
+    }
+  }      
         
   const loadConversation = async (conv: EventConversation) => {
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/partner/messages/getConversationForId/${partnerId}/${conv.id}`);
       if (!res.ok) throw new Error(`Fehler: ${res.status}`);
       const data = await res.json() as ChatMessage[];
-      console.log(JSON.stringify(data));
+      conv.unreadMessages = 0;
+      updateConversation(conv);
       setMessages(data);
       setCurrentConversation(conv);
     } catch (err) {
@@ -383,9 +421,22 @@ const MessagePage: NextPageWithLayout = () => {
                   <Typography sx={{ fontSize: '14px', textAlign: 'left', margin: '0px' }} gutterBottom>
                     {`Anfrage ${conv.id}: ${conv.location?.title}`}
                   </Typography>
-                  <Typography sx={{ fontSize: '14px', textAlign: 'right', fontWeight: 'bold', margin: '0px' }} gutterBottom>
-                    {conv.newMessage ? `Neue Nachrichten: ${conv.newMessage}` : ''}
+                  <Typography sx={{ fontSize: '14px', textAlign: 'left', margin: '0px' }} gutterBottom>
+                    {conv.extract ? `"${conv.extract}"` : ''}
                   </Typography>
+                  <Box
+                      sx={{
+                        width: 10,
+                        height: 10,
+                        borderRadius: '50%',
+                        display: 'inline-block',
+                        float: 'right',
+                        marginTop: '4px',
+                        borderStyle: 'solid',
+                        borderWidth: '0px',
+                        ...conv.style
+                      }}
+                    />
                 </ListItem>
               ))}
             </List>
