@@ -89,16 +89,59 @@ const MessagePage: NextPageWithLayout = () => {
   let eventConfigurations = [] as EventConfigurationModel[];
   let eventConversations = [] as EventConversation[];
 
+  useEffect(() => {
+    const interval = setInterval(  async () => {
+      console.log('Alle 1 Minuten ausgeführt');
+
+     await loadConversationsListFromServer(true);
+      //if(currentConversation) loadConversation(currentConversation, false);
+    }, 0.3 * 60 * 1000); // 5 Minuten
+
+    return () => clearInterval(interval); // Cleanup beim Unmount
+  }, []);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+    useEffect(() => {
+     console.log("CURRENT CONVERSATION: ", currentConversation);
+  }, [currentConversation]);
         
   useEffect(() => {
 
     const fetchConversationList = async () => {
 
-      //const companyId = partnerUser?.companyId;
+      await loadConversationsListFromServer(false);
+    };
+
+    fetchConversationList();
+  }, []);
+
+  const updateConversation = (conversation: EventConversation) => {
+
+    console.log("--unread: ", conversation.unreadMessages);
+    if(conversation.unreadMessages > 0){
+
+      const createdDate = new Date(conversation.lastMessage).getTime();
+      const currentDate = new Date().getTime();
+
+      if(currentDate - createdDate > 172800000){
+        conversation.style = { backgroundColor: 'red', borderWidth: '2px', borderColor: 'red' };
+      } else {
+        conversation.style = { backgroundColor: 'blue', borderWidth: '2px', borderColor: 'blue' };
+      }
+    } else {
+      if(conversation.messages){
+        conversation.style = { backgroundColor: 'white', borderWidth: '2px', borderColor: 'blue' };
+      } else {
+        conversation.style = {};
+      }
+    }
+  }      
+
+  const loadConversationsListFromServer = async (reloadMessage : boolean) => {
+    //const companyId = partnerUser?.companyId;
       if (!partnerId) {
           //return;
       }
@@ -177,44 +220,24 @@ const MessagePage: NextPageWithLayout = () => {
         //console.log(data);
 
         setConversations(eventConversations);
+        console.log("reload: ", reloadMessage);
+        console.log("currentConversation: ", currentConversation);
+        if(reloadMessage && currentConversation) loadConversation(currentConversation, 0);
       } catch (err) {
         console.error('Fehler beim Laden der Konversationsliste:', err);
       }
-    };
-
-    fetchConversationList();
-  }, []);
-
-  const updateConversation = (conversation: EventConversation) => {
-
-    if(conversation.unreadMessages){
-
-      const createdDate = new Date(conversation.lastMessage).getTime();
-      const currentDate = new Date().getTime();
-
-      if(currentDate - createdDate > 172800000){
-        conversation.style = { backgroundColor: 'red', borderWidth: '2px', borderColor: 'red' };
-      } else {
-        conversation.style = { backgroundColor: 'blue', borderWidth: '2px', borderColor: 'blue' };
-      }
-    } else {
-      if(conversation.messages){
-        conversation.style = { backgroundColor: 'white', borderWidth: '2px', borderColor: 'blue' };
-      } else {
-        conversation.style = {};
-      }
-    }
-  }      
+  }
         
-  const loadConversation = async (conv: EventConversation) => {
+  const loadConversation = async (conv: EventConversation, markAsRead: number ) => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/partner/messages/getConversationForId/${partnerId}/${conv.id}`);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/partner/messages/getConversationForId/${partnerId}/${conv.id}/${markAsRead}`);
       if (!res.ok) throw new Error(`Fehler: ${res.status}`);
       const data = await res.json() as ChatMessage[];
-      conv.unreadMessages = 0;
+      if(markAsRead) conv.unreadMessages = 0;
       updateConversation(conv);
       setMessages(data);
       setCurrentConversation(conv);
+      console.log("currentConversation: ", currentConversation);  
     } catch (err) {
       console.error('Fehler beim Laden der Konversation:', err);
     }
@@ -405,7 +428,7 @@ const MessagePage: NextPageWithLayout = () => {
                 <ListItem
                   key={conv.id}
                   button
-                  onClick={() => loadConversation(conv)}
+                  onClick={() => loadConversation(conv, 1)}
                   selected={conv.id === currentConversation?.id}
                   sx={{
                     borderRadius: 1,
