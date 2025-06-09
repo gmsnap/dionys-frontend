@@ -15,6 +15,8 @@ import {
     type Theme,
     Checkbox,
     ListItemText,
+    useMediaQuery,
+    useTheme,
 } from "@mui/material"
 import { yupResolver } from "@hookform/resolvers/yup"
 import { Save } from "lucide-react"
@@ -66,6 +68,9 @@ const EventPackageForm = ({
     imagesChanged,
     sx,
 }: FormProps) => {
+    const theme = useTheme();
+    const isSlimView = useMediaQuery(theme.breakpoints.down('sm'));
+
     const { authUser } = useAuthContext()
 
     const [isSubmitting, setIsSubmitting] = useState(false)
@@ -358,7 +363,7 @@ const EventPackageForm = ({
     const isPriceInputDisabled = priceTypeValue === "none"
 
     return (
-        <Box sx={{ height: "100vh", ...sx }}>
+        <Box sx={{ ...sx }}>
             <Typography variant="h5" sx={{ mb: 2, color: "primary.main" }}>
                 Allgemein
             </Typography>
@@ -366,7 +371,6 @@ const EventPackageForm = ({
                 sx={{
                     textAlign: "left",
                     maxWidth: "800px",
-                    height: "100%",
                 }}
             >
                 <form onSubmit={handleSubmit(onSubmit)}>
@@ -604,10 +608,30 @@ const EventPackageForm = ({
                                                     if (!selected || selected.length === 0) {
                                                         return <em>Alle Räume</em>
                                                     }
-                                                    return selected
+
+                                                    const charLimit = isSlimView ? 30 : 50;
+
+                                                    const selectedNames = selected
                                                         .map((id) => rooms.find((room) => room.id === id)?.name)
                                                         .filter(Boolean)
-                                                        .join(", ")
+                                                        .join(", ");
+
+                                                    return (
+                                                        <Box
+                                                            sx={{
+                                                                display: "block",
+                                                                maxWidth: "100%",
+                                                                overflow: "hidden",
+                                                                textOverflow: "clip",
+                                                                whiteSpace: "nowrap",
+                                                            }}
+                                                            title={selectedNames} // full string on hover
+                                                        >
+                                                            {selectedNames.length > charLimit
+                                                                ? selectedNames.substring(0, charLimit - 3) + "..."
+                                                                : selectedNames}
+                                                        </Box>
+                                                    );
                                                 }}
                                             >
                                                 {rooms.map((room) => (

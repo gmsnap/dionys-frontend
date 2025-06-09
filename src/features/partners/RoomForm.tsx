@@ -325,7 +325,7 @@ const RoomForm = ({
     };
 
     return (
-        <Box sx={{ height: "100vh", ...sx }}>
+        <Box sx={{ touchAction: 'auto', overflow: 'visible', ...sx }}>
             <Typography variant="h5"
                 sx={{ mb: 2, color: 'primary.main' }}>
                 Allgemein
@@ -333,7 +333,6 @@ const RoomForm = ({
             <Box sx={{
                 textAlign: "left",
                 maxWidth: "800px",
-                height: "100%",
             }}>
                 <form onSubmit={handleSubmit(onSubmit)}>
                     <Box sx={{
@@ -422,11 +421,13 @@ const RoomForm = ({
                                                         alignItems: 'flex-start',
                                                         paddingTop: 0,
                                                         paddingBottom: 0,
+                                                        overflow: 'visible',
                                                     },
                                                     '& .MuiOutlinedInput-inputMultiline': {
                                                         paddingTop: '4px',
                                                         paddingBottom: '4px',
                                                         lineHeight: 1.4,
+                                                        overflow: 'visible',
                                                     },
                                                 }}
                                             />
@@ -657,7 +658,7 @@ const RoomForm = ({
                                 />
                             }
                         </Grid2>
-
+                   
                         {/* Messages */}
                         {error && (
                             <Grid2 size={{ xs: controlWidth }}>

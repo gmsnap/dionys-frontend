@@ -29,7 +29,17 @@ const DeleteButton: React.FC<DeleteButtonProps> = ({ isDisabled, onDelete }) => 
             }}
             onClick={onDelete}
         >
-            Löschen
+            <Box
+                component="span"
+                sx={{
+                    display: {
+                        xs: 'none',
+                        sm: 'inline',
+                    },
+                }}
+            >
+                Löschen
+            </Box>
             <Box component="span" sx={{ ml: 1 }}>
                 <X className="icon" width={16} height={16} />
             </Box>
