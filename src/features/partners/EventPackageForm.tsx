@@ -159,7 +159,7 @@ const EventPackageForm = ({
         const loadLocations = async () => {
             try {
                 const locationsData = await fetchLocationsByCompanyId(companyId, setLoading, setError)
-                setLocations(locationsData)
+                setLocations(locationsData ?? [])
             } catch (error) {
                 console.error("Error fetching locations", error)
             }
@@ -245,7 +245,7 @@ const EventPackageForm = ({
             try {
                 setLoading(true)
                 const locationsData = await fetchLocationsByCompanyId(companyId, setLoading, setError)
-                setLocations(locationsData)
+                setLocations(locationsData ?? [])
 
                 // Fetch rooms if locationId is provided
                 if (locationId) {
