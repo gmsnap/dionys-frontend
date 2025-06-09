@@ -1,10 +1,9 @@
 import { EventConfigurationModel, toBooking } from "@/models/EventConfigurationModel";
 import { deleteEventConfiguration } from "@/services/eventConfigurationService";
-import { formatPrice, formatPriceWithType } from "@/utils/formatPrice";
 import { Box, Button, SxProps, Theme, Typography } from "@mui/material";
 import { X } from "lucide-react";
 import { useAuthContext } from '@/auth/AuthContext';
-import { BookingRoom, calculateBooking, calculateBookingPrice, PricingSlot } from "@/utils/pricingManager";
+import { BookingRoom, calculateBooking, calculateBookingPrice, FormatPrice, PricingSlot } from "@/utils/pricingManager";
 import { useEffect, useState } from "react";
 import { fetchRoomPricingsByRoom } from "@/services/roomPricingService";
 import { RoomPricingModel, toPricingSlot } from "@/models/RoomPricingModel";
@@ -36,7 +35,7 @@ const EventConfigurationDetails = ({ model, onDeleted, sx }: Props) => {
         return rooms.map((room) => {
             const pricings = roomPricings?.filter((p) => p.roomId === room.id);
             const name = room.name ?? "?";
-            const price = formatPrice(
+            const price = FormatPrice.formatPrice(
                 calculateBookingPrice({
                     bookingStart: new Date(conf.date!),
                     bookingEnd: new Date(conf.endDate!),
@@ -45,7 +44,7 @@ const EventConfigurationDetails = ({ model, onDeleted, sx }: Props) => {
                     basePriceType: room.priceType,
                     isExclusive: conf.roomExtras?.some(r => r.roomId === room.id) === true,
                     schedules: pricings ?? undefined,
-                })
+                }).total
             );
             const isExclusive = room.RoomsEventConfigurations?.isExclusive === true;
             return (
@@ -159,13 +158,13 @@ const EventConfigurationDetails = ({ model, onDeleted, sx }: Props) => {
             <Typography variant="h5" sx={{ mt: 2 }}>Pakete</Typography>
             {model.packages && model.packages.map((item, index) => (
                 <Box key={index} sx={{}}>
-                    <Typography>{item.title} ({formatPriceWithType(item.price, item.priceType, item.pricingLabel)})</Typography>
+                    <Typography>{item.title} ({FormatPrice.formatPriceWithType(item.price, item.priceType, item.pricingLabel)})</Typography>
                 </Box>
             ))}
 
             <Typography sx={{ fontWeight: 'bold', mt: 2 }}>
                 Total: {bookingModel
-                    ? formatPrice(calculateBooking(bookingModel))
+                    ? FormatPrice.formatPrice(calculateBooking(bookingModel))
                     : "Nicht berechnet"}
             </Typography>
             {model.booker && (<>

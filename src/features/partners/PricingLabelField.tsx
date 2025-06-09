@@ -1,7 +1,6 @@
 import { FormControl, FormHelperText, MenuItem, Select } from "@mui/material";
 import { Controller } from "react-hook-form";
-import { translatePricingLabel } from "@/utils/formatPrice";
-import { AvailablePricingLabels, PricingLabels } from "@/utils/pricingManager";
+import { AvailablePricingLabels, FormatPrice, PricingLabels } from "@/utils/pricingManager";
 
 interface FieldProps {
     control: any;
@@ -23,7 +22,7 @@ const PricingLabelField: React.FC<FieldProps> = ({ control, errors }) => {
                     >
                         {AvailablePricingLabels.map((pricingLabel) => (
                             <MenuItem key={pricingLabel} value={pricingLabel as PricingLabels}>
-                                {translatePricingLabel(pricingLabel as PricingLabels)}
+                                {FormatPrice.translatePricingLabel(pricingLabel as PricingLabels)}
                             </MenuItem>
                         ))}
                     </Select>

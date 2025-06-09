@@ -1,14 +1,13 @@
 import React, { } from 'react';
 import { Box, SxProps, Theme, Grid2, Button } from '@mui/material';
 import GridItem from '@/components/GridItem';
-import { formatPriceWithType } from '@/utils/formatPrice';
 import { Pencil, User, X } from 'lucide-react';
 import GridAddItem from '@/components/GridAddItem';
 import { EventPackageModel } from '@/models/EventPackageModel';
 import { handleDeleteEventPackage } from '@/services/eventPackageService';
 import theme from '@/theme';
 import { useAuthContext } from '@/auth/AuthContext';
-import { PriceTypes } from '@/utils/pricingManager';
+import { FormatPrice, PriceTypes } from '@/utils/pricingManager';
 
 interface EventPackageGridProps {
     sx?: SxProps<Theme>;
@@ -29,7 +28,7 @@ const EventPackageGrid = ({ sx, eventPackages, addButton = true, selectHandler, 
                         id={p.id}
                         image={p.images[0]}
                         title={p.title}
-                        priceTag={formatPriceWithType(p.price, p.priceType as PriceTypes, p.pricingLabel)}
+                        priceTag={FormatPrice.formatPriceWithTypeShort(p.price, p.priceType as PriceTypes, p.pricingLabel)}
                         listItems={[
                             ...(p.minPersons != null || p.maxPersons != null
                                 ? [{
@@ -44,7 +43,18 @@ const EventPackageGrid = ({ sx, eventPackages, addButton = true, selectHandler, 
                                 variant="edit"
                                 onClick={() => { selectHandler?.(p.id); }}
                             >
-                                Bearbeiten
+                                <Box
+                                    component="span"
+                                    sx={{
+                                        display: {
+                                            xs: 'inline',
+                                            sm: 'none',
+                                            lg: 'inline',
+                                        },
+                                    }}
+                                >
+                                    Bearbeiten
+                                </Box>
                                 <Box
                                     component="span" sx={{ ml: 1, }}
                                 >
@@ -62,7 +72,18 @@ const EventPackageGrid = ({ sx, eventPackages, addButton = true, selectHandler, 
                                     )
                                 }
                             >
-                                Löschen
+                                <Box
+                                    component="span"
+                                    sx={{
+                                        display: {
+                                            xs: 'inline',
+                                            sm: 'none',
+                                            lg: 'inline',
+                                        },
+                                    }}
+                                >
+                                    Löschen
+                                </Box>
                                 <Box component="span" sx={{ ml: 1 }}>
                                     <X className="icon" width={16} height={16} />
                                 </Box>

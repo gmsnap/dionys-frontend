@@ -1,6 +1,5 @@
 import { EventConfigurationModel, toBooking } from "@/models/EventConfigurationModel";
-import { formatPrice, formatPriceWithType } from "@/utils/formatPrice";
-import { calculateBooking, calculateBookingPrice } from "@/utils/pricingManager";
+import { calculateBooking, calculateBookingPrice, FormatPrice } from "@/utils/pricingManager";
 import { Box, SxProps, Theme, Typography } from "@mui/material";
 
 interface Props {
@@ -31,7 +30,7 @@ const EventConfigurationDetails = ({
             const extra = model.roomExtras?.find(r => r.roomId === room.id);
             const isExclusive = extra?.isExclusive === true;
             const seating = extra?.seating;
-            const price = formatPrice(
+            const price = FormatPrice.formatPrice(
                 calculateBookingPrice({
                     bookingStart: startDate,
                     bookingEnd: endDate,
@@ -42,7 +41,7 @@ const EventConfigurationDetails = ({
                     schedules: room.roomPricings,
                     seatings: room.roomSeatings,
                     seating,
-                }),
+                }).total,
                 room.pricingLabel
             );
             return (
@@ -92,14 +91,14 @@ const EventConfigurationDetails = ({
                     <Typography variant="h5" sx={{ mt: 2 }}>Pakete</Typography>
                     {model.packages.map((item, index) => (
                         <Box key={index} sx={{}}>
-                            <Typography>{item.title} ({formatPriceWithType(item.price, item.priceType, item.pricingLabel)})</Typography>
+                            <Typography>{item.title} ({FormatPrice.formatPriceWithType(item.price, item.priceType, item.pricingLabel)})</Typography>
                         </Box>
                     ))}
                 </>
             }
             {bookingModel
                 ? <Typography sx={{ fontWeight: 'bold', mt: 2 }}>
-                    Gesamt: {formatPrice(calculateBooking(bookingModel))}
+                    Gesamt: {FormatPrice.formatPrice(calculateBooking(bookingModel))}
                 </Typography>
                 : <Typography sx={{ color: 'red', fontWeight: 'bold', mt: 2 }}>
                     Gesamtpreis kann nicht berechnet werden.

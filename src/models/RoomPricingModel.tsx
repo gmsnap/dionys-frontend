@@ -17,7 +17,7 @@ export interface RoomPricingModel {
     exclusivePriceType: string | null;
     exclusivePrice: number | null;
     exclusivePricingLabel: string;
-    customName: string | null;
+    customName?: string;
 }
 
 export const createEmptyRoomPricingModel = (roomId: number): RoomPricingModel => ({
@@ -35,7 +35,6 @@ export const createEmptyRoomPricingModel = (roomId: number): RoomPricingModel =>
     exclusivePriceType: "none",
     exclusivePrice: null,
     exclusivePricingLabel: "exact",
-    customName: null,
 })
 
 export const toPricingSlot = (roomPricing: RoomPricingModel): PricingSlot => {

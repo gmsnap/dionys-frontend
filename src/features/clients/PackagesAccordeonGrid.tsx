@@ -2,11 +2,11 @@ import React, { } from 'react';
 import { Grid2, SxProps, Theme, Typography } from '@mui/material';
 import AccordionGridItem from '@/components/AccordionGridItem';
 import useStore from '@/stores/eventStore';
-import { formatPriceWithType } from '@/utils/formatPrice';
 import { HandCoins, Package } from 'lucide-react';
 import { formatPackageCategory } from '@/utils/formatPackageCategories';
 import theme from '@/theme';
 import { PackageCategories } from '@/constants/PackageCategories';
+import { FormatPrice } from '@/utils/pricingManager';
 
 interface Props {
     packageCategory?: PackageCategories,
@@ -82,7 +82,7 @@ const PackagesAccordeonGrid = ({ packageCategory, sx }: Props) => {
                         subTitle={
                             p.priceType === "none"
                                 ? undefined
-                                : `${formatPriceWithType(p.price, p.priceType, p.pricingLabel)}`
+                                : `${FormatPrice.formatPriceWithType(p.price, p.priceType, p.pricingLabel)}`
                         }
                         information={p.description}
                         infoItems={[
@@ -92,7 +92,7 @@ const PackagesAccordeonGrid = ({ packageCategory, sx }: Props) => {
                             },
                             {
                                 icon: <HandCoins color={iconColor} />,
-                                label: formatPriceWithType(p.price, p.priceType, p.pricingLabel),
+                                label: FormatPrice.formatPriceWithType(p.price, p.priceType, p.pricingLabel),
                             },
                         ]}
                     />
