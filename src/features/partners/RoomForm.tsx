@@ -199,7 +199,7 @@ const RoomForm = ({
                     companyId,
                     setLoading,
                     setError);
-                setLocations(locationsData);
+                setLocations(locationsData ?? []);
             } catch (error) {
                 console.error('Error fetching locations', error);
             }
