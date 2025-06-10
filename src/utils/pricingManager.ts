@@ -689,6 +689,10 @@ export class FormatPrice {
     } as const;
 
     static formatPrice(price: number, pricingLabel?: PricingLabels): string {
+        if (price === 0) {
+            return FormatPrice.staticTranslations["none"];
+        }
+
         const strPrice = new Intl.NumberFormat('de-DE', {
             style: "currency",
             currency: "EUR",
