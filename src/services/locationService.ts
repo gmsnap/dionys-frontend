@@ -72,7 +72,7 @@ export const fetchLocationsByCompanyId = async (
     } catch (err) {
         if (setError != null) {
             setError(err instanceof Error ?
-                err.message :
+                `Couldn't fetch locations. ${err.name} (${err.message})` :
                 'An unknown error occurred');
         }
         return null; // In case of error, return null
