@@ -66,53 +66,72 @@ interface AttachmentFileData {
 const generateUploadUrlEndpoint =
     `${process.env.NEXT_PUBLIC_API_URL}/media/generate-image-upload-url`;
 
+let currentEventConfiguration: EventConversation | null = null;
+
+/*
+const LongPollingComponent = () => {
+    const [data, setData] = useState("Initial data");
+    useEffect(() => {
+        const fetchData = async () => {
+            // Simulated data update
+            console.log("data: ",data);
+            setData(`Updated at ${new Date().toLocaleTimeString()}`);
+        };
+        const interval = setInterval(fetchData, 5000); // Update every 5 seconds
+        return () => clearInterval(interval); // Cleanup on unmount
+    }, []);
+    return (
+        <div>
+            <h2>Long Polling Example</h2>
+            <p>{data}</p>
+        </div>
+    );
+};
+*/
+
 const MessagePage: NextPageWithLayout = () => {
   const { partnerUser, partnerLocations } = useStore();
-  //const [locationId, setLocationId] = useState<number | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  //const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [conversations, setConversations] = useState<EventConversation[]>([]);
   const [currentConversation, setCurrentConversation] = useState<EventConversation | null>(null);
   const [selectedFile, setSelectedFile] = useState<File[]>([]);
   const [uploadedFileUrls, setUploadedFileUrls] = useState<AttachmentFileData[]>([]);
-  const [error, setError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [uploading, setUploading] = useState(false);
 
-  //const conversationID = "1744817512889"; // from db
   const sender = "Booking@VillaHirschberg.onmicrosoft.com"; // from db
   const partnerId = partnerUser?.companyId || 1;
 
-  // we have to use it later
-  let eventConfigurations = [] as EventConfigurationModel[];
-  let eventConversations = [] as EventConversation[];
-
+  
   useEffect(() => {
+    
     const interval = setInterval(  async () => {
       console.log('Alle 1 Minuten ausgeführt');
 
-     await loadConversationsListFromServer(true);
-      //if(currentConversation) loadConversation(currentConversation, false);
+     await loadConversationsListFromServer();
     }, 0.3 * 60 * 1000); // 5 Minuten
 
     return () => clearInterval(interval); // Cleanup beim Unmount
+    
   }, []);
-
+  
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-    useEffect(() => {
-     console.log("CURRENT CONVERSATION: ", currentConversation);
+  useEffect(() => {
+     currentEventConfiguration = currentConversation;
   }, [currentConversation]);
-        
+       
+  useEffect(() => {
+  }, [conversations]);
+  
   useEffect(() => {
 
     const fetchConversationList = async () => {
 
-      await loadConversationsListFromServer(false);
+      await loadConversationsListFromServer();
     };
 
     fetchConversationList();
@@ -120,7 +139,6 @@ const MessagePage: NextPageWithLayout = () => {
 
   const updateConversation = (conversation: EventConversation) => {
 
-    console.log("--unread: ", conversation.unreadMessages);
     if(conversation.unreadMessages > 0){
 
       const createdDate = new Date(conversation.lastMessage).getTime();
@@ -140,21 +158,22 @@ const MessagePage: NextPageWithLayout = () => {
     }
   }      
 
-  const loadConversationsListFromServer = async (reloadMessage : boolean) => {
+  const loadConversationsListFromServer = async () => {
+
     //const companyId = partnerUser?.companyId;
       if (!partnerId) {
-          //return;
+          return;
       }
 
-      const confs = await fetchEventConfigurationsByCompany(
-          partnerId,//partnerId,
-          setIsLoading,
-          setError
-      );
+    const confs = await fetchEventConfigurationsByCompany(
+      partnerId,//partnerId,
+      () => { },
+      () => { },
+    );
 
       if (!confs) {
           //setEventConfs([]);
-          setError("Error fetching Event Bookings");
+          //setError("Error fetching Event Bookings");
           return;
       }
 
@@ -163,15 +182,16 @@ const MessagePage: NextPageWithLayout = () => {
           b: EventConfigurationModel
       ) => b.id - a.id);
 
-      eventConfigurations = sortedConfs;
+    let eventConfigurations = [] as EventConfigurationModel[];
+    let eventConversations = [] as EventConversation[];
+
+    eventConfigurations = sortedConfs;
 
       try {
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/partner/messages/getConversations/${partnerId}`);
         if (!res.ok) throw new Error(`Fehler: ${res.status}`);
 
         const data = await res.json() as Conversation[];
-
-        //console.log("data ", JSON.stringify(data));
 
         eventConversations = [];
 
@@ -216,28 +236,22 @@ const MessagePage: NextPageWithLayout = () => {
           eventConversations.push(eventConversation);
         }
 
-        // get all requests from db, match the amounts to it.
-        //console.log(data);
-
-        setConversations(eventConversations);
-        console.log("reload: ", reloadMessage);
-        console.log("currentConversation: ", currentConversation);
-        if(reloadMessage && currentConversation) loadConversation(currentConversation, 0);
+        InitReload(eventConversations);
       } catch (err) {
         console.error('Fehler beim Laden der Konversationsliste:', err);
       }
   }
         
-  const loadConversation = async (conv: EventConversation, markAsRead: number ) => {
+  const loadConversation = async (conv: EventConversation, markAsRead: boolean ) => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/partner/messages/getConversationForId/${partnerId}/${conv.id}/${markAsRead}`);
+      const param = markAsRead ? 1 : 0;
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/partner/messages/getConversationForId/${partnerId}/${conv.id}/${param}`);
       if (!res.ok) throw new Error(`Fehler: ${res.status}`);
       const data = await res.json() as ChatMessage[];
       if(markAsRead) conv.unreadMessages = 0;
       updateConversation(conv);
       setMessages(data);
-      setCurrentConversation(conv);
-      console.log("currentConversation: ", currentConversation);  
+      setCurrentConversation({...conv});
     } catch (err) {
       console.error('Fehler beim Laden der Konversation:', err);
     }
@@ -251,6 +265,7 @@ const MessagePage: NextPageWithLayout = () => {
 
       const file = selectedFile[index];
       if (!file) return;
+      
       /*
       await fetch("/api/delete", {
           method: "POST",
@@ -349,6 +364,22 @@ const MessagePage: NextPageWithLayout = () => {
     return `${startDate}, ${startTime} - ${endTime} Uhr`;
   }
 
+const InitReload = (data: EventConversation[]) => {
+    setConversations(prev => {
+        const newConversations = [...data];
+        if (currentEventConfiguration) {
+            const updatedConv = newConversations.find(conv => conv.id === currentEventConfiguration?.id);
+            if (updatedConv) {
+                setCurrentConversation(updatedConv);
+                loadConversation(updatedConv, false);
+            } else {
+                setCurrentConversation(null);
+            }
+        }
+        return newConversations;
+    });
+};
+
         
   const handleSend = async () => {
 
@@ -389,9 +420,9 @@ const MessagePage: NextPageWithLayout = () => {
     
     if (res.ok) {
       const responseData = await res.json();
-      //console.log("response: ", JSON.stringify(responseData));
       setMessages((prev) => [...prev, responseData]);
       setNewMessage('');
+      currentConversation.unreadMessages = 0;
       setSelectedFile([]);
       setUploadedFileUrls([]); // Clear after send
     } else {
@@ -428,7 +459,7 @@ const MessagePage: NextPageWithLayout = () => {
                 <ListItem
                   key={conv.id}
                   button
-                  onClick={() => loadConversation(conv, 1)}
+                  onClick={() => loadConversation(conv, true)}
                   selected={conv.id === currentConversation?.id}
                   sx={{
                     borderRadius: 1,
@@ -477,6 +508,7 @@ const MessagePage: NextPageWithLayout = () => {
                   return (
                     <ListItem key={msg.id} sx={{ display: 'flex', justifyContent: 'center', px: 0 }}>
                       <Avatar sx={{ width: 32, height: 32, mr: 1, visibility: isOwnMessage ? 'hidden' : 'visible' }}>
+                        
                         {msg.sender.charAt(0).toUpperCase()}
                       </Avatar>
                       <Box sx={{ maxWidth: '70%', width: '100%' }}>
