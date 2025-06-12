@@ -1,13 +1,14 @@
 import { FormControl, FormHelperText, MenuItem, Select } from "@mui/material";
 import { Controller } from "react-hook-form";
-import { AvailablePricingLabels, FormatPrice, PricingLabels } from "@/utils/pricingManager";
+import { AvailablePricingLabels, FormatPrice } from "@/utils/pricingManager";
 
 interface FieldProps {
     control: any;
     errors: any;
+    labels?: string[];
 }
 
-const PricingLabelField: React.FC<FieldProps> = ({ control, errors }) => {
+const PricingLabelField: React.FC<FieldProps> = ({ control, errors, labels }) => {
     return (
         <Controller
             name="pricingLabel"
@@ -20,9 +21,9 @@ const PricingLabelField: React.FC<FieldProps> = ({ control, errors }) => {
                         displayEmpty
                         defaultValue={AvailablePricingLabels[0]}
                     >
-                        {AvailablePricingLabels.map((pricingLabel) => (
-                            <MenuItem key={pricingLabel} value={pricingLabel as PricingLabels}>
-                                {FormatPrice.translatePricingLabel(pricingLabel as PricingLabels)}
+                        {(labels ?? AvailablePricingLabels).map((pricingLabel) => (
+                            <MenuItem key={pricingLabel} value={pricingLabel}>
+                                {FormatPrice.translate(pricingLabel)}
                             </MenuItem>
                         ))}
                     </Select>

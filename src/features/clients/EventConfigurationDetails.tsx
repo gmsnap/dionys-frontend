@@ -30,19 +30,24 @@ const EventConfigurationDetails = ({
             const extra = model.roomExtras?.find(r => r.roomId === room.id);
             const isExclusive = extra?.isExclusive === true;
             const seating = extra?.seating;
-            const price = FormatPrice.formatPrice(
-                calculateBookingPrice({
-                    bookingStart: startDate,
-                    bookingEnd: endDate,
-                    persons: conf.persons ?? 1,
-                    basePrice: room.price,
-                    basePriceType: room.priceType,
-                    isExclusive,
-                    schedules: room.roomPricings,
-                    seatings: room.roomSeatings,
-                    seating,
-                }).total,
-                room.pricingLabel
+            const price = FormatPrice.formatPriceWithType(
+                {
+                    price: calculateBookingPrice({
+                        bookingStart: startDate,
+                        bookingEnd: endDate,
+                        persons: conf.persons ?? 1,
+                        basePrice: room.price,
+                        basePriceType: room.priceType,
+                        basePriceLabel: room.pricingLabel,
+                        isExclusive,
+                        schedules: room.roomPricings,
+                        seatings: room.roomSeatings,
+                        seating,
+                    }).total,
+                    priceType: room.priceType,
+                    pricingLabel: room.pricingLabel
+                },
+
             );
             return (
                 <Typography key={name}>
@@ -91,14 +96,20 @@ const EventConfigurationDetails = ({
                     <Typography variant="h5" sx={{ mt: 2 }}>Pakete</Typography>
                     {model.packages.map((item, index) => (
                         <Box key={index} sx={{}}>
-                            <Typography>{item.title} ({FormatPrice.formatPriceWithType(item.price, item.priceType, item.pricingLabel)})</Typography>
+                            <Typography>
+                                {item.title} ({FormatPrice.formatPriceWithType({
+                                    price: item.price,
+                                    priceType: item.priceType,
+                                    pricingLabel: item.pricingLabel
+                                })})
+                            </Typography>
                         </Box>
                     ))}
                 </>
             }
             {bookingModel
                 ? <Typography sx={{ fontWeight: 'bold', mt: 2 }}>
-                    Gesamt: {FormatPrice.formatPrice(calculateBooking(bookingModel))}
+                    Gesamt: {FormatPrice.formatPriceValue(calculateBooking(bookingModel))}
                 </Typography>
                 : <Typography sx={{ color: 'red', fontWeight: 'bold', mt: 2 }}>
                     Gesamtpreis kann nicht berechnet werden.

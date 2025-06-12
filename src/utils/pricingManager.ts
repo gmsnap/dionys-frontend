@@ -77,7 +77,6 @@ export type PriceTypes =
     "person" |
     "personHour" |
     "once" |
-    "consumption" |
     "none";
 
 export const AvailablePriceTypes = [
@@ -86,15 +85,23 @@ export const AvailablePriceTypes = [
     "person",
     "personHour",
     "once",
-    "consumption",
     "none",
 ];
 
 export type PricingLabels =
     "exact" |
-    "from";
+    "from" |
+    "consumption" |
+    "minSales";
 
 export const AvailablePricingLabels = [
+    "exact",
+    "from",
+    "consumption",
+    "minSales",
+];
+
+export const AvailablePricingLabelsBasic = [
     "exact",
     "from",
 ];
@@ -106,11 +113,19 @@ const convertToCustomDay = (jsDay: number): number => {
 const calculatePriceByPriceType = (
     price: number,
     priceType: string,
+    priceLabel: string | null | undefined,
     startDate: Date,
     endDate: Date,
     persons: number | null
 ) => {
     const hours = differenceInMinutes(endDate, startDate) / 60;
+
+    if (priceLabel) {
+        switch (priceLabel) {
+            case "consumption":
+                return 0;
+        }
+    }
 
     switch (priceType) {
         case "hour":
@@ -136,9 +151,6 @@ const calculatePriceByPriceType = (
         case "once":
             console.log("-- once --");
             return price;
-        case "consumption":
-            console.log("-- consumption --");
-            return price;
         case "none":
         default:
             return 0;
@@ -154,8 +166,6 @@ export const calculateBooking = (booking: Booking) => {
     const bookingEnd = booking.endDate;
 
     const persons = booking.persons ?? 1;
-
-
 
     const roomsPrice = booking.rooms?.reduce((total, room) => {
         const extra = booking.roomExtras?.find(r => r.roomId === room.id);
@@ -183,6 +193,7 @@ export const calculateBooking = (booking: Booking) => {
             packagesPrice += calculatePriceByPriceType(
                 p.price,
                 p.priceType as PriceTypes,
+                null,
                 bookingStart,
                 bookingEnd,
                 persons
@@ -199,6 +210,7 @@ export interface BookingPriceProps {
     persons: number;
     basePrice: number;
     basePriceType: string;
+    basePriceLabel?: string;
     isExclusive: boolean;
     seating?: string;
     schedules?: PricingSlot[];
@@ -212,14 +224,16 @@ export const calculateBookingPrice = ({
     persons,
     basePrice,
     basePriceType,
+    basePriceLabel,
     isExclusive,
     seating,
     schedules,
     seatings,
     filters
-}: BookingPriceProps): { total: number; items: PriceItem[] } => {
+}: BookingPriceProps): { total: number; items: PriceItem[], appliedSlots: PricingSlot[] } => {
     let totalPrice = 0;
     const items: PriceItem[] = [];
+    const appliedSlots: PricingSlot[] = [];
 
     const basicRanges: { start: Date; end: Date }[] = [];
     const extraRanges: { start: Date; end: Date; price: number }[] = [];
@@ -297,6 +311,7 @@ export const calculateBookingPrice = ({
                 const price = calculatePriceByPriceType(
                     schedule.price,
                     schedule.priceType,
+                    schedule.pricingLabel,
                     segmentStart,
                     segmentEnd,
                     persons
@@ -308,7 +323,7 @@ export const calculateBookingPrice = ({
                     name: schedule.roomPricingType === "basic"
                         ? "Grundpreis"
                         : schedule.customName || "Extra-Leistung",
-                    price: FormatPrice.formatPrice(price)
+                    price: FormatPrice.formatPriceValue(price)
                 });
 
                 if (schedule.roomPricingType === "extra") {
@@ -328,6 +343,7 @@ export const calculateBookingPrice = ({
                 const exclusive = calculatePriceByPriceType(
                     schedule.exclusivePrice,
                     schedule.exclusivePriceType,
+                    schedule.pricingLabel,
                     segmentStart,
                     segmentEnd,
                     persons
@@ -337,7 +353,7 @@ export const calculateBookingPrice = ({
 
                 items.push({
                     name: "Exklusivität",
-                    price: FormatPrice.formatPrice(exclusive)
+                    price: FormatPrice.formatPriceValue(exclusive)
                 });
                 /*items.push({
                     name: "Exklusivität",
@@ -349,15 +365,18 @@ export const calculateBookingPrice = ({
             if (schedule.roomPricingType === "basic") {
                 basicRanges.push({ start: segmentStart, end: segmentEnd });
             }
+
+            appliedSlots.push(schedule);
         }
     });
 
     if (basicRanges.length === 0 && extraRanges.length === 0) {
-        if (!includePrice) return { total: 0, items };
+        if (!includePrice) return { total: 0, items, appliedSlots };
 
         const p = calculatePriceByPriceType(
             basePrice,
             basePriceType,
+            basePriceLabel,
             bookingStart,
             bookingEnd,
             persons
@@ -365,7 +384,7 @@ export const calculateBookingPrice = ({
 
         items.push({
             name: "Grundpreis",
-            price: FormatPrice.formatPrice(p)
+            price: FormatPrice.formatPriceValue(p)
         });
 
         const s = calculateSeating(
@@ -379,7 +398,7 @@ export const calculateBookingPrice = ({
 
         items.push(...s.items);
 
-        return { total: p + s.total, items };
+        return { total: p + s.total, items, appliedSlots };
     }
 
     // Sort and merge only basic ranges
@@ -411,6 +430,7 @@ export const calculateBookingPrice = ({
                 const price = calculatePriceByPriceType(
                     basePrice,
                     basePriceType,
+                    basePriceLabel,
                     unaccountedStart,
                     range.start,
                     persons
@@ -426,6 +446,7 @@ export const calculateBookingPrice = ({
             const price = calculatePriceByPriceType(
                 basePrice,
                 basePriceType,
+                basePriceLabel,
                 unaccountedStart,
                 bookingEnd,
                 persons
@@ -436,8 +457,10 @@ export const calculateBookingPrice = ({
             items.push({
                 name: "Grundpreis",
                 price: FormatPrice.formatPriceWithType(
-                    price,
-                    basePriceType as PriceTypes,
+                    {
+                        price,
+                        priceType: basePriceType as PriceTypes,
+                    }
                 )
             });
         }
@@ -455,7 +478,7 @@ export const calculateBookingPrice = ({
     totalPrice += seatingPrices.total;
     items.push(...seatingPrices.items);
 
-    return { total: totalPrice, items };
+    return { total: totalPrice, items, appliedSlots };
 };
 
 export const calculateSeating = (
@@ -480,6 +503,7 @@ export const calculateSeating = (
         const seatingPrice = calculatePriceByPriceType(
             seatingBasePrice,
             seatingToApply.priceType,
+            null,
             bookingStart,
             bookingEnd,
             persons
@@ -496,6 +520,7 @@ export const calculateSeating = (
             const reconfigPrice = calculatePriceByPriceType(
                 reconfigBasePrice,
                 seatingToApply.reconfigPriceType,
+                null,
                 bookingStart,
                 bookingEnd,
                 persons
@@ -505,7 +530,7 @@ export const calculateSeating = (
                 total: seatingPrice + reconfigPrice,
                 items: [{
                     name: "Seating",
-                    price: FormatPrice.formatPrice(seatingPrice + reconfigPrice)
+                    price: FormatPrice.formatPriceValue(seatingPrice + reconfigPrice)
                 }]
             };
 
@@ -515,7 +540,7 @@ export const calculateSeating = (
             total: seatingPrice,
             items: [{
                 name: "Seating",
-                price: FormatPrice.formatPrice(seatingPrice)
+                price: FormatPrice.formatPriceValue(seatingPrice)
             }]
         };
     }
@@ -663,47 +688,101 @@ export const getPricingSlotsForDates = (
     return overlappingSlots;
 };
 
+export interface FormatPriceOptions {
+    price: number,
+    priceType?: PriceTypes,
+    pricingLabel?: PricingLabels
+    short?: boolean;
+    context?: "admin" | "booker";
+    noneLabelKey?: "none" | "free";
+}
+
+export interface TranslateOptions {
+    short?: boolean;
+    context?: "admin" | "booker";
+    noneLabelKey?: "none" | "free";
+}
+
 export class FormatPrice {
     static staticTranslations = {
         "day": "pro Tag",
-        "once": "einmalig",
+        "once": "pro Event",
         "hour": "pro Stunde",
         "person": "pro Person",
         "personHour": "pro Person/Stunde",
         "consumption": "Mindestverzehr",
         "none": "inklusive",
-        "exact": "genau",
-        "from": "ab",
+        "exact": "Pauschale (fix)",
+        "from": "Verbrauchspreis (ab)",
+        "minSales": "Mindestumsatz",
+        "free": "kostenlos",
     } as const;
 
     static staticShortTranslations = {
         "day": "p. Tag",
-        "once": "einmalig",
+        "once": "p. Event",
         "hour": "p. Stunde",
         "person": "p. Person",
         "personHour": "p. Person/h",
         "consumption": "Mindestverzehr",
         "none": "inklusive",
-        "exact": "genau",
-        "from": "ab",
+        "exact": "Pauschale (fix)",
+        "from": "Verb. (ab)",
+        "minSales": "Mindestumsatz",
+        "free": "kostenlos",
     } as const;
 
-    static formatPrice(price: number, pricingLabel?: PricingLabels): string {
-        if (price === 0) {
-            return FormatPrice.staticTranslations["none"];
-        }
-
-        const strPrice = new Intl.NumberFormat('de-DE', {
+    static formatPriceValue(price: number): string {
+        return new Intl.NumberFormat('de-DE', {
             style: "currency",
             currency: "EUR",
             minimumFractionDigits: 0,
             maximumFractionDigits: 0,
         }).format(price);
+    }
 
-        if (pricingLabel && pricingLabel !== "exact") {
-            return `${FormatPrice.staticTranslations[pricingLabel]} ${strPrice}`;
+    static formatPriceValueWithPrefix(
+        price: number,
+        prefix?: string,
+        short: boolean = false
+    ): string {
+        const strPrice = FormatPrice.formatPriceValue(price);
+
+        const t = short === true
+            ? FormatPrice.staticShortTranslations
+            : FormatPrice.staticTranslations;
+
+        if (prefix && prefix !== "exact") {
+            return `${t[prefix as keyof typeof t]} ${strPrice}`;
         }
+
         return strPrice;
+    }
+
+    static formatPriceWithType(options: FormatPriceOptions): string {
+        const t = options.short === true
+            ? FormatPrice.staticShortTranslations
+            : FormatPrice.staticTranslations;
+
+        if (options.price === 0) {
+            return t[options.noneLabelKey ?? "none"];
+        }
+
+        if (options.priceType === "none") {
+            return t[options.noneLabelKey ?? "none"];
+        }
+
+        const priceWithPrefix = FormatPrice.formatPriceValueWithPrefix(
+            options.price,
+            options.pricingLabel,
+            options.short
+        );
+
+        if (!options.priceType || options.priceType.length === 0) {
+            return priceWithPrefix;
+        }
+
+        return `${priceWithPrefix} ${t[options.priceType]}`;
     }
 
     static translatePrices(values: PriceTypes[]): string {
@@ -718,57 +797,43 @@ export class FormatPrice {
         return translated.join(", ");
     }
 
-    static translatePrice(value: PriceTypes): string {
+    static translatePrice(
+        value: PriceTypes,
+        options?: TranslateOptions
+    ): string {
         if (!value || value.length === 0) {
             return "-";
         }
 
-        return FormatPrice.staticTranslations[value];
+        const t = options?.short === true
+            ? FormatPrice.staticShortTranslations
+            : FormatPrice.staticTranslations;
+
+        if (value === "none") {
+            return t[options?.noneLabelKey ?? "none"];
+        }
+
+        return t[value];
     }
 
-    static formatPriceWithType(
-        price: number,
-        priceType: PriceTypes,
-        pricingLabel?: PricingLabels
+    static translatePricingLabel(
+        value: PricingLabels,
+        options?: TranslateOptions
     ): string {
-        if (!priceType || priceType.length === 0) {
-            return FormatPrice.formatPrice(price, pricingLabel);
-        }
-
-        // Ensure priceType exists in staticTranslations
-        const translation = FormatPrice.staticTranslations[priceType];
-
-        if (priceType === "none") {
-            return translation;
-        }
-
-        return `${FormatPrice.formatPrice(price, pricingLabel)} ${translation}`;
-    }
-
-    static formatPriceWithTypeShort(
-        price: number,
-        priceType: PriceTypes,
-        pricingLabel?: PricingLabels
-    ): string {
-        if (!priceType || priceType.length === 0) {
-            return FormatPrice.formatPrice(price, pricingLabel);
-        }
-
-        // Ensure priceType exists in staticTranslations
-        const translation = FormatPrice.staticShortTranslations[priceType];
-
-        if (priceType === "none") {
-            return translation;
-        }
-
-        return `${FormatPrice.formatPrice(price, pricingLabel)} ${translation}`;
-    }
-
-    static translatePricingLabel(value: PricingLabels): string {
         if (!value || value.length === 0) {
             return "-";
         }
 
-        return FormatPrice.staticTranslations[value];
+        const t = options?.short === true
+            ? FormatPrice.staticShortTranslations
+            : FormatPrice.staticTranslations;
+
+        return t[value];
+    }
+
+    static translate(key: string): string {
+        return FormatPrice
+            .staticTranslations[key as keyof typeof FormatPrice.staticTranslations]
+            ?? key;
     }
 }

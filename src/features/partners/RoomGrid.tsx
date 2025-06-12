@@ -86,6 +86,7 @@ const RoomGrid = ({ sx, rooms, addButton = true, selectHandler, roomsChanged }: 
                                 </Box>
                             </Button>,
                         ]}
+                        onImageClick={() => { selectHandler?.(room.id); }}
                     />
                 </Grid2>
             ))}

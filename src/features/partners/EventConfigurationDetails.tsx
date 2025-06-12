@@ -35,8 +35,8 @@ const EventConfigurationDetails = ({ model, onDeleted, sx }: Props) => {
         return rooms.map((room) => {
             const pricings = roomPricings?.filter((p) => p.roomId === room.id);
             const name = room.name ?? "?";
-            const price = FormatPrice.formatPrice(
-                calculateBookingPrice({
+            const price = FormatPrice.formatPriceWithType({
+                price: calculateBookingPrice({
                     bookingStart: new Date(conf.date!),
                     bookingEnd: new Date(conf.endDate!),
                     persons: conf.persons!,
@@ -44,8 +44,8 @@ const EventConfigurationDetails = ({ model, onDeleted, sx }: Props) => {
                     basePriceType: room.priceType,
                     isExclusive: conf.roomExtras?.some(r => r.roomId === room.id) === true,
                     schedules: pricings ?? undefined,
-                }).total
-            );
+                }).total,
+            });
             const isExclusive = room.RoomsEventConfigurations?.isExclusive === true;
             return (
                 <Typography key={name}>
@@ -158,13 +158,19 @@ const EventConfigurationDetails = ({ model, onDeleted, sx }: Props) => {
             <Typography variant="h5" sx={{ mt: 2 }}>Pakete</Typography>
             {model.packages && model.packages.map((item, index) => (
                 <Box key={index} sx={{}}>
-                    <Typography>{item.title} ({FormatPrice.formatPriceWithType(item.price, item.priceType, item.pricingLabel)})</Typography>
+                    <Typography>
+                        {item.title} ({FormatPrice.formatPriceWithType({
+                            price: item.price,
+                            priceType: item.priceType,
+                            pricingLabel: item.pricingLabel
+                        })})
+                    </Typography>
                 </Box>
             ))}
 
             <Typography sx={{ fontWeight: 'bold', mt: 2 }}>
-                Total: {bookingModel
-                    ? FormatPrice.formatPrice(calculateBooking(bookingModel))
+                Gesamt: {bookingModel
+                    ? FormatPrice.formatPriceValue(calculateBooking(bookingModel))
                     : "Nicht berechnet"}
             </Typography>
             {model.booker && (<>

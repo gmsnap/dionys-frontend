@@ -43,7 +43,11 @@ const LocationGrid = ({ sx, selectHandler }: LocationGridProps) => {
                         id={location.id}
                         image={location.image as string}
                         title={location.title}
-                        priceTag={`Ab ${FormatPrice.formatPrice(getAggregatedRoomPrices(location))} / Tag`}
+                        priceTag={`${FormatPrice.formatPriceWithType({
+                            price: getAggregatedRoomPrices(location),
+                            pricingLabel: "from",
+                            short: true
+                        })}`}
                         listItems={[
                             {
                                 icon: <MapPin color={theme.palette.customColors.blue.main} />,
@@ -96,6 +100,7 @@ const LocationGrid = ({ sx, selectHandler }: LocationGridProps) => {
                                 </Box>
                             </Button>,
                         ]}
+                        onImageClick={() => { selectHandler?.(location.id); }}
                     />
                 </Grid2>
             ))}

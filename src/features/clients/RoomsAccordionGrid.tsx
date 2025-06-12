@@ -22,7 +22,8 @@ import {
     calculateBookingPrice,
     calculateSeating,
     FormatPrice,
-    getPricingSlotsForDates
+    getPricingSlotsForDates,
+    PricingLabels
 } from '@/utils/pricingManager';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
@@ -212,13 +213,17 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
             isExclusive: true,
             schedules: room.roomPricings,
             filters: ['exclusive'],
-        }).total;
+        });
+
+        const exclusiveText = exclusivePrice.total > 0
+            ? `+ ${FormatPrice.formatPriceValue(exclusivePrice.total)}`
+            : FormatPrice.translate("free");
 
         return (
             <>
                 {room.roomSeatings?.length ? (
                     <FormControl fullWidth sx={{ mt: 2 }} disabled={!hasSeatingOptions}>
-                        <InputLabel>Seating</InputLabel>
+                        <InputLabel>Seating</InputLabel>ƒ
                         <Select
                             value={selectedSeating}
                             label="Seating"
@@ -236,7 +241,7 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
                                 return (
                                     <MenuItem key={seating.id} value={seating.seating}>
                                         {(seatingTypeOptions?.find(o => o.value === seating.seating)?.label ?? seating.seating) +
-                                            (seatingPrice > 0 ? ` (+ ${FormatPrice.formatPrice(seatingPrice)})` : '')}
+                                            (seatingPrice > 0 ? ` (+ ${FormatPrice.formatPriceValue(seatingPrice)})` : '')}
                                     </MenuItem>
                                 );
                             })}
@@ -251,7 +256,7 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
                                 onChange={(e) => setIsExclusive(e.target.checked)}
                             />
                         }
-                        label={`Exklusiv buchen (+ ${FormatPrice.formatPrice(exclusivePrice)})`}
+                        label={`Exklusiv buchen (${exclusiveText})`}
                         sx={{ mt: 2 }}
                     />}
             </>
@@ -290,20 +295,22 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
                             eventConfiguration?.date &&
                                 eventConfiguration?.endDate &&
                                 eventConfiguration?.persons
-                                ? FormatPrice.formatPrice(
-                                    calculateBookingPrice({
-                                        bookingStart: new Date(eventConfiguration.date),
-                                        bookingEnd: new Date(eventConfiguration.endDate),
-                                        persons: eventConfiguration.persons,
-                                        basePrice: room.price,
-                                        basePriceType: room.priceType,
-                                        isExclusive,
-                                        schedules: room.roomPricings,
-                                        seatings: room.roomSeatings,
-                                        seating,
-                                    }).total,
-                                    room.pricingLabel
-                                )
+                                ? FormatPrice.formatPriceWithType({
+                                    price:
+                                        calculateBookingPrice({
+                                            bookingStart: new Date(eventConfiguration.date),
+                                            bookingEnd: new Date(eventConfiguration.endDate),
+                                            persons: eventConfiguration.persons,
+                                            basePrice: room.price,
+                                            basePriceType: room.priceType,
+                                            isExclusive,
+                                            schedules: room.roomPricings,
+                                            seatings: room.roomSeatings,
+                                            seating,
+                                        }).total,
+                                    priceType: room.priceType,
+                                    pricingLabel: room.pricingLabel,
+                                })
                                 : "?";
 
                         return (
@@ -319,7 +326,7 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
                                     selectRequested={(id) => toggleRoom(id)}
                                     title={room.name}
                                     subTitle={
-                                        `${formatRoomSize(room.size)}, ${calculatedPrice}` +
+                                        `${calculatedPrice}` +
                                         ` | ${room.minPersons} - ${room.maxPersons} Personen | ` +
                                         [
                                             isExclusive ? 'Exklusiv' : null,
@@ -329,10 +336,7 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
                                     information={room.description}
                                     additionalNotes={room.services}
                                     infoItems={[
-                                        {
-                                            icon: <Ruler color={iconColor} />,
-                                            label: formatRoomSize(room.size),
-                                        },
+                                        ...(room.size > 0 ? [{ icon: <Ruler color={iconColor} />, label: formatRoomSize(room.size) }] : []),
                                         {
                                             icon: <HandCoins color={iconColor} />,
                                             label: calculatedPrice,
@@ -367,8 +371,8 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
                                 eventConfiguration?.date &&
                                     eventConfiguration?.endDate &&
                                     eventConfiguration?.persons
-                                    ? FormatPrice.formatPrice(
-                                        calculateBookingPrice({
+                                    ? FormatPrice.formatPriceWithType({
+                                        price: calculateBookingPrice({
                                             bookingStart: new Date(eventConfiguration.date),
                                             bookingEnd: new Date(eventConfiguration.endDate),
                                             persons: eventConfiguration.persons,
@@ -379,8 +383,8 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
                                             seatings: room.roomSeatings,
                                             seating: '',
                                         }).total,
-                                        room.pricingLabel
-                                    )
+                                        pricingLabel: room.pricingLabel,
+                                    })
                                     : "?";
 
                             return (
@@ -395,16 +399,13 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
                                         selectRequested={(id) => toggleRoom(id)}
                                         title={room.name}
                                         subTitle={
-                                            `${formatRoomSize(room.size)}, ${calculatedPrice}` +
-                                            ` | ${room.minPersons} - ${room.maxPersons} Personen`
+                                            `${calculatedPrice}` +
+                                            `|${room.minPersons} - ${room.maxPersons} Personen`
                                         }
                                         information={room.description}
                                         additionalNotes={room.services}
                                         infoItems={[
-                                            {
-                                                icon: <Ruler color={iconColor} />,
-                                                label: formatRoomSize(room.size),
-                                            },
+                                            ...(room.size > 0 ? [{ icon: <Ruler color={iconColor} />, label: formatRoomSize(room.size) }] : []),
                                             {
                                                 icon: <HandCoins color={iconColor} />,
                                                 label: calculatedPrice,
