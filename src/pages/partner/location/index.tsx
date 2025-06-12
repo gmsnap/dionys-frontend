@@ -263,6 +263,7 @@ const PartnerPage: NextPageWithLayout = () => {
                     <CreateLocationForm
                         locationId={locationId}
                         locationCreated={setLocationId}
+                        sx={{ width: '100%', }}
                     />
                 ) : (
                     <LocationGrid

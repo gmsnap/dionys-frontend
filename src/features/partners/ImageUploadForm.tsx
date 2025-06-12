@@ -116,7 +116,7 @@ const ImageUploadForm: React.FC<ImageUploadFormProps> = ({
                                 height: "auto",
                                 maxHeight: 300,
                                 objectFit: "contain",
-                                borderRadius: "12px",
+                                borderRadius: "6px",
                             }}
                         />
                         <Box
@@ -140,9 +140,10 @@ const ImageUploadForm: React.FC<ImageUploadFormProps> = ({
             </Box>
 
             {/* Grid2 of Thumbnails */}
-            <Grid2 container spacing={2} alignContent={"flex-start"}
+            <Grid2 container spacing={1} alignContent={"flex-start"}
                 sx={{
                     width: "50%",
+                    mb: 4,
                 }}
             >
                 {model.images.map((image) => (
@@ -153,58 +154,52 @@ const ImageUploadForm: React.FC<ImageUploadFormProps> = ({
                             alt="Thumbnail"
                             sx={{
                                 width: "100%",
-                                height: "auto",
-                                maxHeight: 100,
                                 objectFit: "cover",
                                 borderStyle: "solid",
                                 borderColor: selectedImage === image
                                     ? theme.palette.customColors.blue.light
                                     : "transparent",
                                 borderWidth: "2px",
-                                borderRadius: "8px",
+                                borderRadius: "4px",
+                                aspectRatio: "4/3",
                                 cursor: "pointer",
-                                overflow: "hidden",
                             }}
                             onClick={() => setSelectedImage(image)}
                         />
                     </Grid2>
                 ))}
                 {/* Add Image Button */}
-                <Grid2 size={{ xs: 12, sm: 5 }} sx={{ maxHeight: 100, height: "100%" }}>
-                    <Button
-                        component="label"
-                        fullWidth
+                <Grid2 size={{ xs: 6 }} key={"imgAddBtn"}>
+                    <Box
                         sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            width: "100%",
-                            height: "100%",
-                            minHeight: 60,
+                            width: '100%',
+                            aspectRatio: '4/3',
+                            borderRadius: '4px',
+                            overflow: 'hidden',
                             backgroundColor: theme.palette.customColors.textBackground.halfdark,
-                            borderRadius: "8px",
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'pointer',
                             '&:hover': {
                                 backgroundColor: theme.palette.customColors.blue.halfdark,
                             },
-                            '.icon': {
-                                color: theme.palette.customColors.blue.main,
-                            },
-                            '&:hover .icon': {
-                                color: '#000000',
-                            },
-                            mb: 4,
                         }}
+                        onClick={() => document.getElementById("uploadInput")?.click()}
                     >
-                        {uploading ?
-                            <CircularProgress className="icon" size={24} /> :
-                            <Upload className="icon" />}
+                        {uploading ? (
+                            <CircularProgress className="icon" size={24} />
+                        ) : (
+                            <Upload className="icon" size={24} />
+                        )}
                         <input
+                            id="uploadInput"
                             type="file"
                             accept="image/*"
                             hidden
                             onChange={handleImageUpload}
                         />
-                    </Button>
+                    </Box>
                 </Grid2>
             </Grid2>
         </Box>

@@ -16,10 +16,14 @@ import {
 import { HandCoins, Ruler } from 'lucide-react';
 import AccordionGridItem from '@/components/AccordionGridItem';
 import useStore from '@/stores/eventStore';
-import { formatPrice } from '@/utils/formatPrice';
 import { formatRoomSize } from '@/utils/formatSizes';
 import theme from '@/theme';
-import { calculateBookingPrice, calculateSeating, getPricingSlotsForDates } from '@/utils/pricingManager';
+import {
+    calculateBookingPrice,
+    calculateSeating,
+    FormatPrice,
+    getPricingSlotsForDates
+} from '@/utils/pricingManager';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
@@ -197,7 +201,7 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
             basePriceType: room.priceType,
             isExclusive: false,
             schedules: room.roomPricings,
-        });
+        }).total;
 
         const exclusivePrice = calculateBookingPrice({
             bookingStart,
@@ -208,7 +212,7 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
             isExclusive: true,
             schedules: room.roomPricings,
             filters: ['exclusive'],
-        });
+        }).total;
 
         return (
             <>
@@ -228,11 +232,11 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
                                     eventConfiguration.persons ?? 0,
                                     room.roomSeatings,
                                     seating.seating
-                                );
+                                ).total;
                                 return (
                                     <MenuItem key={seating.id} value={seating.seating}>
                                         {(seatingTypeOptions?.find(o => o.value === seating.seating)?.label ?? seating.seating) +
-                                            (seatingPrice > 0 ? ` (+ ${formatPrice(seatingPrice)})` : '')}
+                                            (seatingPrice > 0 ? ` (+ ${FormatPrice.formatPrice(seatingPrice)})` : '')}
                                     </MenuItem>
                                 );
                             })}
@@ -247,7 +251,7 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
                                 onChange={(e) => setIsExclusive(e.target.checked)}
                             />
                         }
-                        label={`Exklusiv buchen (+ ${formatPrice(exclusivePrice)})`}
+                        label={`Exklusiv buchen (+ ${FormatPrice.formatPrice(exclusivePrice)})`}
                         sx={{ mt: 2 }}
                     />}
             </>
@@ -286,7 +290,7 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
                             eventConfiguration?.date &&
                                 eventConfiguration?.endDate &&
                                 eventConfiguration?.persons
-                                ? formatPrice(
+                                ? FormatPrice.formatPrice(
                                     calculateBookingPrice({
                                         bookingStart: new Date(eventConfiguration.date),
                                         bookingEnd: new Date(eventConfiguration.endDate),
@@ -297,7 +301,7 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
                                         schedules: room.roomPricings,
                                         seatings: room.roomSeatings,
                                         seating,
-                                    }),
+                                    }).total,
                                     room.pricingLabel
                                 )
                                 : "?";
@@ -363,7 +367,7 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
                                 eventConfiguration?.date &&
                                     eventConfiguration?.endDate &&
                                     eventConfiguration?.persons
-                                    ? formatPrice(
+                                    ? FormatPrice.formatPrice(
                                         calculateBookingPrice({
                                             bookingStart: new Date(eventConfiguration.date),
                                             bookingEnd: new Date(eventConfiguration.endDate),
@@ -374,7 +378,7 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
                                             schedules: room.roomPricings,
                                             seatings: room.roomSeatings,
                                             seating: '',
-                                        }),
+                                        }).total,
                                         room.pricingLabel
                                     )
                                     : "?";

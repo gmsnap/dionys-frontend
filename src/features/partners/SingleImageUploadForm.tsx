@@ -1,14 +1,10 @@
 import React, { useEffect, useState } from "react";
 import {
-    Grid2,
     Box,
-    IconButton,
     Typography,
     Button,
-    CircularProgress,
 } from "@mui/material";
-import { Delete, Upload, X } from "lucide-react";
-import theme from "@/theme";
+import { Upload } from "lucide-react";
 import DeleteButton from "@/components/DeleteButton";
 
 // Define a type for the model
@@ -118,9 +114,28 @@ const SingleImageUploadForm: React.FC<Props> = ({
                                     lineHeight: 0,
                                     mb: 1,
                                     mr: 1,
+                                    '.icon': {
+                                        color: '#ffffff',
+                                    },
+                                    '&:hover .icon': {
+                                        color: '#ffffff',
+                                    },
                                 }}
                             >
-                                Bild ersetzen
+                                <Box
+                                    component="span"
+                                    sx={{
+                                        display: {
+                                            xs: 'none',
+                                            md: 'inline',
+                                        },
+                                    }}
+                                >
+                                    Bild ersetzen
+                                </Box>
+                                <Box component="span" sx={{ ml: 1, }}>
+                                    <Upload className="icon" width={12} height={12} />
+                                </Box>
                                 <input
                                     type="file"
                                     hidden

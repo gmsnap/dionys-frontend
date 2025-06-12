@@ -1,5 +1,10 @@
 import { addDays, differenceInDays, differenceInMinutes, eachDayOfInterval, isAfter, isBefore, isEqual, startOfDay, set } from "date-fns";
 
+export interface PriceItem {
+    name: string;
+    price: string;
+};
+
 export interface PricingSlot {
     roomPricingType: string;
     startDayOfWeek: number;
@@ -11,6 +16,9 @@ export interface PricingSlot {
     exclusiveType: string;
     exclusivePriceType: string | null;
     exclusivePrice: number | null;
+    pricingLabel?: string;
+    exclusivePricingLabel?: string;
+    customName?: string;
 };
 
 export interface BookingSeating {
@@ -118,11 +126,11 @@ const calculatePriceByPriceType = (
             const days = eachDayOfInterval({ start: startDate, end: endDate });
             const uniqueDays = new Set(days.map(day => startOfDay(day).toISOString()));
 
-            console.log("-- days");
-            console.log("S ", startDate);
-            console.log("E ", endDate);
-            console.log("D ", uniqueDays.size);
-            console.log("days --");
+            //console.log("-- days");
+            //console.log("S ", startDate);
+            //console.log("E ", endDate);
+            //console.log("D ", uniqueDays.size);
+            //console.log("days --");
 
             return uniqueDays.size ? uniqueDays.size * price : 0;
         case "once":
@@ -164,7 +172,7 @@ export const calculateBooking = (booking: Booking) => {
                 schedules: room.roomPricings,
                 seatings: room.roomSeatings,
                 seating,
-            })
+            }).total
             : 0;
         return total + roomPrice;
     }, 0) || 0;
@@ -209,8 +217,9 @@ export const calculateBookingPrice = ({
     schedules,
     seatings,
     filters
-}: BookingPriceProps) => {
+}: BookingPriceProps): { total: number; items: PriceItem[] } => {
     let totalPrice = 0;
+    const items: PriceItem[] = [];
 
     const basicRanges: { start: Date; end: Date }[] = [];
     const extraRanges: { start: Date; end: Date; price: number }[] = [];
@@ -295,11 +304,19 @@ export const calculateBookingPrice = ({
 
                 totalPrice += price;
 
+                items.push({
+                    name: schedule.roomPricingType === "basic"
+                        ? "Grundpreis"
+                        : schedule.customName || "Extra-Leistung",
+                    price: FormatPrice.formatPrice(price)
+                });
+
                 if (schedule.roomPricingType === "extra") {
                     extraRanges.push({ start: segmentStart, end: segmentEnd, price });
                 }
             }
 
+            // Add exclusive price
             if (
                 includeExclusive &&
                 schedule.roomPricingType === "basic" &&
@@ -308,13 +325,25 @@ export const calculateBookingPrice = ({
                 schedule.exclusivePriceType &&
                 schedule.exclusivePrice
             ) {
-                totalPrice += calculatePriceByPriceType(
+                const exclusive = calculatePriceByPriceType(
                     schedule.exclusivePrice,
                     schedule.exclusivePriceType,
                     segmentStart,
                     segmentEnd,
                     persons
                 );
+
+                totalPrice += exclusive;
+
+                items.push({
+                    name: "Exklusivität",
+                    price: FormatPrice.formatPrice(exclusive)
+                });
+                /*items.push({
+                    name: "Exklusivität",
+                    price: `${FormatPrice.formatPrice(exclusive)}` +
+                        ` (${schedule.exclusivePrice} ${schedule.exclusivePrice})`
+                });*/
             }
 
             if (schedule.roomPricingType === "basic") {
@@ -324,7 +353,7 @@ export const calculateBookingPrice = ({
     });
 
     if (basicRanges.length === 0 && extraRanges.length === 0) {
-        if (!includePrice) return 0;
+        if (!includePrice) return { total: 0, items };
 
         const p = calculatePriceByPriceType(
             basePrice,
@@ -333,6 +362,11 @@ export const calculateBookingPrice = ({
             bookingEnd,
             persons
         );
+
+        items.push({
+            name: "Grundpreis",
+            price: FormatPrice.formatPrice(p)
+        });
 
         const s = calculateSeating(
             basePrice,
@@ -343,7 +377,9 @@ export const calculateBookingPrice = ({
             seating
         );
 
-        return s + p;
+        items.push(...s.items);
+
+        return { total: p + s.total, items };
     }
 
     // Sort and merge only basic ranges
@@ -394,14 +430,32 @@ export const calculateBookingPrice = ({
                 bookingEnd,
                 persons
             );
+
             totalPrice += price;
+
+            items.push({
+                name: "Grundpreis",
+                price: FormatPrice.formatPriceWithType(
+                    price,
+                    basePriceType as PriceTypes,
+                )
+            });
         }
     }
 
-    const seatingPrice = calculateSeating(totalPrice, bookingStart, bookingEnd, persons, seatings, seating);
-    totalPrice += seatingPrice;
+    const seatingPrices = calculateSeating(
+        totalPrice,
+        bookingStart,
+        bookingEnd,
+        persons,
+        seatings,
+        seating
+    );
 
-    return totalPrice;
+    totalPrice += seatingPrices.total;
+    items.push(...seatingPrices.items);
+
+    return { total: totalPrice, items };
 };
 
 export const calculateSeating = (
@@ -411,7 +465,7 @@ export const calculateSeating = (
     persons: number,
     seatings?: BookingSeating[],
     seating?: string
-) => {
+): { total: number; items: PriceItem[] } => {
     const seatingToApply = seating
         ? seatings?.find(s => s.seating === seating) || seatings?.find(s => s.isDefault) || null
         : null;
@@ -447,13 +501,26 @@ export const calculateSeating = (
                 persons
             );
 
-            return seatingPrice + reconfigPrice;
-        } else {
-            return seatingPrice;
+            return {
+                total: seatingPrice + reconfigPrice,
+                items: [{
+                    name: "Seating",
+                    price: FormatPrice.formatPrice(seatingPrice + reconfigPrice)
+                }]
+            };
+
         }
+
+        return {
+            total: seatingPrice,
+            items: [{
+                name: "Seating",
+                price: FormatPrice.formatPrice(seatingPrice)
+            }]
+        };
     }
 
-    return 0;
+    return { total: 0, items: [] };
 }
 
 export const doPricingSlotsOverlap = (pricing1: PricingSlot, pricing2: PricingSlot): boolean => {
@@ -595,3 +662,113 @@ export const getPricingSlotsForDates = (
 
     return overlappingSlots;
 };
+
+export class FormatPrice {
+    static staticTranslations = {
+        "day": "pro Tag",
+        "once": "einmalig",
+        "hour": "pro Stunde",
+        "person": "pro Person",
+        "personHour": "pro Person/Stunde",
+        "consumption": "Mindestverzehr",
+        "none": "inklusive",
+        "exact": "genau",
+        "from": "ab",
+    } as const;
+
+    static staticShortTranslations = {
+        "day": "p. Tag",
+        "once": "einmalig",
+        "hour": "p. Stunde",
+        "person": "p. Person",
+        "personHour": "p. Person/h",
+        "consumption": "Mindestverzehr",
+        "none": "inklusive",
+        "exact": "genau",
+        "from": "ab",
+    } as const;
+
+    static formatPrice(price: number, pricingLabel?: PricingLabels): string {
+        if (price === 0) {
+            return FormatPrice.staticTranslations["none"];
+        }
+
+        const strPrice = new Intl.NumberFormat('de-DE', {
+            style: "currency",
+            currency: "EUR",
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0,
+        }).format(price);
+
+        if (pricingLabel && pricingLabel !== "exact") {
+            return `${FormatPrice.staticTranslations[pricingLabel]} ${strPrice}`;
+        }
+        return strPrice;
+    }
+
+    static translatePrices(values: PriceTypes[]): string {
+        if (!values || values.length === 0) {
+            return "-";
+        }
+
+        const translated = values.map((key) => {
+            return FormatPrice.staticTranslations[key];
+        });
+
+        return translated.join(", ");
+    }
+
+    static translatePrice(value: PriceTypes): string {
+        if (!value || value.length === 0) {
+            return "-";
+        }
+
+        return FormatPrice.staticTranslations[value];
+    }
+
+    static formatPriceWithType(
+        price: number,
+        priceType: PriceTypes,
+        pricingLabel?: PricingLabels
+    ): string {
+        if (!priceType || priceType.length === 0) {
+            return FormatPrice.formatPrice(price, pricingLabel);
+        }
+
+        // Ensure priceType exists in staticTranslations
+        const translation = FormatPrice.staticTranslations[priceType];
+
+        if (priceType === "none") {
+            return translation;
+        }
+
+        return `${FormatPrice.formatPrice(price, pricingLabel)} ${translation}`;
+    }
+
+    static formatPriceWithTypeShort(
+        price: number,
+        priceType: PriceTypes,
+        pricingLabel?: PricingLabels
+    ): string {
+        if (!priceType || priceType.length === 0) {
+            return FormatPrice.formatPrice(price, pricingLabel);
+        }
+
+        // Ensure priceType exists in staticTranslations
+        const translation = FormatPrice.staticShortTranslations[priceType];
+
+        if (priceType === "none") {
+            return translation;
+        }
+
+        return `${FormatPrice.formatPrice(price, pricingLabel)} ${translation}`;
+    }
+
+    static translatePricingLabel(value: PricingLabels): string {
+        if (!value || value.length === 0) {
+            return "-";
+        }
+
+        return FormatPrice.staticTranslations[value];
+    }
+}

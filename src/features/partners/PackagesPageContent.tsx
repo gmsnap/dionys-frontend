@@ -59,6 +59,9 @@ const PackagesPageContent = ({ locationId, packageCategory }: Props) => {
             flexDirection: 'row',
             justifyContent: 'left',
             alignItems: 'top',
+            height: '100%',
+            WebkitOverflowScrolling: 'touch',
+            touchAction: 'pan-y',
         }}>
 
             {/* Left Menu (packages selector) */}
@@ -140,6 +143,10 @@ const PackagesPageContent = ({ locationId, packageCategory }: Props) => {
                     }}
                     updated={fetchPackagesFromApi}
                     deleted={() => fetchPackagesFromApi(null)}
+                    sx={{
+                        width: '100%',
+                        height: '100%',
+                    }}
                 />
             ) : (
                 packages && <EventPackageGrid

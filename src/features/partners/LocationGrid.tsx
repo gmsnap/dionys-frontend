@@ -3,7 +3,6 @@ import { Box, SxProps, Theme, Grid2, CircularProgress, Button } from '@mui/mater
 import { User, MapPin, Layers2, Pencil, X } from 'lucide-react';
 import useStore from '@/stores/partnerStore';
 import GridItem from '../../components/GridItem';
-import { formatPrice } from '@/utils/formatPrice';
 import { formatEventCategoriesSync } from '@/utils/formatEventCategories';
 import {
     getAggregatedRoomPrices,
@@ -13,6 +12,7 @@ import {
 import GridAddItem from '@/components/GridAddItem';
 import theme from '@/theme';
 import { useAuthContext } from '@/auth/AuthContext';
+import { FormatPrice } from '@/utils/pricingManager';
 
 
 interface LocationGridProps {
@@ -43,7 +43,7 @@ const LocationGrid = ({ sx, selectHandler }: LocationGridProps) => {
                         id={location.id}
                         image={location.image as string}
                         title={location.title}
-                        priceTag={`Ab ${formatPrice(getAggregatedRoomPrices(location))} / Tag`}
+                        priceTag={`Ab ${FormatPrice.formatPrice(getAggregatedRoomPrices(location))} / Tag`}
                         listItems={[
                             {
                                 icon: <MapPin color={theme.palette.customColors.blue.main} />,

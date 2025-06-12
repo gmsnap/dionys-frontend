@@ -100,7 +100,10 @@ const PartnerPage: NextPageWithLayout = () => {
                 display: 'flex',
                 flexDirection: 'row',
                 justifyContent: 'left',
-                alignItems: 'top'
+                alignItems: 'top',
+                height: '100%',
+                WebkitOverflowScrolling: 'touch',
+                touchAction: 'pan-y',
             }}>
 
                 {/* Left Menu (rooms selector) */}

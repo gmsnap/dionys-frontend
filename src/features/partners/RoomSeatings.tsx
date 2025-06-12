@@ -33,7 +33,7 @@ const priceTypeOptions = [
     { value: "person", label: "Pro Person" },
     { value: "personHour", label: "Pro Person u. Stunde" },
     { value: "once", label: "einmalig" },
-    { value: "none", label: "kostenlos" },
+    { value: "none", label: "inklusive" },
 ]
 
 // Reconfig price type options
