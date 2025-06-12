@@ -34,11 +34,15 @@ export const useAuth = () => {
 
     const getCurrentUser2 = useCallback(async () => {
         try {
-            const session = await fetchAuthSession();
+            const session = await fetchAuthSession({ forceRefresh: true });
+
+            if (!session.tokens || !session.tokens.idToken) {
+                throw new Error('Tokens not available');
+            }
+
             const attr = await fetchUserAttributes();
-            if (session.tokens?.idToken &&
-                attr.email
-            ) {
+
+            if (attr.email) {
                 const formattedUser: AuthUser = {
                     sub: session.userSub,
                     username: attr.email,
@@ -50,8 +54,8 @@ export const useAuth = () => {
                 setAuthUser(formattedUser);
                 return;
             }
-        } catch {
-            //
+        } catch (error) {
+            console.warn("getCurrentUser2 error:", error);
         } finally {
             setAuthLoading(false);
         }
