@@ -226,7 +226,7 @@ const Header: FC = () => {
                             userSelect: 'none',
                             cursor: 'pointer',
                         }}
-                        onClick={() => router.push('/')}
+                        onClick={() => router.push('/partner/events')}
                     >
                         DIONYS
                     </Typography>
