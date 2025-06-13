@@ -71,6 +71,7 @@ export const hasSubscription = (partnerUser: PartnerUserModel): boolean => {
         partnerUser.email?.endsWith("@dionys.ai") ||
         partnerUser.email?.endsWith("@pingponglabs.de") ||
         partnerUser.email?.includes("gregor.matte") ||
-        partnerUser.email?.includes("@urbanridersgame.com")
+        partnerUser.email?.includes("@urbanridersgame.com") ||
+        partnerUser.email?.includes("@playparadice.com")
     );
 };

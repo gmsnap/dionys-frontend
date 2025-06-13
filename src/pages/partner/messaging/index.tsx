@@ -14,19 +14,16 @@ import {
   Typography,
   Paper,
   Avatar,
-  Stack,
-  CircularProgress
+  ListItemButton
 } from '@mui/material';
 import AttachFileIcon from '@mui/icons-material/AttachFile';
 import PartnerContentLayout from '@/layouts/PartnerContentLayout';
-import LocationsDropDown from '@/features/partners/LocationsDropDown';
-import { WaitIcon } from '@/components/WaitIcon';
-import { Delete, Upload, X } from "lucide-react";
 import PageHeadline from '@/features/partners/PageHeadline';
 import { EventConfigurationModel } from '@/models/EventConfigurationModel';
 import DeleteIcon from '@mui/icons-material/Delete';
 
 import { fetchEventConfigurationsByCompany } from '@/services/eventConfigurationService';
+import { useAuthContext } from '@/auth/AuthContext';
 
 interface ChatMessage {
   id: number;
@@ -47,7 +44,7 @@ interface EventConversation extends EventConfigurationModel {
   messages: number;
   answered: boolean;
   lastMessage: string;
-  style: {};
+  style: object;
 }
 
 interface Conversation {
@@ -64,7 +61,7 @@ interface AttachmentFileData {
 }
 
 const generateUploadUrlEndpoint =
-    `${process.env.NEXT_PUBLIC_API_URL}/media/generate-image-upload-url`;
+  `${process.env.NEXT_PUBLIC_API_URL}/media/generate-image-upload-url`;
 
 let currentEventConfiguration: EventConversation | null = null;
 
@@ -90,6 +87,7 @@ const LongPollingComponent = () => {
 */
 
 const MessagePage: NextPageWithLayout = () => {
+  const { authUser } = useAuthContext();
   const { partnerUser, partnerLocations } = useStore();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [newMessage, setNewMessage] = useState('');
@@ -101,162 +99,185 @@ const MessagePage: NextPageWithLayout = () => {
   const [uploading, setUploading] = useState(false);
 
   const sender = "Booking@VillaHirschberg.onmicrosoft.com"; // from db
-  const partnerId = partnerUser?.companyId || 1;
 
-  
-  useEffect(() => {
-    
-    const interval = setInterval(  async () => {
-      console.log('Alle 1 Minuten ausgeführt');
-
-     await loadConversationsListFromServer();
-    }, 0.3 * 60 * 1000); // 5 Minuten
-
-    return () => clearInterval(interval); // Cleanup beim Unmount
-    
-  }, []);
-  
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
   useEffect(() => {
-     currentEventConfiguration = currentConversation;
+    currentEventConfiguration = currentConversation;
   }, [currentConversation]);
-       
+
   useEffect(() => {
   }, [conversations]);
-  
+
   useEffect(() => {
+    if (!partnerUser || !authUser) {
+      return;
+    }
 
     const fetchConversationList = async () => {
-
       await loadConversationsListFromServer();
     };
 
     fetchConversationList();
-  }, []);
+
+    const interval = setInterval(async () => {
+      console.log('Alle 1 Minuten ausgeführt');
+
+      await loadConversationsListFromServer();
+    }, 5 * 60 * 1000);
+
+    return () => clearInterval(interval);
+  }, [partnerUser, authUser]);
 
   const updateConversation = (conversation: EventConversation) => {
 
-    if(conversation.unreadMessages > 0){
+    if (conversation.unreadMessages > 0) {
 
       const createdDate = new Date(conversation.lastMessage).getTime();
       const currentDate = new Date().getTime();
 
-      if(currentDate - createdDate > 172800000){
+      if (currentDate - createdDate > 172800000) {
         conversation.style = { backgroundColor: 'red', borderWidth: '2px', borderColor: 'red' };
       } else {
         conversation.style = { backgroundColor: 'blue', borderWidth: '2px', borderColor: 'blue' };
       }
     } else {
-      if(conversation.messages){
+      if (conversation.messages) {
         conversation.style = { backgroundColor: 'white', borderWidth: '2px', borderColor: 'blue' };
       } else {
         conversation.style = {};
       }
     }
-  }      
+  }
 
   const loadConversationsListFromServer = async () => {
 
-    //const companyId = partnerUser?.companyId;
-      if (!partnerId) {
-          return;
-      }
+    const companyId = partnerUser?.companyId;
+    if (!companyId) {
+      return;
+    }
+
+    const idToken = authUser?.idToken;
+    if (!idToken) {
+      return;
+    }
 
     const confs = await fetchEventConfigurationsByCompany(
-      partnerId,//partnerId,
+      companyId,
       () => { },
       () => { },
     );
 
-      if (!confs) {
-          //setEventConfs([]);
-          //setError("Error fetching Event Bookings");
-          return;
-      }
+    if (!confs) {
+      //setEventConfs([]);
+      //setError("Error fetching Event Bookings");
+      return;
+    }
 
-      const sortedConfs = confs.sort((
-          a: EventConfigurationModel,
-          b: EventConfigurationModel
-      ) => b.id - a.id);
+    const sortedConfs = confs.sort((
+      a: EventConfigurationModel,
+      b: EventConfigurationModel
+    ) => b.id - a.id);
 
     let eventConfigurations = [] as EventConfigurationModel[];
     let eventConversations = [] as EventConversation[];
 
     eventConfigurations = sortedConfs;
 
-      try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/partner/messages/getConversations/${partnerId}`);
-        if (!res.ok) throw new Error(`Fehler: ${res.status}`);
-
-        const data = await res.json() as Conversation[];
-
-        eventConversations = [];
-
-        // loop events
-        for(const event of eventConfigurations)
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/partner/messages/getConversations/${companyId}`,
         {
-          // try to convert event to conversation
-          let eventConversation = event as EventConversation;
-
-          // now loop all 
-          for (const conversation of data) 
-          {
-            //console.log(eventConversation.date);
-            if(eventConversation.date)
-            {
-              const date = new Date(eventConversation.date);
-              const germanDate = new Intl.DateTimeFormat('de-DE', {
-                dateStyle: 'short',
-                timeStyle: 'short',
-                }).format(date);
-                eventConversation.formatedTime = germanDate;
-            }
-
-
-            if(conversation.id === event.id.toString())
-            {
-              eventConversation.unreadMessages = conversation.unread;
-
-              eventConversation.messages = conversation.entries;
-
-              eventConversation.lastMessage = conversation.received;
-
-              if(conversation.extract){
-                eventConversation.extract = conversation.extract.length > 20 ? conversation.extract.slice(0, 20) + "…" : conversation.extract; // extract
-              }
-
-              updateConversation(eventConversation);
-
-              break;
-            }
-          }
-          eventConversations.push(eventConversation);
+          headers: {
+            Authorization: `Bearer ${idToken}`,
+            "Content-Type": "application/json",
+          },
         }
+      );
+      if (!res.ok) throw new Error(`Fehler: ${res.status}`);
 
-        InitReload(eventConversations);
-      } catch (err) {
-        console.error('Fehler beim Laden der Konversationsliste:', err);
+      const data = await res.json() as Conversation[];
+
+      eventConversations = [];
+
+      // loop events
+      for (const event of eventConfigurations) {
+        // try to convert event to conversation
+        const eventConversation = event as EventConversation;
+
+        // now loop all 
+        for (const conversation of data) {
+          //console.log(eventConversation.date);
+          if (eventConversation.date) {
+            const date = new Date(eventConversation.date);
+            const germanDate = new Intl.DateTimeFormat('de-DE', {
+              dateStyle: 'short',
+              timeStyle: 'short',
+            }).format(date);
+            eventConversation.formatedTime = germanDate;
+          }
+
+
+          if (conversation.id === event.id.toString()) {
+            eventConversation.unreadMessages = conversation.unread;
+
+            eventConversation.messages = conversation.entries;
+
+            eventConversation.lastMessage = conversation.received;
+
+            if (conversation.extract) {
+              eventConversation.extract = conversation.extract.length > 20 ? conversation.extract.slice(0, 20) + "…" : conversation.extract; // extract
+            }
+
+            updateConversation(eventConversation);
+
+            break;
+          }
+        }
+        eventConversations.push(eventConversation);
       }
+
+      InitReload(eventConversations);
+    } catch (err) {
+      console.error('Fehler beim Laden der Konversationsliste:', err);
+    }
   }
-        
-  const loadConversation = async (conv: EventConversation, markAsRead: boolean ) => {
+
+  const loadConversation = async (conv: EventConversation, markAsRead: boolean) => {
+    const companyId = partnerUser?.companyId;
+    if (!companyId) {
+      return;
+    }
+
+    const idToken = authUser?.idToken;
+    if (!idToken) {
+      return;
+    }
+
     try {
       const param = markAsRead ? 1 : 0;
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/partner/messages/getConversationForId/${partnerId}/${conv.id}/${param}`);
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/partner/messages/getConversationForId/${companyId}/${conv.id}/${param}`,
+        {
+          headers: {
+            Authorization: `Bearer ${idToken}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
       if (!res.ok) throw new Error(`Fehler: ${res.status}`);
       const data = await res.json() as ChatMessage[];
-      if(markAsRead) conv.unreadMessages = 0;
+      if (markAsRead) conv.unreadMessages = 0;
       updateConversation(conv);
       setMessages(data);
-      setCurrentConversation({...conv});
+      setCurrentConversation({ ...conv });
     } catch (err) {
       console.error('Fehler beim Laden der Konversation:', err);
     }
   };
-        
+
 
   // Handle image deletion
 
@@ -265,7 +286,7 @@ const MessagePage: NextPageWithLayout = () => {
 
       const file = selectedFile[index];
       if (!file) return;
-      
+
       /*
       await fetch("/api/delete", {
           method: "POST",
@@ -277,18 +298,17 @@ const MessagePage: NextPageWithLayout = () => {
       // Notify parent about the deleted image
       setSelectedFile(prev => prev.filter((_, i) => i !== index));
     } catch (error) {
-        console.error("Image delete failed", error);
+      console.error("Image delete failed", error);
     }
   };
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files?.[0]) 
-    {
+    if (event.target.files?.[0]) {
       setUploading(true);
       const file = event.target.files[0];
 
       setSelectedFile((prev) => [...prev, file]);
-      
+
       try {
         // Call API to get presigned URL and upload the file
         const response = await fetch(generateUploadUrlEndpoint, {
@@ -309,7 +329,7 @@ const MessagePage: NextPageWithLayout = () => {
           url: imageUrl,
         } as AttachmentFileData;
 
-        setUploadedFileUrls((prev) => [...prev, fileData]); 
+        setUploadedFileUrls((prev) => [...prev, fileData]);
       } catch (error) {
         console.error("Image upload failed", error);
       } finally {
@@ -364,45 +384,55 @@ const MessagePage: NextPageWithLayout = () => {
     return `${startDate}, ${startTime} - ${endTime} Uhr`;
   }
 
-const InitReload = (data: EventConversation[]) => {
+  const InitReload = (data: EventConversation[]) => {
     setConversations(prev => {
-        const newConversations = [...data];
-        if (currentEventConfiguration) {
-            const updatedConv = newConversations.find(conv => conv.id === currentEventConfiguration?.id);
-            if (updatedConv) {
-                setCurrentConversation(updatedConv);
-                loadConversation(updatedConv, false);
-            } else {
-                setCurrentConversation(null);
-            }
+      const newConversations = [...data];
+      if (currentEventConfiguration) {
+        const updatedConv = newConversations.find(conv => conv.id === currentEventConfiguration?.id);
+        if (updatedConv) {
+          setCurrentConversation(updatedConv);
+          loadConversation(updatedConv, false);
+        } else {
+          setCurrentConversation(null);
         }
-        return newConversations;
+      }
+      return newConversations;
     });
-};
+  };
 
-        
+
   const handleSend = async () => {
 
+    const companyId = partnerUser?.companyId;
+    if (!companyId) {
+      return;
+    }
+
+    const idToken = authUser?.idToken;
+    if (!idToken) {
+      return;
+    }
+
     if (!newMessage || !currentConversation) return;
-  
+
     let lastReceived;
     for (const msg of messages) {
       if (msg.receiver === sender) {
         lastReceived = msg;
       }
     }
-  
+
     if (!lastReceived) {
       lastReceived = {
-        sender : currentConversation.booker?.email ?? '',
-        subject : "Buchungsanfrage Location " + currentConversation.location?.title,
-        messageId : ''
+        sender: currentConversation.booker?.email ?? '',
+        subject: "Buchungsanfrage Location " + currentConversation.location?.title,
+        messageId: ''
       }
     }
-          
+
     // create form data
     const formData = new FormData();
-    formData.append('partnerId', partnerId?.toString() || '');
+    formData.append('partnerId', companyId.toString() || '');
     formData.append('conversation', currentConversation.id.toString() || '');
     formData.append('sender', sender);
     formData.append('receiver', lastReceived.sender);
@@ -410,14 +440,21 @@ const InitReload = (data: EventConversation[]) => {
     formData.append('inreplyto', lastReceived.messageId);
     formData.append('content', newMessage);
     formData.append('attachments', JSON.stringify(uploadedFileUrls));
-  
+
     // send message data to api
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/partner/messages/sendMessageForConversation/`, {
-      method: 'POST',
-      body: formData,
-    });
-         
-    
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/partner/messages/sendMessageForConversation/`,
+      {
+        method: 'POST',
+        body: formData,
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+
     if (res.ok) {
       const responseData = await res.json();
       setMessages((prev) => [...prev, responseData]);
@@ -434,13 +471,13 @@ const InitReload = (data: EventConversation[]) => {
     <Box>
       <PageHeadline title='Messages' />
       <Box sx={{
-          mt: { xs: 5, md: 10 },
-          display: 'flex',
-          flexDirection: 'row',
-          gap: 1,
-          ml: 2,
-          mb: 5
-        }}>
+        mt: { xs: 5, md: 10 },
+        display: 'flex',
+        flexDirection: 'row',
+        gap: 1,
+        ml: 2,
+        mb: 5
+      }}>
       </Box>
       <Container >
         <Box display="flex" height="65vh" mt={4}>
@@ -458,27 +495,32 @@ const InitReload = (data: EventConversation[]) => {
               {conversations.map(conv => (
                 <ListItem
                   key={conv.id}
-                  button
-                  onClick={() => loadConversation(conv, true)}
-                  selected={conv.id === currentConversation?.id}
+                  disablePadding
                   sx={{
                     borderRadius: 1,
                     mb: 1,
                     bgcolor: conv.id === currentConversation?.id ? '#e6f5fa' : '#eeeeee',
-                    width: '100%',
-                    display: 'flex',
-                    justifyContent: 'space-between', // Verteilt Inhalt links und rechts
-                    alignItems: 'center',
-                    cursor: 'pointer',
                   }}
                 >
-                  <Typography sx={{ fontSize: '14px', textAlign: 'left', margin: '0px' }} gutterBottom>
-                    {`Anfrage ${conv.id}: ${conv.location?.title}`}
-                  </Typography>
-                  <Typography sx={{ fontSize: '14px', textAlign: 'left', margin: '0px' }} gutterBottom>
-                    {conv.extract ? `"${conv.extract}"` : ''}
-                  </Typography>
-                  <Box
+                  <ListItemButton
+                    onClick={() => loadConversation(conv, true)}
+                    selected={conv.id === currentConversation?.id}
+                    sx={{
+                      width: '100%',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      borderRadius: 1,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <Typography sx={{ fontSize: '14px', textAlign: 'left', margin: '0px' }} gutterBottom>
+                      {`Anfrage ${conv.id}: ${conv.location?.title}`}
+                    </Typography>
+                    <Typography sx={{ fontSize: '14px', textAlign: 'left', margin: '0px' }} gutterBottom>
+                      {conv.extract ? `"${conv.extract}"` : ''}
+                    </Typography>
+                    <Box
                       sx={{
                         width: 10,
                         height: 10,
@@ -491,6 +533,7 @@ const InitReload = (data: EventConversation[]) => {
                         ...conv.style
                       }}
                     />
+                  </ListItemButton>
                 </ListItem>
               ))}
             </List>
@@ -508,7 +551,7 @@ const InitReload = (data: EventConversation[]) => {
                   return (
                     <ListItem key={msg.id} sx={{ display: 'flex', justifyContent: 'center', px: 0 }}>
                       <Avatar sx={{ width: 32, height: 32, mr: 1, visibility: isOwnMessage ? 'hidden' : 'visible' }}>
-                        
+
                         {msg.sender.charAt(0).toUpperCase()}
                       </Avatar>
                       <Box sx={{ maxWidth: '70%', width: '100%' }}>
@@ -547,53 +590,53 @@ const InitReload = (data: EventConversation[]) => {
             </Paper>
 
             {currentConversation && (
-            <Box mt={2}>
-              <TextField
-                label="Deine Antwort"
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                fullWidth
-                multiline
-                rows={4}
-              />
-              <Box mt={1} display="flex" justifyContent="space-between" alignItems="center">
-                <Button
-                  variant="contained"
-                  sx={{ borderRadius: 0, backgroundColor: '#002a58', '&:hover': { backgroundColor: '#002a58' } }}
-                  onClick={handleSend}
-                >
-                  Antworten
-                </Button>
-                <IconButton
-                  component="label"
-                  sx={{ borderRadius: 0, backgroundColor: '#002a58', color: '#fff', '&:hover': { backgroundColor: '#002a58' } }}
-                >
-                  <AttachFileIcon />
-                  <input type="file" hidden onChange={handleFileChange} />
-                </IconButton>
+              <Box mt={2}>
+                <TextField
+                  label="Deine Antwort"
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  fullWidth
+                  multiline
+                  rows={4}
+                />
+                <Box mt={1} display="flex" justifyContent="space-between" alignItems="center">
+                  <Button
+                    variant="contained"
+                    sx={{ borderRadius: 0, backgroundColor: '#002a58', '&:hover': { backgroundColor: '#002a58' } }}
+                    onClick={handleSend}
+                  >
+                    Antworten
+                  </Button>
+                  <IconButton
+                    component="label"
+                    sx={{ borderRadius: 0, backgroundColor: '#002a58', color: '#fff', '&:hover': { backgroundColor: '#002a58' } }}
+                  >
+                    <AttachFileIcon />
+                    <input type="file" hidden onChange={handleFileChange} />
+                  </IconButton>
+                </Box>
+                {selectedFile.length > 0 && (
+                  <Box mt={1}>
+                    <Typography variant="body2" fontWeight="bold" gutterBottom>
+                      Ausgewählte Dateien:
+                    </Typography>
+                    <List>
+                      {selectedFile.map((file, index) => (
+                        <ListItem
+                          key={index}
+                          secondaryAction={
+                            <IconButton edge="end" aria-label="delete" onClick={() => handleDeleteFile(index)}>
+                              <DeleteIcon />
+                            </IconButton>
+                          }
+                        >
+                          <ListItemText primary={file.name} />
+                        </ListItem>
+                      ))}
+                    </List>
+                  </Box>
+                )}
               </Box>
-              {selectedFile.length > 0 && (
-              <Box mt={1}>
-                <Typography variant="body2" fontWeight="bold" gutterBottom>
-                  Ausgewählte Dateien:
-                </Typography>
-                <List>
-                  {selectedFile.map((file, index) => (
-                    <ListItem
-                      key={index}
-                      secondaryAction={
-                        <IconButton edge="end" aria-label="delete" onClick={() => handleDeleteFile(index)}>
-                          <DeleteIcon />
-                        </IconButton>
-                      }
-                    >
-                      <ListItemText primary={file.name} />
-                    </ListItem>
-                  ))}
-                </List>
-              </Box>
-              )}
-            </Box>
             )}
           </Box>
           <Box width="30%">
@@ -607,53 +650,21 @@ const InitReload = (data: EventConversation[]) => {
                 width: '100%',
                 bgcolor: '#f2f2f2',
               }}>
-              <Typography gutterBottom>
-                {`Anfrage ${currentConversation.id}`}
-              </Typography>
-              <Typography gutterBottom>
-                {`Angefragt ${getRequestTime(currentConversation.createdAt)}`}
-              </Typography>
-              <Typography sx={{ fontSize: '18px', fontWeight: 'bold', textAlign: 'center', pt: 3, }} gutterBottom>
-                {`${currentConversation.booker?.givenName} ${currentConversation.booker?.familyName}`}
-              </Typography>
-              <Typography sx={{ fontSize: '18px', textAlign: 'center' }} gutterBottom>
-                { currentConversation.booker?.bookingCompany ? `${currentConversation.booker?.bookingCompany}` : ''}
-              </Typography>
-              <Box>
-                <Box sx={{
-                  mt: { xs: 3, md: 3 },
-                  display: 'flex',
-                  flexDirection: 'row',
-                  gap: 1,
-                  ml: 2,
-                  mb: 5
-                }}>
-                  <Box width="50%">
-                    <Typography sx={{fontWeight: 'bold'}} gutterBottom>
-                      Start
-                    </Typography>
-                    <Typography gutterBottom>
-                      {`${getDayTime(currentConversation.date ? currentConversation.date : 0)}`}  
-                    </Typography>
-                    <Typography gutterBottom>
-                      {`${getDayFormatted(currentConversation.date ? currentConversation.date : 0)}`}  
-                    </Typography>
-                  </Box>
-                  <Box width="50%">
-                    <Typography sx={{fontWeight: 'bold'}} gutterBottom>
-                      Ende
-                    </Typography>
-                    <Typography gutterBottom>
-                      {`${getDayTime(currentConversation.endDate ? currentConversation.endDate : 0)}`}
-                    </Typography>
-                    <Typography gutterBottom>
-                      {`${getDayFormatted(currentConversation.endDate ? currentConversation.endDate : 0)}`}
-                    </Typography>
-                  </Box>
-                </Box>
+                <Typography gutterBottom>
+                  {`Anfrage ${currentConversation.id}`}
+                </Typography>
+                <Typography gutterBottom>
+                  {`Angefragt ${currentConversation.createdAt ? getRequestTime(currentConversation.createdAt) : ''}`}
+                </Typography>
+                <Typography sx={{ fontSize: '18px', fontWeight: 'bold', textAlign: 'center', pt: 3, }} gutterBottom>
+                  {`${currentConversation.booker?.givenName} ${currentConversation.booker?.familyName}`}
+                </Typography>
+                <Typography sx={{ fontSize: '18px', textAlign: 'center' }} gutterBottom>
+                  {currentConversation.booker?.bookingCompany ? `${currentConversation.booker?.bookingCompany}` : ''}
+                </Typography>
                 <Box>
                   <Box sx={{
-                    mt: { xs: 1, md: 1 },
+                    mt: { xs: 3, md: 3 },
                     display: 'flex',
                     flexDirection: 'row',
                     gap: 1,
@@ -661,131 +672,163 @@ const InitReload = (data: EventConversation[]) => {
                     mb: 5
                   }}>
                     <Box width="50%">
-                      <Typography sx={{fontWeight: 'bold'}} gutterBottom>
-                        Anzahl Personen
+                      <Typography sx={{ fontWeight: 'bold' }} gutterBottom>
+                        Start
                       </Typography>
                       <Typography gutterBottom>
-                        {`${currentConversation.persons} Personen`}
+                        {`${getDayTime(currentConversation.date ? currentConversation.date : 0)}`}
+                      </Typography>
+                      <Typography gutterBottom>
+                        {`${getDayFormatted(currentConversation.date ? currentConversation.date : 0)}`}
                       </Typography>
                     </Box>
                     <Box width="50%">
-                      <Typography sx={{fontWeight: 'bold'}} gutterBottom>
-                        Event Kategorie
+                      <Typography sx={{ fontWeight: 'bold' }} gutterBottom>
+                        Ende
                       </Typography>
                       <Typography gutterBottom>
-                        {`${currentConversation.eventCategory}`}
+                        {`${getDayTime(currentConversation.endDate ? currentConversation.endDate : 0)}`}
+                      </Typography>
+                      <Typography gutterBottom>
+                        {`${getDayFormatted(currentConversation.endDate ? currentConversation.endDate : 0)}`}
                       </Typography>
                     </Box>
                   </Box>
-                </Box>
-                <Box>
-                  <Box sx={{
-                    mt: { xs: 1, md: 1 },
-                    display: 'flex',
-                    flexDirection: 'row',
-                    gap: 1,
-                    ml: 2,
-                    mb: 5
-                  }}>
-                    <Box width="50%">
-                      <Typography sx={{fontWeight: 'bold'}} gutterBottom>
-                        Räume
-                      </Typography>
-                      {currentConversation.rooms?.map((room, index) => (
-                        <Typography key={index}>
-                          {room.name}
+                  <Box>
+                    <Box sx={{
+                      mt: { xs: 1, md: 1 },
+                      display: 'flex',
+                      flexDirection: 'row',
+                      gap: 1,
+                      ml: 2,
+                      mb: 5
+                    }}>
+                      <Box width="50%">
+                        <Typography sx={{ fontWeight: 'bold' }} gutterBottom>
+                          Anzahl Personen
                         </Typography>
-                      ))}
-                    </Box>
-                    <Box width="50%">
-                      <Typography sx={{fontWeight: 'bold'}} gutterBottom>
-                        Leistungen
-                      </Typography>
-                      {currentConversation.roomExtras?.map((extra, index) => (
-                        <Typography key={index}>
-                          {extra.seating}
+                        <Typography gutterBottom>
+                          {`${currentConversation.persons} Personen`}
                         </Typography>
-                      ))}
+                      </Box>
+                      <Box width="50%">
+                        <Typography sx={{ fontWeight: 'bold' }} gutterBottom>
+                          Event Kategorie
+                        </Typography>
+                        <Typography gutterBottom>
+                          {`${currentConversation.eventCategory}`}
+                        </Typography>
+                      </Box>
                     </Box>
                   </Box>
-                </Box>
-                <Box>
-                  <Box sx={{
-                    mt: { xs: 1, md: 1 },
-                    display: 'flex',
-                    flexDirection: 'row',
-                    gap: 1,
-                    ml: 2,
-                    mb: 5
-                  }}>
-                    <Box width="50%">
-                      <Typography sx={{fontWeight: 'bold'}} gutterBottom>
-                        Angebotspreis
-                      </Typography>
-                      <Typography gutterBottom>
-                        €7.800 (Brutto) 
-                      </Typography>
-                    </Box>
-                    <Box width="50%">
-                      
-                    </Box>
-                  </Box>
-                </Box>
-                <Box>
-                  <Box sx={{
-                    mt: { xs: 1, md: 1 },
-                    display: 'flex',
-                    flexDirection: 'row',
-                    gap: 1,
-                    ml: 2,
-                    mb: 5
-                  }}>
-                    <Box width="50%">
-                      <Typography sx={{fontWeight: 'bold'}} gutterBottom>
-                        Telefon
-                      </Typography>
-                      <Typography gutterBottom>
-                        {`${currentConversation.booker?.phoneNumber}`}
-                      </Typography>
-                    </Box>
-                    <Box width="50%">
-                      <Typography sx={{fontWeight: 'bold'}} gutterBottom>
-                        E-Mail
-                      </Typography>
-                      <Typography gutterBottom>
-                        {`${currentConversation.booker?.email}`}
-                      </Typography>
+                  <Box>
+                    <Box sx={{
+                      mt: { xs: 1, md: 1 },
+                      display: 'flex',
+                      flexDirection: 'row',
+                      gap: 1,
+                      ml: 2,
+                      mb: 5
+                    }}>
+                      <Box width="50%">
+                        <Typography sx={{ fontWeight: 'bold' }} gutterBottom>
+                          Räume
+                        </Typography>
+                        {currentConversation.rooms?.map((room, index) => (
+                          <Typography key={index}>
+                            {room.name}
+                          </Typography>
+                        ))}
+                      </Box>
+                      <Box width="50%">
+                        <Typography sx={{ fontWeight: 'bold' }} gutterBottom>
+                          Leistungen
+                        </Typography>
+                        {currentConversation.roomExtras?.map((extra, index) => (
+                          <Typography key={index}>
+                            {extra.seating}
+                          </Typography>
+                        ))}
+                      </Box>
                     </Box>
                   </Box>
-                </Box>
-                <Box>
-                  <Box sx={{
-                    mt: { xs: 1, md: 1 },
-                    display: 'flex',
-                    flexDirection: 'row',
-                    gap: 1,
-                    ml: 2,
-                    mb: 5
-                  }}>
-                    <Box width="50%">
-                      <Typography sx={{fontWeight: 'bold'}} gutterBottom>
-                        Rechnungsanschrift
-                      </Typography>
-                      <Typography gutterBottom>
-                        {`${currentConversation.booker?.bookingCompany?.streetAddress}`}
-                      </Typography>
+                  <Box>
+                    <Box sx={{
+                      mt: { xs: 1, md: 1 },
+                      display: 'flex',
+                      flexDirection: 'row',
+                      gap: 1,
+                      ml: 2,
+                      mb: 5
+                    }}>
+                      <Box width="50%">
+                        <Typography sx={{ fontWeight: 'bold' }} gutterBottom>
+                          Angebotspreis
+                        </Typography>
+                        <Typography gutterBottom>
+                          €7.800 (Brutto)
+                        </Typography>
+                      </Box>
+                      <Box width="50%">
+
+                      </Box>
                     </Box>
-                    <Box width="50%">
+                  </Box>
+                  <Box>
+                    <Box sx={{
+                      mt: { xs: 1, md: 1 },
+                      display: 'flex',
+                      flexDirection: 'row',
+                      gap: 1,
+                      ml: 2,
+                      mb: 5
+                    }}>
+                      <Box width="50%">
+                        <Typography sx={{ fontWeight: 'bold' }} gutterBottom>
+                          Telefon
+                        </Typography>
+                        <Typography gutterBottom>
+                          {`${currentConversation.booker?.phoneNumber}`}
+                        </Typography>
+                      </Box>
+                      <Box width="50%">
+                        <Typography sx={{ fontWeight: 'bold' }} gutterBottom>
+                          E-Mail
+                        </Typography>
+                        <Typography gutterBottom>
+                          {`${currentConversation.booker?.email}`}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Box>
+                  <Box>
+                    <Box sx={{
+                      mt: { xs: 1, md: 1 },
+                      display: 'flex',
+                      flexDirection: 'row',
+                      gap: 1,
+                      ml: 2,
+                      mb: 5
+                    }}>
+                      <Box width="50%">
+                        <Typography sx={{ fontWeight: 'bold' }} gutterBottom>
+                          Rechnungsanschrift
+                        </Typography>
+                        <Typography gutterBottom>
+                          {`${currentConversation.booker?.bookingCompany?.streetAddress}`}
+                        </Typography>
+                      </Box>
+                      <Box width="50%">
+                      </Box>
                     </Box>
                   </Box>
                 </Box>
               </Box>
-            </Box>
             )}
           </Box>
         </Box>
       </Container>
-    </Box>   
+    </Box>
   );
 };
 

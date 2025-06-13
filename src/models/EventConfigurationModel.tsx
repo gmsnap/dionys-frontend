@@ -24,8 +24,8 @@ export interface EventConfigurationModel {
     packages: EventPackageModel[] | null;
     booker: BookingUserModel | null;
     notes: string | null;
-    createdAt: string;
-    updatedAt: string;
+    createdAt?: string;
+    updatedAt?: string;
 }
 
 export const EventConfValidationSchema = yup.object().shape({
