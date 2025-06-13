@@ -13,6 +13,7 @@ interface GridItemProps {
     priceTag: string;
     listItems: ListItem[];
     buttons: React.ReactNode[] | null;
+    onImageClick?: () => void;
 }
 
 const GridItem: React.FC<GridItemProps> = (
@@ -23,6 +24,7 @@ const GridItem: React.FC<GridItemProps> = (
         priceTag,
         listItems,
         buttons,
+        onImageClick,
     }) => {
 
     return (
@@ -48,9 +50,11 @@ const GridItem: React.FC<GridItemProps> = (
                     borderTopRightRadius: '16px',
                     margin: 0,
                     padding: 0,
+                    cursor: onImageClick ? 'pointer' : 'auto',
                 }}
                 src={image}
                 alt={title}
+                onClick={() => onImageClick?.()}
             />
 
             {/* Lower part (texts and buttons) */}
