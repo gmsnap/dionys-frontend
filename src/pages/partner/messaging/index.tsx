@@ -24,6 +24,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 
 import { fetchEventConfigurationsByCompany } from '@/services/eventConfigurationService';
 import { useAuthContext } from '@/auth/AuthContext';
+import { a } from 'node_modules/framer-motion/dist/types.d-6pKw1mTI';
 
 interface ChatMessage {
   id: number;
@@ -430,6 +431,18 @@ const MessagePage: NextPageWithLayout = () => {
       }
     }
 
+    const formDataObject = {
+      partnerId: companyId.toString() || '',
+      conversation: currentConversation.id.toString() || '',
+      sender: sender,
+      receiver: lastReceived.sender,
+      subject: lastReceived.subject,
+      inreplyto: lastReceived.messageId,
+      content: newMessage,
+      attachments: JSON.stringify(uploadedFileUrls)
+    }
+
+    /*
     // create form data
     const formData = new FormData();
     formData.append('partnerId', companyId.toString() || '');
@@ -440,13 +453,14 @@ const MessagePage: NextPageWithLayout = () => {
     formData.append('inreplyto', lastReceived.messageId);
     formData.append('content', newMessage);
     formData.append('attachments', JSON.stringify(uploadedFileUrls));
-
+    */
     // send message data to api
     const res = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/partner/messages/sendMessageForConversation/`,
       {
         method: 'POST',
-        body: formData,
+        //body: formData,
+        body: JSON.stringify(formDataObject),
         headers: {
           Authorization: `Bearer ${idToken}`,
           "Content-Type": "application/json",
@@ -463,6 +477,7 @@ const MessagePage: NextPageWithLayout = () => {
       setSelectedFile([]);
       setUploadedFileUrls([]); // Clear after send
     } else {
+      console.log("error: ",  + res)
       alert('Fehler beim Senden der Nachricht.');
     }
   };
