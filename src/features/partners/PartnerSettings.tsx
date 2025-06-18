@@ -15,6 +15,7 @@ import PartnerUserEditForm from "./PartnerUserEditForm";
 import PartnerCompanyForm from "./PartnerCompanyForm";
 import PartnerTeamList from "./PartnerTeamList";
 import PaymentComponent from "./PaymentComponent";
+import PartnerMailForm from "./PartnerMailForm";
 
 const PartnerSettings: React.FC = () => {
     const theme = useTheme();
@@ -25,6 +26,7 @@ const PartnerSettings: React.FC = () => {
     const menuItems = [
         isMobile ? "Profil" : "Persönliche Informationen",
         "Unternehmen",
+        "Email-Settings",
         "Team",
         "Zahlungsoptionen",
     ];
@@ -32,6 +34,7 @@ const PartnerSettings: React.FC = () => {
     const content = [
         <PartnerUserEditForm key="profile" />,
         <PartnerCompanyForm key="company" />,
+        <PartnerMailForm key="mail" />,
         <PartnerTeamList key="team" />,
         <PaymentComponent key="payment" />,
     ];

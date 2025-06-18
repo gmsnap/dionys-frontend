@@ -54,6 +54,7 @@ const Header: FC = () => {
     const menuItems = useMemo(
         () => [
             { label: 'Dashboard', link: '/partner/events' },
+            { label: 'Messages', link: '/partner/messaging' },
             { label: 'Locations', link: '/partner/location' },
             { label: 'Rooms & Tables', link: '/partner/rooms' },
             { label: 'Food & Beverage', link: '/partner/food' },
