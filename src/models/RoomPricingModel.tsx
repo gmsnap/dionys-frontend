@@ -46,6 +46,7 @@ export const toPricingSlot = (roomPricing: RoomPricingModel): PricingSlot => {
         endTime: roomPricing.endTime,
         price: roomPricing.price,
         priceType: roomPricing.priceType,
+        pricingLabel: roomPricing.pricingLabel,
         exclusiveType: roomPricing.exclusiveType,
         exclusivePriceType: roomPricing.exclusivePriceType,
         exclusivePrice: roomPricing.exclusivePrice,

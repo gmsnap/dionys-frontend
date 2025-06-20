@@ -43,6 +43,7 @@ const EventConfigurationDetails = ({
                         schedules: room.roomPricings,
                         seatings: room.roomSeatings,
                         seating,
+                        isSingleOperation: true,
                     }).total,
                     priceType: room.priceType,
                     pricingLabel: room.pricingLabel
@@ -109,7 +110,7 @@ const EventConfigurationDetails = ({
             }
             {bookingModel
                 ? <Typography sx={{ fontWeight: 'bold', mt: 2 }}>
-                    Gesamt: {FormatPrice.formatPriceValue(calculateBooking(bookingModel))}
+                    Gesamt: {FormatPrice.formatPriceValue(calculateBooking(bookingModel).total)}
                 </Typography>
                 : <Typography sx={{ color: 'red', fontWeight: 'bold', mt: 2 }}>
                     Gesamtpreis kann nicht berechnet werden.

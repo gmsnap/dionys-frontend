@@ -3,7 +3,7 @@ import { deleteEventConfiguration } from "@/services/eventConfigurationService";
 import { Box, Button, SxProps, Theme, Typography } from "@mui/material";
 import { X } from "lucide-react";
 import { useAuthContext } from '@/auth/AuthContext';
-import { BookingRoom, calculateBooking, calculateBookingPrice, FormatPrice, PricingSlot } from "@/utils/pricingManager";
+import { BookingRoom, calculateBooking, calculateBookingPrice, FormatPrice } from "@/utils/pricingManager";
 import { useEffect, useState } from "react";
 import { fetchRoomPricingsByRoom } from "@/services/roomPricingService";
 import { RoomPricingModel, toPricingSlot } from "@/models/RoomPricingModel";
@@ -44,6 +44,7 @@ const EventConfigurationDetails = ({ model, onDeleted, sx }: Props) => {
                     basePriceType: room.priceType,
                     isExclusive: conf.roomExtras?.some(r => r.roomId === room.id) === true,
                     schedules: pricings ?? undefined,
+                    isSingleOperation: true,
                 }).total,
             });
             const isExclusive = room.RoomsEventConfigurations?.isExclusive === true;
@@ -143,7 +144,7 @@ const EventConfigurationDetails = ({ model, onDeleted, sx }: Props) => {
     if (Array.isArray(bookingModel?.rooms) && Array.isArray(roomPricings)) {
         updateRoomPricing(bookingModel.rooms, roomPricings);
     }
-    console.log(bookingModel);
+    //console.log(bookingModel);
 
     return (
         <Box sx={{ ...sx }}>
@@ -170,7 +171,7 @@ const EventConfigurationDetails = ({ model, onDeleted, sx }: Props) => {
 
             <Typography sx={{ fontWeight: 'bold', mt: 2 }}>
                 Gesamt: {bookingModel
-                    ? FormatPrice.formatPriceValue(calculateBooking(bookingModel))
+                    ? FormatPrice.formatPriceValue(calculateBooking(bookingModel).total)
                     : "Nicht berechnet"}
             </Typography>
             {model.booker && (<>

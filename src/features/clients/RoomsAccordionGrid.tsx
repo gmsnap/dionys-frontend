@@ -202,6 +202,7 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
             basePriceType: room.priceType,
             isExclusive: false,
             schedules: room.roomPricings,
+            isSingleOperation: true,
         }).total;
 
         const exclusivePrice = calculateBookingPrice({
@@ -212,7 +213,8 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
             basePriceType: room.priceType,
             isExclusive: true,
             schedules: room.roomPricings,
-            filters: ['exclusive'],
+            includeExclusive: true,
+            isSingleOperation: true,
         });
 
         const exclusiveText = exclusivePrice.total > 0
@@ -223,21 +225,21 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
             <>
                 {room.roomSeatings?.length ? (
                     <FormControl fullWidth sx={{ mt: 2 }} disabled={!hasSeatingOptions}>
-                        <InputLabel>Seating</InputLabel>ƒ
+                        <InputLabel>Seating</InputLabel>
                         <Select
                             value={selectedSeating}
                             label="Seating"
                             onChange={(e) => setSelectedSeating(e.target.value)}
                         >
                             {room.roomSeatings.map((seating: RoomSeatingModel) => {
-                                const seatingPrice = calculateSeating(
-                                    basePrice,
+                                const seatingPrice = calculateSeating({
+                                    totalPrice: basePrice,
                                     bookingStart,
                                     bookingEnd,
-                                    eventConfiguration.persons ?? 0,
-                                    room.roomSeatings,
-                                    seating.seating
-                                ).total;
+                                    persons: eventConfiguration.persons ?? 0,
+                                    seatings: room.roomSeatings,
+                                    seating: seating.seating,
+                                }).total;
                                 return (
                                     <MenuItem key={seating.id} value={seating.seating}>
                                         {(seatingTypeOptions?.find(o => o.value === seating.seating)?.label ?? seating.seating) +
@@ -295,22 +297,21 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
                             eventConfiguration?.date &&
                                 eventConfiguration?.endDate &&
                                 eventConfiguration?.persons
-                                ? FormatPrice.formatPriceWithType({
-                                    price:
-                                        calculateBookingPrice({
-                                            bookingStart: new Date(eventConfiguration.date),
-                                            bookingEnd: new Date(eventConfiguration.endDate),
-                                            persons: eventConfiguration.persons,
-                                            basePrice: room.price,
-                                            basePriceType: room.priceType,
-                                            isExclusive,
-                                            schedules: room.roomPricings,
-                                            seatings: room.roomSeatings,
-                                            seating,
-                                        }).total,
-                                    priceType: room.priceType,
-                                    pricingLabel: room.pricingLabel,
-                                })
+                                ? calculateBookingPrice({
+                                    bookingStart: new Date(eventConfiguration.date),
+                                    bookingEnd: new Date(eventConfiguration.endDate),
+                                    persons: eventConfiguration.persons,
+                                    basePrice: room.price,
+                                    basePriceType: room.priceType,
+                                    basePriceLabel: room.pricingLabel,
+                                    isExclusive,
+                                    schedules: room.roomPricings,
+                                    seatings: room.roomSeatings,
+                                    seating,
+                                    context: "booker",
+                                    short: true,
+                                    isSingleOperation: true,
+                                }).totalFormatted
                                 : "?";
 
                         return (
@@ -371,20 +372,21 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
                                 eventConfiguration?.date &&
                                     eventConfiguration?.endDate &&
                                     eventConfiguration?.persons
-                                    ? FormatPrice.formatPriceWithType({
-                                        price: calculateBookingPrice({
-                                            bookingStart: new Date(eventConfiguration.date),
-                                            bookingEnd: new Date(eventConfiguration.endDate),
-                                            persons: eventConfiguration.persons,
-                                            basePrice: room.price,
-                                            basePriceType: room.priceType,
-                                            isExclusive: false,
-                                            schedules: room.roomPricings,
-                                            seatings: room.roomSeatings,
-                                            seating: '',
-                                        }).total,
-                                        pricingLabel: room.pricingLabel,
-                                    })
+                                    ? calculateBookingPrice({
+                                        bookingStart: new Date(eventConfiguration.date),
+                                        bookingEnd: new Date(eventConfiguration.endDate),
+                                        persons: eventConfiguration.persons,
+                                        basePrice: room.price,
+                                        basePriceType: room.priceType,
+                                        basePriceLabel: room.pricingLabel,
+                                        isExclusive,
+                                        schedules: room.roomPricings,
+                                        seatings: room.roomSeatings,
+                                        seating: '',
+                                        context: "booker",
+                                        short: true,
+                                        isSingleOperation: true,
+                                    }).totalFormatted
                                     : "?";
 
                             return (
