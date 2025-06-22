@@ -48,7 +48,7 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
     const [dialogOpen, setDialogOpen] = useState(false);
     const [pendingRoomId, setPendingRoomId] = useState<number | null>(null);
     const [selectedSeating, setSelectedSeating] = useState<string>('');
-    const [isExclusive, setIsExclusive] = useState(false);
+    const [isExclusiveSelected, setIsExclusiveSelected] = useState(false);
 
     const toggleRoom = (roomId: number) => {
         if (eventConfiguration) {
@@ -83,7 +83,7 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
                         setPendingRoomId(roomId);
                         setDialogOpen(true);
                         setSelectedSeating(seatings?.[0]?.seating || '');
-                        setIsExclusive(false);
+                        setIsExclusiveSelected(false);
                         return;
                     }
                 }
@@ -120,7 +120,7 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
                     roomId: pendingRoomId,
                     confId: eventConfiguration.id || 0,
                     persons: eventConfiguration.persons || 0,
-                    isExclusive,
+                    isExclusive: isExclusiveSelected,
                     seating: selectedSeating,
                 }
             ];
@@ -137,7 +137,7 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
         setDialogOpen(false);
         setPendingRoomId(null);
         setSelectedSeating('');
-        setIsExclusive(false);
+        setIsExclusiveSelected(false);
     };
 
     const getOtherRooms = () => {
@@ -200,7 +200,6 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
             persons: eventConfiguration.persons,
             basePrice: room.price,
             basePriceType: room.priceType,
-            isExclusive: false,
             schedules: room.roomPricings,
             isSingleOperation: true,
         }).total;
@@ -211,9 +210,8 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
             persons: eventConfiguration.persons,
             basePrice: room.price,
             basePriceType: room.priceType,
-            isExclusive: true,
+            excludeRoomPrice: true,
             schedules: room.roomPricings,
-            includeExclusive: true,
             isSingleOperation: true,
         });
 
@@ -254,8 +252,8 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
                     <FormControlLabel
                         control={
                             <Switch
-                                checked={isExclusive}
-                                onChange={(e) => setIsExclusive(e.target.checked)}
+                                checked={isExclusiveSelected}
+                                onChange={(e) => setIsExclusiveSelected(e.target.checked)}
                             />
                         }
                         label={`Exklusiv buchen (${exclusiveText})`}
@@ -304,7 +302,7 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
                                     basePrice: room.price,
                                     basePriceType: room.priceType,
                                     basePriceLabel: room.pricingLabel,
-                                    isExclusive,
+                                    excludeExclusive: !isExclusive,
                                     schedules: room.roomPricings,
                                     seatings: room.roomSeatings,
                                     seating,
@@ -368,6 +366,8 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
                     </Typography>
                     <Grid2 container spacing={1} sx={{ ...sx }}>
                         {otherRooms.map((room) => {
+                            const isExclusive = isRoomExclusive(room.id) === true;
+
                             const calculatedPrice =
                                 eventConfiguration?.date &&
                                     eventConfiguration?.endDate &&
@@ -379,7 +379,7 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
                                         basePrice: room.price,
                                         basePriceType: room.priceType,
                                         basePriceLabel: room.pricingLabel,
-                                        isExclusive,
+                                        excludeExclusive: !isExclusive,
                                         schedules: room.roomPricings,
                                         seatings: room.roomSeatings,
                                         seating: '',

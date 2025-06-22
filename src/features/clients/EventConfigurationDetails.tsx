@@ -39,7 +39,7 @@ const EventConfigurationDetails = ({
                         basePrice: room.price,
                         basePriceType: room.priceType,
                         basePriceLabel: room.pricingLabel,
-                        isExclusive,
+                        excludeExclusive: !isExclusive,
                         schedules: room.roomPricings,
                         seatings: room.roomSeatings,
                         seating,

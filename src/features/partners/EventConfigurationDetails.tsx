@@ -42,7 +42,7 @@ const EventConfigurationDetails = ({ model, onDeleted, sx }: Props) => {
                     persons: conf.persons!,
                     basePrice: room.price,
                     basePriceType: room.priceType,
-                    isExclusive: conf.roomExtras?.some(r => r.roomId === room.id) === true,
+                    excludeExclusive: conf.roomExtras?.some(r => r.roomId === room.id) !== true,
                     schedules: pricings ?? undefined,
                     isSingleOperation: true,
                 }).total,
