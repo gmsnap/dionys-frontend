@@ -200,7 +200,11 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
             persons: eventConfiguration.persons,
             basePrice: room.price,
             basePriceType: room.priceType,
+            basePriceLabel: room.pricingLabel,
+            excludeExclusive: true,
             schedules: room.roomPricings,
+            context: "booker",
+            short: true,
             isSingleOperation: true,
         }).total;
 
@@ -212,6 +216,8 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
             basePriceType: room.priceType,
             excludeRoomPrice: true,
             schedules: room.roomPricings,
+            context: "booker",
+            short: true,
             isSingleOperation: true,
         });
 
