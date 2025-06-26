@@ -22,8 +22,7 @@ import {
     calculateBookingPrice,
     calculateSeating,
     FormatPrice,
-    getPricingSlotsForDates,
-    PricingLabels
+    getPricingSlotsForDates
 } from '@/utils/pricingManager';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
@@ -49,6 +48,14 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
     const [pendingRoomId, setPendingRoomId] = useState<number | null>(null);
     const [selectedSeating, setSelectedSeating] = useState<string>('');
     const [isExclusiveSelected, setIsExclusiveSelected] = useState(false);
+
+    const getDefaultSeating = (seatings: RoomSeatingModel[] | undefined) => {
+        if (!seatings) return '';
+
+        return seatings
+            .slice()
+            .sort((a, b) => (a.price ?? 0) - (b.price ?? 0))?.[0]?.seating || '';
+    }
 
     const toggleRoom = (roomId: number) => {
         if (eventConfiguration) {
@@ -82,7 +89,7 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
                     if (hasExclusiveOverlap || hasSeatings) {
                         setPendingRoomId(roomId);
                         setDialogOpen(true);
-                        setSelectedSeating(seatings?.[0]?.seating || '');
+                        setSelectedSeating(getDefaultSeating(seatings));
                         setIsExclusiveSelected(false);
                         return;
                     }
@@ -95,7 +102,7 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
                         confId: eventConfiguration.id || 0,
                         persons: eventConfiguration.persons || 0,
                         isExclusive: false,
-                        seating: seatings?.[0]?.seating || '',
+                        seating: getDefaultSeating(seatings),
                     }
                 ];
                 const updatedRoomIds = updatedRoomExtras.map(r => r.roomId);
@@ -235,22 +242,26 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
                             label="Seating"
                             onChange={(e) => setSelectedSeating(e.target.value)}
                         >
-                            {room.roomSeatings.map((seating: RoomSeatingModel) => {
-                                const seatingPrice = calculateSeating({
-                                    totalPrice: basePrice,
-                                    bookingStart,
-                                    bookingEnd,
-                                    persons: eventConfiguration.persons ?? 0,
-                                    seatings: room.roomSeatings,
-                                    seating: seating.seating,
-                                }).total;
-                                return (
-                                    <MenuItem key={seating.id} value={seating.seating}>
-                                        {(seatingTypeOptions?.find(o => o.value === seating.seating)?.label ?? seating.seating) +
-                                            (seatingPrice > 0 ? ` (+ ${FormatPrice.formatPriceValue(seatingPrice)})` : '')}
-                                    </MenuItem>
-                                );
-                            })}
+                            {room.roomSeatings
+                                ?.slice() // avoid mutating the original array
+                                .sort((a, b) => (a.price ?? 0) - (b.price ?? 0)) // sort by price ASC
+                                .map((seating: RoomSeatingModel) => {
+                                    const seatingPrice = calculateSeating({
+                                        totalPrice: basePrice,
+                                        bookingStart,
+                                        bookingEnd,
+                                        persons: eventConfiguration.persons ?? 0,
+                                        seatings: room.roomSeatings,
+                                        seating: seating.seating,
+                                    }).total;
+
+                                    return (
+                                        <MenuItem key={seating.id} value={seating.seating}>
+                                            {(seatingTypeOptions?.find(o => o.value === seating.seating)?.label ?? seating.seating) +
+                                                (seatingPrice > 0 ? ` (+ ${FormatPrice.formatPriceValue(seatingPrice)})` : '')}
+                                        </MenuItem>
+                                    );
+                                })}
                         </Select>
                     </FormControl>
                 ) : null}
