@@ -40,7 +40,7 @@ const priceTypeOptions = [
 const reconfigPriceTypeOptions = [
     { value: "none", label: "Kein Aufpreis" },
     { value: "hour", label: "Pro Stunde" },
-    { value: "person", label: "Pro Stunde" },
+    { value: "person", label: "Pro Person" },
     { value: "personHour", label: "Pro Person u. Stunde" },
     { value: "once", label: "pro Event" },
 ]

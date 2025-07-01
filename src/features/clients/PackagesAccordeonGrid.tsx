@@ -87,6 +87,7 @@ const PackagesAccordeonGrid = ({ packageCategory, sx }: Props) => {
                                 priceType: p.priceType,
                                 pricingLabel: p.pricingLabel,
                                 context: "booker",
+                                short: true,
                                 noneLabelKey: "free",
                             })
                         }

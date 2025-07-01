@@ -39,6 +39,7 @@ export const createEmptyRoomPricingModel = (roomId: number): RoomPricingModel =>
 
 export const toPricingSlot = (roomPricing: RoomPricingModel): PricingSlot => {
     return {
+        id: roomPricing.id,
         roomPricingType: roomPricing.roomPricingType,
         startDayOfWeek: roomPricing.startDayOfWeek,
         startTime: roomPricing.startTime,
@@ -46,6 +47,7 @@ export const toPricingSlot = (roomPricing: RoomPricingModel): PricingSlot => {
         endTime: roomPricing.endTime,
         price: roomPricing.price,
         priceType: roomPricing.priceType,
+        pricingLabel: roomPricing.pricingLabel,
         exclusiveType: roomPricing.exclusiveType,
         exclusivePriceType: roomPricing.exclusivePriceType,
         exclusivePrice: roomPricing.exclusivePrice,
