@@ -1,12 +1,27 @@
-import { addDays, differenceInDays, differenceInMinutes, eachDayOfInterval, isAfter, isBefore, isEqual, startOfDay, set } from "date-fns";
-import { m } from "framer-motion";
+import {
+    addDays,
+    differenceInMinutes,
+    eachDayOfInterval,
+    isAfter,
+    isBefore,
+    isEqual,
+    startOfDay,
+    set
+} from "date-fns";
 
 export interface PriceItem {
     id: number;
     name: string;
+    itemType: string;
     price: number;
     pricingLabel?: string;
     priceFormatted: string;
+    quantity: number;
+    unitPrice: number;
+    unitPriceFormatted: string;
+    pos?: number;
+    items?: PriceItem[];
+    source?: object;
 };
 
 export interface PricingSlot {
@@ -45,6 +60,7 @@ export interface BookingRoom {
     name: string;
     price: number;
     priceType: string;
+    pricingLabel: PricingLabels;
     minPersons: number;
     maxPersons: number;
     roomPricings?: PricingSlot[];
@@ -53,6 +69,8 @@ export interface BookingRoom {
 
 export interface BookingPackage {
     id: number;
+    name: string;
+    packageCategory: string;
     price: number;
     priceType: string;
     minPersons: number;
@@ -76,6 +94,11 @@ export interface Booking {
     packages?: BookingPackage[];
     rooms?: BookingRoom[];
     roomExtras?: BookingRoomExtra[];
+};
+
+export interface BookingResult {
+    items: PriceItem[];
+    total: number;
 };
 
 export interface BookingPriceProps {
@@ -186,6 +209,27 @@ const calculatePriceByPriceType = (
     }
 };
 
+const calculateUnitQuantity = (
+    priceType: string,
+    persons: number,
+): number => {
+    switch (priceType) {
+        case "hour":
+            return 1;
+        case "person":
+            return persons;
+        case "personHour":
+            return persons;
+        case "day":
+            return 1;
+        case "once":
+            return 1;
+        case "none":
+        default:
+            return 1;
+    }
+};
+
 const getApplicableSlots = (
     bookingStart: Date,
     bookingEnd: Date,
@@ -266,10 +310,7 @@ const getApplicableSlots = (
     return applicableSlots;
 };
 
-export const calculateBooking = (booking: Booking): {
-    total: number;
-    items: PriceItem[],
-} => {
+export const calculateBooking = (booking: Booking): BookingResult => {
     const items: PriceItem[] = [];
 
     if (!booking.date || !booking.endDate) {
@@ -280,6 +321,12 @@ export const calculateBooking = (booking: Booking): {
     const bookingEnd = booking.endDate;
 
     const persons = booking.persons;
+
+    let pos = 0;
+    let maxMinConsumption = 0;
+    let maxMinSales = 0;
+
+    // ROOMS
 
     // Collect all consumption, minSales
 
@@ -297,117 +344,178 @@ export const calculateBooking = (booking: Booking): {
         slotsOfRoom.forEach(slot => {
             applicableSlots.push(slot);
         })
-    })
-
-    const consumptionSlots = applicableSlots.filter(slot => {
-        return slot.schedule.pricingLabel === "consumption";
     });
 
-    const minSalesSlots = applicableSlots.filter(slot => {
-        return slot.schedule.pricingLabel === "minSales";
-    });
-
-    const otherSlots = applicableSlots.filter(slot => {
-        return !consumptionSlots.includes(slot) && !minSalesSlots.includes(slot);
-    })
-
-    //console.log("consumptionSlots", consumptionSlots);
-    //console.log("minSalesSlots", minSalesSlots.length);
-    //console.log("otherSlots", otherSlots);
-    //console.log("all Slots", applicableSlots);
-
-    let roomsPriceTotal = 0;
+    let roomsPriceOtherTotal = 0;
 
     booking.rooms?.forEach(room => {
         const extra = booking.roomExtras?.find(r => r.roomId === room.id);
-        //const isExclusive = extra?.isExclusive === true;
+        const excludeExclusive = extra?.isExclusive !== true;
         const seating = extra?.seating;
         if (room) {
-            const roomPrice = calculateBookingPrice({
+            const roomResult = calculateBookingPrice({
                 bookingStart,
                 bookingEnd,
                 persons,
                 basePrice: room.price,
                 basePriceType: room.priceType,
-                schedules: otherSlots.map(slot => slot.schedule),
+                basePriceLabel: room.pricingLabel,
+                schedules: applicableSlots.map(slot => slot.schedule),
+                excludeExclusive,
                 seatings: room.roomSeatings,
                 seating,
                 isSingleOperation: false,
             });
 
-            roomPrice.appliedSlots.forEach(slot => {
-                //console.log("slot pricingLabel", slot.pricingLabel);
-            });
+            roomResult.items = roomResult.items.map(item => ({
+                ...item,
+                pos: ++pos,
+            }));
 
             items.push({
                 id: room.id,
-                name: room.id.toString(),
-                price: roomPrice.total,
-                priceFormatted: FormatPrice.formatPriceValue(roomPrice.total),
+                name: room.name,
+                itemType: "room",
+                price: roomResult.total,
+                priceFormatted: FormatPrice.formatPriceValue(roomResult.total),
+                quantity: 1,
+                unitPrice: 0,
+                unitPriceFormatted: "-",
+                items: roomResult.items,
             });
 
-            roomsPriceTotal += roomPrice.total;
+            roomsPriceOtherTotal += roomResult.total;
+            maxMinConsumption = Math.max(
+                maxMinConsumption,
+                roomResult.maxMinConsumption);
+            maxMinSales = Math.max(maxMinSales, roomResult.maxMinSales);
         }
     });
 
-    let packagesPrice = 0;
+    let bookedConsumption = 0;
+    let bookedEquipment = 0;
+
+    // PACKAGES
+
     if (booking.packages) {
         booking.packages.forEach(p => {
-            packagesPrice += calculatePriceByPriceType(
+            const packagePrice = calculatePriceByPriceType(
                 p.price,
                 p.priceType as PriceTypes,
                 bookingStart,
                 bookingEnd,
                 persons,
             );
+
+            if (p.packageCategory === "catering") {
+                bookedConsumption += packagePrice;
+            } else if (p.packageCategory === "equipment") {
+                bookedEquipment += packagePrice;
+            }
+
+            items.push({
+                id: p.id,
+                name: p.name,
+                itemType: p.packageCategory,
+                price: packagePrice,
+                priceFormatted: FormatPrice.formatPriceValue(packagePrice),
+                quantity: calculateUnitQuantity(p.priceType, persons),
+                unitPrice: p.price,
+                unitPriceFormatted: FormatPrice.formatPriceWithType(
+                    { price: p.price, noneLabelKey: "free" }
+                ),
+                pos: ++pos,
+            });
         });
     }
 
+    console.log("-- calculateBooking");
+    console.log("roomsPriceOtherTotal", roomsPriceOtherTotal);
+    console.log("required consumption", maxMinConsumption);
+    console.log("bookedConsumption", bookedConsumption);
+    console.log("bookedEquipment", bookedEquipment);
+    console.log("items", items);
+    console.log("calculateBooking --");
+
+    // Apply min spendings (if any)
+    if (maxMinConsumption > 0 || maxMinSales > 0) {
+
+        // 1. Consumption > min sales -> calculate with consumption
+        if (maxMinConsumption > maxMinSales) {
+
+            // Distribute uncovered consumption evenly across rooms
+            const consumptionItems = items
+                .filter(i => i.itemType === "room")
+                .flatMap(i => i.items)
+                .filter(i => i != undefined && i.pricingLabel === "consumption");
+
+            const diff = maxMinConsumption - bookedConsumption;
+
+            const share = diff > 0
+                ? Math.round(diff / consumptionItems.length)
+                : 0;
+
+            consumptionItems
+                .filter(i => i != undefined)
+                .forEach(i => {
+                    i.price = share;
+                    i.priceFormatted = share > 0
+                        ? FormatPrice.formatPriceWithType({ price: share })
+                        : FormatPrice.formatPriceValue(share);
+                });
+
+            return {
+                total:
+                    Math.max(maxMinConsumption, bookedConsumption)
+                    + roomsPriceOtherTotal
+                    + bookedEquipment,
+                items,
+            };
+        }
+
+        // 2. Calculate with min sales
+
+        // Distribute uncovered consumption evenly across rooms
+        const minSalesItems = items
+            .filter(i => i.itemType === "room")
+            .flatMap(i => i.items)
+            .filter(i => i != undefined && i.pricingLabel === "minSales");
+
+        const diff =
+            maxMinSales
+            - bookedConsumption
+            - bookedEquipment
+            - roomsPriceOtherTotal;
+
+        const share = diff > 0
+            ? Math.round(diff / minSalesItems.length)
+            : 0;
+
+        minSalesItems
+            .filter(i => i != undefined)
+            .forEach(i => {
+                i.price = share;
+                i.priceFormatted = share > 0
+                    ? FormatPrice.formatPriceWithType({ price: share })
+                    : FormatPrice.formatPriceValue(share);
+            });
+
+        return {
+            total:
+                Math.max(
+                    maxMinSales,
+                    bookedConsumption
+                    + bookedEquipment
+                    + roomsPriceOtherTotal
+                ),
+            items,
+        }
+    }
+
     return {
-        total: roomsPriceTotal + packagesPrice,
+        total: roomsPriceOtherTotal + bookedConsumption + bookedEquipment,
         items,
     };
-}
-
-const getMaxConsumption = (
-    price: number,
-    oldConsumption: number,
-    pricingLabel?: PricingLabels
-) => {
-    if (pricingLabel === "consumption" && price > oldConsumption) {
-        return price;
-    }
-    return oldConsumption;
-}
-
-const getMaxMinSales = (
-    price: number,
-    oldMinSales: number,
-    pricingLabel?: PricingLabels
-) => {
-    if (pricingLabel === "minSales" && price > oldMinSales) {
-        return price;
-    }
-    return oldMinSales;
-}
-
-interface BookingSegmentProps {
-    segmentStart: Date;
-    segmentEnd: Date;
-    persons: number;
-    price: number;
-    priceType: string;
-    pricingLabel?: PricingLabels;
-    roomPricingType: string;
-    excludeRoomPrice?: boolean;
-    exclusivePrice?: number | null;
-    exclusivePriceType?: string | null;
-    exclusivePricingLabel?: string;
-    excludeExclusive?: boolean;
-    seating?: string;
-    seatings?: BookingSeating[];
-    context?: "admin" | "booker";
-    short?: boolean;
 }
 
 const calculateSlots = (
@@ -432,7 +540,7 @@ const calculateSlots = (
     const items: PriceItem[] = [];
 
     let totalOtherPrice = 0;
-    let maxMinConsumtion = 0;
+    let maxMinConsumption = 0;
     let maxMinSales = 0;
 
     let totalFormatted: string | null | undefined = undefined;
@@ -473,13 +581,26 @@ const calculateSlots = (
                 otherPrice = p;
         }
 
+        const itemName =
+            minConsumption > 0 || minSales > 0
+                ? minConsumption > minSales
+                    ? FormatPrice.translate("consumption", props.short)
+                    : FormatPrice.translate("minSales", props.short)
+                : FormatPrice.translate(
+                    "pricing_" + schedule.roomPricingType,
+                    props.short)
+
         // Add base price item
         items.push({
             id: schedule.id,
-            name: "Grundpreis",
+            name: itemName,
+            itemType: schedule.roomPricingType,
             price: p,
             pricingLabel,
-            priceFormatted: FormatPrice.formatPriceValue(p)
+            quantity: 1,
+            unitPrice: p,
+            priceFormatted: FormatPrice.formatPriceValue(p),
+            unitPriceFormatted: FormatPrice.formatPriceValue(p),
         });
 
         // Add exclusive price
@@ -502,13 +623,21 @@ const calculateSlots = (
             items.push({
                 id: schedule.id,
                 name: "Exklusivität",
+                itemType: "exclusivity",
                 price: exclusive,
+                quantity: 1,
+                unitPrice: schedule.exclusivePrice,
                 pricingLabel: schedule.exclusivePricingLabel,
-                priceFormatted: FormatPrice.formatPriceValue(exclusive)
+                priceFormatted: FormatPrice.formatPriceWithType(
+                    { price: exclusive, noneLabelKey: "none" }
+                ),
+                unitPriceFormatted: FormatPrice.formatPriceWithType(
+                    { price: exclusive, noneLabelKey: "none" }
+                ),
             });
         }
 
-        maxMinConsumtion = Math.max(minConsumption, maxMinConsumtion);
+        maxMinConsumption = Math.max(minConsumption, maxMinConsumption);
         maxMinSales = Math.max(minSales, maxMinSales);
 
         totalOtherPrice += otherPrice;
@@ -523,7 +652,7 @@ const calculateSlots = (
     // Add seating
 
     const baseValueForSeating = Math.max(
-        totalOtherPrice + maxMinConsumtion,
+        totalOtherPrice + maxMinConsumption,
         maxMinSales > 0 ? Math.max(maxMinSales, totalOtherPrice) : 0,
     );
 
@@ -540,7 +669,7 @@ const calculateSlots = (
         "totalOtherPrice", totalOtherPrice,
         "calculatedSeating", calculatedSeating.total,
         "baseValueForSeating", baseValueForSeating,
-        "maxMinConsumtion", maxMinConsumtion,);*/
+        "maxMinConsumption", maxMinConsumption,);*/
 
     items.push(...calculatedSeating.items);
 
@@ -549,22 +678,25 @@ const calculateSlots = (
     // Single operation -> apply min spendings directly
     if (props.isSingleOperation) {
         // Min spendings found
-        if (maxMinSales > 0 || maxMinConsumtion > 0) {
+        if (maxMinSales > 0 || maxMinConsumption > 0) {
 
             // consumption > min sales
-            if (maxMinConsumtion > maxMinSales) {
+            if (maxMinConsumption > maxMinSales) {
                 /*console.log("totalOtherPrice", totalOtherPrice,
                     "totalOtherWithSeating", totalOtherWithSeating,
-                    "maxMinConsumtion", maxMinConsumtion,);*/
-                const displayPrice = maxMinConsumtion + totalOtherWithSeating;
+                    "maxMinConsumption", maxMinConsumption,);*/
+                const displayPrice = maxMinConsumption + totalOtherWithSeating;
                 return {
                     total: displayPrice,
                     totalFormatted: FormatPrice.formatPriceWithCustomText(
                         displayPrice,
-                        totalOtherWithSeating > 0 ? "" : FormatPrice.translate("consumption")
+                        totalOtherWithSeating > 0
+                            ? `(inkl. ${maxMinConsumption} ${FormatPrice.translate("consumption")})`
+                            : FormatPrice.translate("consumption"),
+                        true
                     ),
                     items,
-                    maxMinConsumtion,
+                    maxMinConsumption,
                     maxMinSales,
                     seatingTotal: calculatedSeating.total
                 };
@@ -579,7 +711,7 @@ const calculateSlots = (
                     FormatPrice.translate("minSales")
                 ),
                 items,
-                maxMinConsumtion,
+                maxMinConsumption,
                 maxMinSales,
                 seatingTotal: calculatedSeating.total
             };
@@ -589,7 +721,7 @@ const calculateSlots = (
     // Multipass operation or no min spendings 
     // -> just return collected prices
     return {
-        total: totalOtherPrice,
+        total: totalOtherWithSeating,
         totalFormatted: FormatPrice.formatPriceWithType({
             price: totalOtherWithSeating,
             //pricingLabel: pricingLabel as PricingLabels,
@@ -598,7 +730,7 @@ const calculateSlots = (
             noneLabelKey: "free"
         }),
         items,
-        maxMinConsumtion,
+        maxMinConsumption,
         maxMinSales,
         seatingTotal: calculatedSeating.total
     };
@@ -620,8 +752,10 @@ export const calculateBookingPrice = ({
     short,
     isSingleOperation,
 }: BookingPriceProps): {
-    total: number;
-    totalFormatted: string
+    total: number,
+    totalFormatted: string,
+    maxMinConsumption: number,
+    maxMinSales: number,
     items: PriceItem[],
     appliedSlots: PricingSlot[]
 } => {
@@ -632,8 +766,8 @@ export const calculateBookingPrice = ({
     const basicRanges: { start: Date; end: Date }[] = [];
     const extraRanges: { start: Date; end: Date; price: number }[] = [];
 
-    //let maxMinConsumtion = 0;
-    //let maxMinSales = 0;
+    let maxMinConsumption = 0;
+    let maxMinSales = 0;
 
     const applicableSlots = getApplicableSlots(bookingStart, bookingEnd, schedules);
 
@@ -665,12 +799,16 @@ export const calculateBookingPrice = ({
     totalPrice += slotsResult.total;
     items.push(...slotsResult.items);
     totalFormatted = slotsResult.totalFormatted;
+    maxMinConsumption = Math.max(maxMinConsumption, slotsResult.maxMinConsumption);
+    maxMinSales = Math.max(maxMinSales, slotsResult.maxMinSales);
 
     // No ranges from schedules -> return base prices
     if (basicRanges.length === 0 && extraRanges.length === 0) {
         if (excludeRoomPrice === true) return {
             total: 0,
             totalFormatted: FormatPrice.formatPriceValue(0),
+            maxMinConsumption,
+            maxMinSales,
             items,
             appliedSlots
         };
@@ -712,9 +850,14 @@ export const calculateBookingPrice = ({
             }
         );
 
+        maxMinConsumption = Math.max(maxMinConsumption, result.maxMinConsumption);
+        maxMinSales = Math.max(maxMinSales, result.maxMinSales);
+
         return {
             total: result.total,
             totalFormatted: result.totalFormatted,
+            maxMinConsumption,
+            maxMinSales,
             items: result.items,
             appliedSlots
         };
@@ -775,9 +918,18 @@ export const calculateBookingPrice = ({
             items.push({
                 id: -1,
                 name: "Grundpreis",
+                itemType: "basic",
                 price,
                 pricingLabel: basePriceLabel,
+                quantity: 1,
+                unitPrice: price,
                 priceFormatted: FormatPrice.formatPriceWithType(
+                    {
+                        price,
+                        priceType: basePriceType as PriceTypes,
+                    }
+                ),
+                unitPriceFormatted: FormatPrice.formatPriceWithType(
                     {
                         price,
                         priceType: basePriceType as PriceTypes,
@@ -790,6 +942,8 @@ export const calculateBookingPrice = ({
     return {
         total: totalPrice,
         totalFormatted: totalFormatted ?? FormatPrice.formatPriceValue(totalPrice),
+        maxMinConsumption,
+        maxMinSales,
         items,
         appliedSlots
     };
@@ -820,6 +974,8 @@ export const calculateSeating = ({
             persons,
         );
 
+        const seatingName = `Seating (${FormatPrice.translate("seating_" + seatingToApply.seating)})`;
+
         if (seatingToApply.reconfigPriceType != "none" &&
             seatingToApply.reconfigPrice &&
             seatingToApply.reconfigPriceType
@@ -842,9 +998,19 @@ export const calculateSeating = ({
                 total: seatingTotal,
                 items: [{
                     id: seatingToApply.id,
-                    name: "Seating",
+                    name: seatingName,
+                    itemType: "seating",
                     price: seatingTotal,
-                    priceFormatted: FormatPrice.formatPriceValue(seatingTotal)
+                    quantity: 1,
+                    unitPrice: seatingPrice,
+                    priceFormatted: FormatPrice.formatPriceWithType({
+                        price: seatingTotal,
+                        noneLabelKey: "free",
+                    }),
+                    unitPriceFormatted: FormatPrice.formatPriceWithType({
+                        price: seatingTotal,
+                        noneLabelKey: "free",
+                    }),
                 }]
             };
 
@@ -854,10 +1020,20 @@ export const calculateSeating = ({
             total: seatingPrice,
             items: [{
                 id: seatingToApply.id,
-                name: "Seating",
+                name: seatingName,
+                itemType: "seating",
                 price: seatingPrice,
                 pricingLabel: seatingToApply.pricingLabel,
-                priceFormatted: FormatPrice.formatPriceValue(seatingPrice)
+                quantity: 1,
+                unitPrice: seatingPrice,
+                priceFormatted: FormatPrice.formatPriceWithType({
+                    price: seatingPrice,
+                    noneLabelKey: "free",
+                }),
+                unitPriceFormatted: FormatPrice.formatPriceWithType({
+                    price: seatingPrice,
+                    noneLabelKey: "free",
+                }),
             }]
         };
     }
@@ -1033,6 +1209,12 @@ export class FormatPrice {
         "from": "Verbrauchspreis (ab)",
         "minSales": "Mindestumsatz",
         "free": "kostenlos",
+        "pricing_basic": "Grundpreis",
+        "pricing_extra": "Aufpreis",
+        "seating_empty": "ohne Mobiliar",
+        "seating_mixed": "Gemischt",
+        "seating_standing": "Stehplätze",
+        "seating_seated": "Sitzplätze",
     } as const;
 
     static staticShortTranslations = {
@@ -1047,14 +1229,20 @@ export class FormatPrice {
         "from": "ab",
         "minSales": "Mindestumsatz",
         "free": "kostenlos",
+        "pricing_basic": "Grundpreis",
+        "pricing_extra": "Aufpreis",
+        "seating_empty": "ohne Mobiliar",
+        "seating_mixed": "Gemischt",
+        "seating_standing": "Stehplätze",
+        "seating_seated": "Sitzplätze",
     } as const;
 
     static formatPriceValue(price: number): string {
         return new Intl.NumberFormat('de-DE', {
             style: "currency",
             currency: "EUR",
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 0,
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
         }).format(price);
     }
 
@@ -1105,6 +1293,7 @@ export class FormatPrice {
     static formatPriceWithCustomText(
         price: number,
         text: string,
+        trailing: boolean = false
     ): string {
         const strPrice = FormatPrice.formatPriceValue(price);
 
@@ -1112,7 +1301,9 @@ export class FormatPrice {
             return strPrice;
         }
 
-        return `${text} ${strPrice}`;
+        return trailing
+            ? `${strPrice} ${text}`
+            : `${text} ${strPrice}`;
     }
 
     static translatePrices(values: PriceTypes[]): string {
@@ -1161,7 +1352,12 @@ export class FormatPrice {
         return t[value];
     }
 
-    static translate(key: string): string {
+    static translate(key: string, short?: boolean): string {
+        if (short) {
+            return FormatPrice
+                .staticShortTranslations[key as keyof typeof FormatPrice.staticShortTranslations]
+                ?? key;
+        }
         return FormatPrice
             .staticTranslations[key as keyof typeof FormatPrice.staticTranslations]
             ?? key;

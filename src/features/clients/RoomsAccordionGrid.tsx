@@ -36,10 +36,10 @@ interface VenueSelectorProps {
 }
 
 const seatingTypeOptions = [
-    { value: "empty", label: "ohne Mobiliar" },
-    { value: "mixed", label: "Gemischt" },
-    { value: "standing", label: "Stehplätze" },
-    { value: "seated", label: "Sitzplätze" },
+    { value: "empty", label: FormatPrice.translate("seating_empty") },
+    { value: "mixed", label: FormatPrice.translate("seating_mixed") },
+    { value: "standing", label: FormatPrice.translate("seating_standing") },
+    { value: "seated", label: FormatPrice.translate("seating_seated") },
 ];
 
 const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
