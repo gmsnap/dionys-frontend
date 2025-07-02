@@ -39,6 +39,7 @@ import { fetchRooms } from "@/services/roomService"
 import PricingLabelField from "./PricingLabelField"
 import EventCategoriesField2 from "./EventCategoriesField2"
 import { RoomModel } from "@/models/RoomModel"
+import { AvailablePricingLabelsBasic } from "@/utils/pricingManager"
 
 const controlWidth = 7
 const labelWidth = 4
@@ -478,6 +479,7 @@ const EventPackageForm = ({
                                     <PricingLabelField
                                         control={control}
                                         errors={errors}
+                                        labels={AvailablePricingLabelsBasic}
                                     />
                                 </Grid2>
                             </Grid2>

@@ -42,16 +42,30 @@ const roomValidationSchema = yup.object().shape({
         .string(),
     size: yup
         .number()
+        .nullable()
+        .optional()
+        .transform((value, originalValue) => {
+            // If the original value is an empty string or null, return undefined
+            if (originalValue === '' || originalValue === null || originalValue === undefined) {
+                return 0;
+            }
+            return value;
+        })
         .typeError('Quadratmeter muss eine Zahl sein')
-        .positive('Quadratmeter müssen positiv sein')
-        .required('Quadratmeter sind erforderlich'),
+        .min(0, 'Quadratmeter darf nicht negativ sein'),
     price: yup
         .number()
-        .typeError('Preis muss eine Zahl sein')
-        .min(0, 'Preis darf nicht negativ sein')
         .nullable()
-        .transform(value => (value === null || value === '') ? undefined : value)
-        .required('Preis ist erforderlich'),
+        .optional()
+        .transform((value, originalValue) => {
+            // If the original value is an empty string or null, return undefined
+            if (originalValue === '' || originalValue === null || originalValue === undefined) {
+                return 0;
+            }
+            return value;
+        })
+        .typeError('Preis muss eine Zahl sein')
+        .min(0, 'Preis darf nicht negativ sein'),
     priceType: yup
         .string()
         .required('Preis-Typ ist erforderlich')
@@ -447,15 +461,25 @@ const RoomForm = ({
                                     <Controller
                                         name="size"
                                         control={control}
-                                        render={({ field }) => (
-                                            <TextField
-                                                {...field}
-                                                fullWidth
-                                                variant="outlined"
-                                                error={!!errors.size}
-                                                helperText={errors.size?.message}
-                                            />
-                                        )}
+                                        render={({ field }) => {
+                                            const isEmpty =
+                                                field.value === 0 ||
+                                                field.value === null ||
+                                                field.value === undefined;
+                                            return (
+                                                <TextField
+                                                    {...field}
+                                                    fullWidth
+                                                    variant="outlined"
+                                                    error={!!errors.size}
+                                                    helperText={errors.size?.message}
+                                                    placeholder="nicht festgelegt"
+                                                    value={isEmpty
+                                                        ? ''
+                                                        : field.value}
+                                                />
+                                            )
+                                        }}
                                     />
                                 </Grid2>
                             </Grid2>
@@ -658,7 +682,7 @@ const RoomForm = ({
                                 />
                             }
                         </Grid2>
-                   
+
                         {/* Messages */}
                         {error && (
                             <Grid2 size={{ xs: controlWidth }}>

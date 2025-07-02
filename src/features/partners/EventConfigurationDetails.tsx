@@ -3,7 +3,7 @@ import { deleteEventConfiguration } from "@/services/eventConfigurationService";
 import { Box, Button, SxProps, Theme, Typography } from "@mui/material";
 import { X } from "lucide-react";
 import { useAuthContext } from '@/auth/AuthContext';
-import { BookingRoom, calculateBooking, calculateBookingPrice, FormatPrice, PricingSlot } from "@/utils/pricingManager";
+import { BookingRoom, calculateBooking, calculateBookingPrice, FormatPrice } from "@/utils/pricingManager";
 import { useEffect, useState } from "react";
 import { fetchRoomPricingsByRoom } from "@/services/roomPricingService";
 import { RoomPricingModel, toPricingSlot } from "@/models/RoomPricingModel";
@@ -35,17 +35,18 @@ const EventConfigurationDetails = ({ model, onDeleted, sx }: Props) => {
         return rooms.map((room) => {
             const pricings = roomPricings?.filter((p) => p.roomId === room.id);
             const name = room.name ?? "?";
-            const price = FormatPrice.formatPrice(
-                calculateBookingPrice({
+            const price = FormatPrice.formatPriceWithType({
+                price: calculateBookingPrice({
                     bookingStart: new Date(conf.date!),
                     bookingEnd: new Date(conf.endDate!),
                     persons: conf.persons!,
                     basePrice: room.price,
                     basePriceType: room.priceType,
-                    isExclusive: conf.roomExtras?.some(r => r.roomId === room.id) === true,
+                    excludeExclusive: conf.roomExtras?.some(r => r.roomId === room.id) !== true,
                     schedules: pricings ?? undefined,
-                }).total
-            );
+                    isSingleOperation: true,
+                }).total,
+            });
             const isExclusive = room.RoomsEventConfigurations?.isExclusive === true;
             return (
                 <Typography key={name}>
@@ -143,7 +144,7 @@ const EventConfigurationDetails = ({ model, onDeleted, sx }: Props) => {
     if (Array.isArray(bookingModel?.rooms) && Array.isArray(roomPricings)) {
         updateRoomPricing(bookingModel.rooms, roomPricings);
     }
-    console.log(bookingModel);
+    //console.log(bookingModel);
 
     return (
         <Box sx={{ ...sx }}>
@@ -158,13 +159,19 @@ const EventConfigurationDetails = ({ model, onDeleted, sx }: Props) => {
             <Typography variant="h5" sx={{ mt: 2 }}>Pakete</Typography>
             {model.packages && model.packages.map((item, index) => (
                 <Box key={index} sx={{}}>
-                    <Typography>{item.title} ({FormatPrice.formatPriceWithType(item.price, item.priceType, item.pricingLabel)})</Typography>
+                    <Typography>
+                        {item.title} ({FormatPrice.formatPriceWithType({
+                            price: item.price,
+                            priceType: item.priceType,
+                            pricingLabel: item.pricingLabel
+                        })})
+                    </Typography>
                 </Box>
             ))}
 
             <Typography sx={{ fontWeight: 'bold', mt: 2 }}>
-                Total: {bookingModel
-                    ? FormatPrice.formatPrice(calculateBooking(bookingModel))
+                Gesamt: {bookingModel
+                    ? FormatPrice.formatPriceValue(calculateBooking(bookingModel).total)
                     : "Nicht berechnet"}
             </Typography>
             {model.booker && (<>

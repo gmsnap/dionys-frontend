@@ -57,6 +57,8 @@ const PackagesAccordeonGrid = ({ packageCategory, sx }: Props) => {
             )
     );
 
+
+
     return (
         <Grid2 container spacing={1} sx={{ ...sx }}>
             {filteredPackages.map((p) => (
@@ -80,9 +82,14 @@ const PackagesAccordeonGrid = ({ packageCategory, sx }: Props) => {
                         selectRequested={(id) => togglePackage(id)}
                         title={p.title}
                         subTitle={
-                            p.priceType === "none"
-                                ? undefined
-                                : `${FormatPrice.formatPriceWithType(p.price, p.priceType, p.pricingLabel)}`
+                            FormatPrice.formatPriceWithType({
+                                price: p.price,
+                                priceType: p.priceType,
+                                pricingLabel: p.pricingLabel,
+                                context: "booker",
+                                short: true,
+                                noneLabelKey: "free",
+                            })
                         }
                         information={p.description}
                         infoItems={[
@@ -92,7 +99,13 @@ const PackagesAccordeonGrid = ({ packageCategory, sx }: Props) => {
                             },
                             {
                                 icon: <HandCoins color={iconColor} />,
-                                label: FormatPrice.formatPriceWithType(p.price, p.priceType, p.pricingLabel),
+                                label: FormatPrice.formatPriceWithType({
+                                    price: p.price,
+                                    priceType: p.priceType,
+                                    pricingLabel: p.pricingLabel,
+                                    context: "booker",
+                                    noneLabelKey: "free",
+                                }),
                             },
                         ]}
                     />
