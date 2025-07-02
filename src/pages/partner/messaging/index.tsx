@@ -14,7 +14,9 @@ import {
   Typography,
   Paper,
   Avatar,
-  ListItemButton
+  ListItemButton,
+  Select,
+  MenuItem
 } from '@mui/material';
 import AttachFileIcon from '@mui/icons-material/AttachFile';
 import PartnerContentLayout from '@/layouts/PartnerContentLayout';
@@ -24,7 +26,17 @@ import DeleteIcon from '@mui/icons-material/Delete';
 
 import { fetchEventConfigurationsByCompany } from '@/services/eventConfigurationService';
 import { useAuthContext } from '@/auth/AuthContext';
-import { a } from 'node_modules/framer-motion/dist/types.d-6pKw1mTI';
+import dynamic from 'next/dynamic';
+
+
+const SortDropdown = dynamic(() => import('@/pages/partner/messaging/SortDropdown'), {
+    ssr: false,
+  });
+
+//import SortDropdown from '@/pages/partner/messaging/SortDropdown';
+  import { SortOption } from '@/pages/partner/messaging/SortDropdown';
+
+
 
 interface ChatMessage {
   id: number;
@@ -60,32 +72,10 @@ interface AttachmentFileData {
   name: string;
   url: string;
 }
-
 const generateUploadUrlEndpoint =
   `${process.env.NEXT_PUBLIC_API_URL}/media/generate-image-upload-url`;
 
 let currentEventConfiguration: EventConversation | null = null;
-
-/*
-const LongPollingComponent = () => {
-    const [data, setData] = useState("Initial data");
-    useEffect(() => {
-        const fetchData = async () => {
-            // Simulated data update
-            console.log("data: ",data);
-            setData(`Updated at ${new Date().toLocaleTimeString()}`);
-        };
-        const interval = setInterval(fetchData, 5000); // Update every 5 seconds
-        return () => clearInterval(interval); // Cleanup on unmount
-    }, []);
-    return (
-        <div>
-            <h2>Long Polling Example</h2>
-            <p>{data}</p>
-        </div>
-    );
-};
-*/
 
 const MessagePage: NextPageWithLayout = () => {
   const { authUser } = useAuthContext();
@@ -98,8 +88,11 @@ const MessagePage: NextPageWithLayout = () => {
   const [uploadedFileUrls, setUploadedFileUrls] = useState<AttachmentFileData[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [uploading, setUploading] = useState(false);
+  
 
   const sender = "Booking@VillaHirschberg.onmicrosoft.com"; // from db
+
+  const [sortOption, setSortOption] = useState<SortOption>(SortOption.Newest);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -131,6 +124,25 @@ const MessagePage: NextPageWithLayout = () => {
 
     return () => clearInterval(interval);
   }, [partnerUser, authUser]);
+
+  const sortConversations = (convs: EventConversation[], option: SortOption): EventConversation[] => {
+    console.log("sort option ", option);
+  switch (option) {
+    case SortOption.Unread:
+      return [...convs].sort((a, b) => b.unreadMessages - a.unreadMessages);
+    case SortOption.Unanswered:
+      return [...convs].filter(c => !c.answered);
+    case SortOption.Done:
+      return [...convs].filter(c => c.answered);
+    case SortOption.Newest:
+    default:
+      return [...convs].sort((a, b) => {
+        const timeA = new Date(a.lastMessage).getTime();
+        const timeB = new Date(b.lastMessage).getTime();
+        return timeB - timeA;
+      });
+    }
+  };
 
   const updateConversation = (conversation: EventConversation) => {
 
@@ -172,8 +184,7 @@ const MessagePage: NextPageWithLayout = () => {
     );
 
     if (!confs) {
-      //setEventConfs([]);
-      //setError("Error fetching Event Bookings");
+
       return;
     }
 
@@ -386,20 +397,38 @@ const MessagePage: NextPageWithLayout = () => {
   }
 
   const InitReload = (data: EventConversation[]) => {
-    setConversations(prev => {
-      const newConversations = [...data];
-      if (currentEventConfiguration) {
-        const updatedConv = newConversations.find(conv => conv.id === currentEventConfiguration?.id);
-        if (updatedConv) {
-          setCurrentConversation(updatedConv);
-          loadConversation(updatedConv, false);
-        } else {
-          setCurrentConversation(null);
-        }
+  let sorted = [...data];
+
+  switch (sortOption) {
+    case SortOption.Unread:
+      sorted.sort((a, b) => b.unreadMessages - a.unreadMessages);
+      break;
+    case SortOption.Unanswered:
+      sorted.sort((a, b) => Number(!a.answered) - Number(!b.answered));
+      break;
+    case SortOption.Done:
+      sorted.sort((a, b) => Number(a.answered) - Number(b.answered));
+      break;
+    case SortOption.Newest:
+    default:
+      sorted.sort((a, b) => new Date(b.lastMessage).getTime() - new Date(a.lastMessage).getTime());
+      break;
+  }
+
+  setConversations(prev => {
+    if (currentEventConfiguration) {
+      const updatedConv = sorted.find(conv => conv.id === currentEventConfiguration?.id);
+      if (updatedConv) {
+        setCurrentConversation(updatedConv);
+        loadConversation(updatedConv, false);
+      } else {
+        setCurrentConversation(null);
       }
-      return newConversations;
-    });
-  };
+    }
+    return sorted;
+  });
+};
+
 
 
   const handleSend = async () => {
@@ -411,6 +440,7 @@ const MessagePage: NextPageWithLayout = () => {
 
     const idToken = authUser?.idToken;
     if (!idToken) {
+      console.log("no token");
       return;
     }
 
@@ -442,18 +472,6 @@ const MessagePage: NextPageWithLayout = () => {
       attachments: JSON.stringify(uploadedFileUrls)
     }
 
-    /*
-    // create form data
-    const formData = new FormData();
-    formData.append('partnerId', companyId.toString() || '');
-    formData.append('conversation', currentConversation.id.toString() || '');
-    formData.append('sender', sender);
-    formData.append('receiver', lastReceived.sender);
-    formData.append('subject', lastReceived.subject);
-    formData.append('inreplyto', lastReceived.messageId);
-    formData.append('content', newMessage);
-    formData.append('attachments', JSON.stringify(uploadedFileUrls));
-    */
     // send message data to api
     const res = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/partner/messages/sendMessageForConversation/`,
@@ -503,11 +521,34 @@ const MessagePage: NextPageWithLayout = () => {
             pr={2}
             sx={{ overflowY: 'auto' }}
           >
-            <Typography variant="h6" gutterBottom>
-              Posteingang
-            </Typography>
+            <Box
+              sx={{
+                mt: { xs: 5, md: 3 },
+                display: 'flex',
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 1,
+                ml: 0,
+                mb: 2,
+              }}
+            >
+              <Typography variant="h6" gutterBottom>
+                Posteingang
+              </Typography>
+              <SortDropdown
+                value={sortOption}
+                onChange={(e) => {
+                  const option = e.target.value as SortOption;
+                  setSortOption(option);
+                  InitReload(conversations);
+                }}
+              />
+
+            </Box>
+
             <List>
-              {conversations.map(conv => (
+              {sortConversations(conversations, sortOption).map(conv => (
                 <ListItem
                   key={conv.id}
                   disablePadding
