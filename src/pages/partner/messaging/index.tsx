@@ -397,7 +397,7 @@ const MessagePage: NextPageWithLayout = () => {
   }
 
   const InitReload = (data: EventConversation[]) => {
-  let sorted = [...data];
+  const sorted = [...data];
 
   switch (sortOption) {
     case SortOption.Unread:
