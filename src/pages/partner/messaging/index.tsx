@@ -198,8 +198,6 @@ const MessagePage: NextPageWithLayout = () => {
       b: EventConfigurationModel
     ) => b.id - a.id);
 
-    console.log("sortedConfs ", sortedConfs);
-
     let eventConfigurations = [] as EventConfigurationModel[];
     let eventConversations = [] as EventConversation[];
 
@@ -218,18 +216,32 @@ const MessagePage: NextPageWithLayout = () => {
       if (!res.ok) throw new Error(`Fehler: ${res.status}`);
 
       const data = await res.json() as Conversation[];
+      console.log(data);
 
-      eventConversations = [];
+      //eventConversations = [];
 
-      // loop events
-      for (const event of eventConfigurations) {
+      // loop booked events
+      for (const event of eventConfigurations) 
+      {
+
         // try to convert event to conversation
-        const eventConversation = event as EventConversation;
+        //const eventConversation = event as EventConversation;
 
-        // now loop all 
-        for (const conv of data) {
-          const conversation = conv as Conversation;
-          console.log(eventConversation.id);
+        const eventConversation: EventConversation = {
+          ...event,
+          unreadMessages: 0,
+          formatedTime: "",
+          extract: "",
+          messages: 0,
+          answered: false,
+          lastMessage: "",
+          style: {}
+        };
+
+        // now loop all conversations
+        for (const conversation of data) 
+        {
+
           if (eventConversation.date) {
             const date = new Date(eventConversation.date);
             const germanDate = new Intl.DateTimeFormat('de-DE', {
