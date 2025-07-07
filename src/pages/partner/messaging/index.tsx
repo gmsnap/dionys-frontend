@@ -35,6 +35,7 @@ const SortDropdown = dynamic(() => import('@/pages/partner/messaging/SortDropdow
 
 //import SortDropdown from '@/pages/partner/messaging/SortDropdown';
   import { SortOption } from '@/pages/partner/messaging/SortDropdown';
+import { c } from 'node_modules/framer-motion/dist/types.d-6pKw1mTI';
 
 
 
@@ -146,6 +147,7 @@ const MessagePage: NextPageWithLayout = () => {
 
   const updateConversation = (conversation: EventConversation) => {
 
+    console.log("update conversation");
     if (conversation.unreadMessages > 0) {
 
       const createdDate = new Date(conversation.lastMessage).getTime();
@@ -157,9 +159,12 @@ const MessagePage: NextPageWithLayout = () => {
         conversation.style = { backgroundColor: 'blue', borderWidth: '2px', borderColor: 'blue' };
       }
     } else {
+      console.log("everything read");
       if (conversation.messages) {
+        console.log("we have messages");
         conversation.style = { backgroundColor: 'white', borderWidth: '2px', borderColor: 'blue' };
       } else {
+        console.log("no style");
         conversation.style = {};
       }
     }
@@ -193,6 +198,8 @@ const MessagePage: NextPageWithLayout = () => {
       b: EventConfigurationModel
     ) => b.id - a.id);
 
+    console.log("sortedConfs ", sortedConfs);
+
     let eventConfigurations = [] as EventConfigurationModel[];
     let eventConversations = [] as EventConversation[];
 
@@ -220,8 +227,9 @@ const MessagePage: NextPageWithLayout = () => {
         const eventConversation = event as EventConversation;
 
         // now loop all 
-        for (const conversation of data) {
-          //console.log(eventConversation.date);
+        for (const conv of data) {
+          const conversation = conv as Conversation;
+          console.log(eventConversation.id);
           if (eventConversation.date) {
             const date = new Date(eventConversation.date);
             const germanDate = new Intl.DateTimeFormat('de-DE', {
@@ -231,7 +239,8 @@ const MessagePage: NextPageWithLayout = () => {
             eventConversation.formatedTime = germanDate;
           }
 
-
+          console.log("conid: " + conversation.id + " eventid: " + event.id.toString());
+          //console.log(conversation);
           if (conversation.id === event.id.toString()) {
             eventConversation.unreadMessages = conversation.unread;
 
