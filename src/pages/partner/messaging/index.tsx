@@ -216,17 +216,12 @@ const MessagePage: NextPageWithLayout = () => {
       if (!res.ok) throw new Error(`Fehler: ${res.status}`);
 
       const data = await res.json() as Conversation[];
-      console.log(data);
-
-      //eventConversations = [];
 
       // loop booked events
       for (const event of eventConfigurations) 
       {
 
         // try to convert event to conversation
-        //const eventConversation = event as EventConversation;
-
         const eventConversation: EventConversation = {
           ...event,
           unreadMessages: 0,
@@ -251,8 +246,6 @@ const MessagePage: NextPageWithLayout = () => {
             eventConversation.formatedTime = germanDate;
           }
 
-          console.log("conid: " + conversation.id + " eventid: " + event.id.toString());
-          //console.log(conversation);
           if (conversation.id === event.id.toString()) {
             eventConversation.unreadMessages = conversation.unread;
 
