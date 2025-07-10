@@ -23,6 +23,8 @@ import PartnerContentLayout from '@/layouts/PartnerContentLayout';
 import PageHeadline from '@/features/partners/PageHeadline';
 import { EventConfigurationModel } from '@/models/EventConfigurationModel';
 import DeleteIcon from '@mui/icons-material/Delete';
+import { WaitIcon } from '@/components/WaitIcon';
+import { WaitIconSmall } from '@/components/WaitIconSmall';
 
 import { fetchEventConfigurationsByCompany } from '@/services/eventConfigurationService';
 import { useAuthContext } from '@/auth/AuthContext';
@@ -35,6 +37,7 @@ const SortDropdown = dynamic(() => import('@/pages/partner/messaging/SortDropdow
 
 //import SortDropdown from '@/pages/partner/messaging/SortDropdown';
   import { SortOption } from '@/pages/partner/messaging/SortDropdown';
+  
 import { c } from 'node_modules/framer-motion/dist/types.d-6pKw1mTI';
 
 
@@ -89,11 +92,16 @@ const MessagePage: NextPageWithLayout = () => {
   const [uploadedFileUrls, setUploadedFileUrls] = useState<AttachmentFileData[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isConvLoading, setIsConvLoading] = useState<boolean>(true);
   
 
   const sender = "Booking@VillaHirschberg.onmicrosoft.com"; // from db
 
   const [sortOption, setSortOption] = useState<SortOption>(SortOption.Newest);
+
+  const [isDisabled, setIsDisabled] = useState(false);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -112,22 +120,24 @@ const MessagePage: NextPageWithLayout = () => {
     }
 
     const fetchConversationList = async () => {
-      await loadConversationsListFromServer();
+      await loadConversationsListFromServer(setIsLoading);
+      //await loadConversationsListFromServer();
     };
 
     fetchConversationList();
 
     const interval = setInterval(async () => {
-      console.log('Alle 1 Minuten ausgeführt');
-
-      await loadConversationsListFromServer();
+      await loadConversationsListFromServer(setIsLoading);
     }, 5 * 60 * 1000);
 
     return () => clearInterval(interval);
   }, [partnerUser, authUser]);
 
+
+
+
   const sortConversations = (convs: EventConversation[], option: SortOption): EventConversation[] => {
-    console.log("sort option ", option);
+    //console.log("sort option ", option);
   switch (option) {
     case SortOption.Unread:
       return [...convs].sort((a, b) => b.unreadMessages - a.unreadMessages);
@@ -147,7 +157,7 @@ const MessagePage: NextPageWithLayout = () => {
 
   const updateConversation = (conversation: EventConversation) => {
 
-    console.log("update conversation");
+    //console.log("update conversation");
     if (conversation.unreadMessages > 0) {
 
       const createdDate = new Date(conversation.lastMessage).getTime();
@@ -159,18 +169,20 @@ const MessagePage: NextPageWithLayout = () => {
         conversation.style = { backgroundColor: 'blue', borderWidth: '2px', borderColor: 'blue' };
       }
     } else {
-      console.log("everything read");
+      //console.log("everything read");
       if (conversation.messages) {
-        console.log("we have messages");
+        //console.log("we have messages");
         conversation.style = { backgroundColor: 'white', borderWidth: '2px', borderColor: 'blue' };
       } else {
-        console.log("no style");
+        //console.log("no style");
         conversation.style = {};
       }
     }
   }
 
-  const loadConversationsListFromServer = async () => {
+  const loadConversationsListFromServer = async (
+    setIsLoading: (loading: boolean) => void
+  ) => {
 
     const companyId = partnerUser?.companyId;
     if (!companyId) {
@@ -182,6 +194,8 @@ const MessagePage: NextPageWithLayout = () => {
       return;
     }
 
+    setIsLoading(true);
+
     const confs = await fetchEventConfigurationsByCompany(
       companyId,
       () => { },
@@ -189,7 +203,7 @@ const MessagePage: NextPageWithLayout = () => {
     );
 
     if (!confs) {
-
+      setIsLoading(false);
       return;
     }
 
@@ -268,10 +282,16 @@ const MessagePage: NextPageWithLayout = () => {
       InitReload(eventConversations);
     } catch (err) {
       console.error('Fehler beim Laden der Konversationsliste:', err);
+    } finally {
+      setIsLoading(false);
     }
   }
 
-  const loadConversation = async (conv: EventConversation, markAsRead: boolean) => {
+  const loadConversation = async (
+    conv: EventConversation, 
+    markAsRead: boolean,
+    setIsConvLoading: (loading: boolean) => void
+  ) => {
     const companyId = partnerUser?.companyId;
     if (!companyId) {
       return;
@@ -281,6 +301,8 @@ const MessagePage: NextPageWithLayout = () => {
     if (!idToken) {
       return;
     }
+
+    setIsConvLoading(true);
 
     try {
       const param = markAsRead ? 1 : 0;
@@ -301,6 +323,8 @@ const MessagePage: NextPageWithLayout = () => {
       setCurrentConversation({ ...conv });
     } catch (err) {
       console.error('Fehler beim Laden der Konversation:', err);
+    } finally{
+      setIsConvLoading(false);
     }
   };
 
@@ -330,6 +354,7 @@ const MessagePage: NextPageWithLayout = () => {
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files?.[0]) {
+      setIsDisabled(true);
       setUploading(true);
       const file = event.target.files[0];
 
@@ -360,6 +385,7 @@ const MessagePage: NextPageWithLayout = () => {
         console.error("Image upload failed", error);
       } finally {
         setUploading(false);
+        setIsDisabled(false);
       }
     }
   };
@@ -411,22 +437,22 @@ const MessagePage: NextPageWithLayout = () => {
   }
 
   const InitReload = (data: EventConversation[]) => {
-  const sorted = [...data];
+    const sorted = [...data];
 
-  switch (sortOption) {
-    case SortOption.Unread:
-      sorted.sort((a, b) => b.unreadMessages - a.unreadMessages);
-      break;
-    case SortOption.Unanswered:
-      sorted.sort((a, b) => Number(!a.answered) - Number(!b.answered));
-      break;
-    case SortOption.Done:
-      sorted.sort((a, b) => Number(a.answered) - Number(b.answered));
-      break;
-    case SortOption.Newest:
-    default:
-      sorted.sort((a, b) => new Date(b.lastMessage).getTime() - new Date(a.lastMessage).getTime());
-      break;
+    switch (sortOption) {
+      case SortOption.Unread:
+        sorted.sort((a, b) => b.unreadMessages - a.unreadMessages);
+        break;
+      case SortOption.Unanswered:
+        sorted.sort((a, b) => Number(!a.answered) - Number(!b.answered));
+        break;
+      case SortOption.Done:
+        sorted.sort((a, b) => Number(a.answered) - Number(b.answered));
+        break;
+      case SortOption.Newest:
+      default:
+        sorted.sort((a, b) => new Date(b.lastMessage).getTime() - new Date(a.lastMessage).getTime());
+        break;
   }
 
   setConversations(prev => {
@@ -434,7 +460,7 @@ const MessagePage: NextPageWithLayout = () => {
       const updatedConv = sorted.find(conv => conv.id === currentEventConfiguration?.id);
       if (updatedConv) {
         setCurrentConversation(updatedConv);
-        loadConversation(updatedConv, false);
+        loadConversation(updatedConv, false, setIsConvLoading);
       } else {
         setCurrentConversation(null);
       }
@@ -475,6 +501,9 @@ const MessagePage: NextPageWithLayout = () => {
       }
     }
 
+    setIsDisabled(true);
+    setSending(true);
+
     const formDataObject = {
       partnerId: companyId.toString() || '',
       conversation: currentConversation.id.toString() || '',
@@ -512,6 +541,8 @@ const MessagePage: NextPageWithLayout = () => {
       console.log("error: ",  + res)
       alert('Fehler beim Senden der Nachricht.');
     }
+    setIsDisabled(false);
+    setSending(false);
   };
 
   return (
@@ -531,6 +562,7 @@ const MessagePage: NextPageWithLayout = () => {
           {/* Linke Spalte: Konversationen */}
           <Box
             width="20%"
+            minWidth={350}
             borderRight="1px solid #ccc"
             pr={2}
             sx={{ overflowY: 'auto' }}
@@ -561,7 +593,9 @@ const MessagePage: NextPageWithLayout = () => {
 
             </Box>
 
-            <List>
+            {isLoading ?
+            (<WaitIcon />) :
+            (<List>
               {sortConversations(conversations, sortOption).map(conv => (
                 <ListItem
                   key={conv.id}
@@ -573,7 +607,7 @@ const MessagePage: NextPageWithLayout = () => {
                   }}
                 >
                   <ListItemButton
-                    onClick={() => loadConversation(conv, true)}
+                    onClick={() => loadConversation(conv, true, setIsConvLoading)}
                     selected={conv.id === currentConversation?.id}
                     sx={{
                       width: '100%',
@@ -606,7 +640,8 @@ const MessagePage: NextPageWithLayout = () => {
                   </ListItemButton>
                 </ListItem>
               ))}
-            </List>
+            </List>)
+            }
           </Box>
 
           {/* Rechte Spalte: Chat */}
@@ -615,7 +650,9 @@ const MessagePage: NextPageWithLayout = () => {
               {currentConversation ? `${currentConversation.booker?.givenName} ${currentConversation.booker?.familyName} | Anfrage für ${currentConversation.formatedTime} | ${currentConversation.location?.title} | ${currentConversation.location?.title}` : 'Keine Konversation ausgewählt'}
             </Typography>
             <Paper elevation={3} sx={{ flex: 1, overflow: 'auto', padding: 2 }}>
-              <List>
+            {isConvLoading && currentConversation ?
+              (<WaitIcon />) :
+              (<List>
                 {messages.map((msg) => {
                   const isOwnMessage = msg.sender === sender;
                   return (
@@ -657,6 +694,8 @@ const MessagePage: NextPageWithLayout = () => {
                 })}
                 <div ref={messagesEndRef} />
               </List>
+              )
+            }
             </Paper>
 
             {currentConversation && (
@@ -674,11 +713,16 @@ const MessagePage: NextPageWithLayout = () => {
                     variant="contained"
                     sx={{ borderRadius: 0, backgroundColor: '#002a58', '&:hover': { backgroundColor: '#002a58' } }}
                     onClick={handleSend}
+                    disabled={isDisabled}
                   >
                     Antworten
                   </Button>
+                  {
+                    uploading || sending ? (<WaitIconSmall />) : ("")
+                  }
                   <IconButton
                     component="label"
+                    disabled={isDisabled}
                     sx={{ borderRadius: 0, backgroundColor: '#002a58', color: '#fff', '&:hover': { backgroundColor: '#002a58' } }}
                   >
                     <AttachFileIcon />
@@ -709,7 +753,10 @@ const MessagePage: NextPageWithLayout = () => {
               </Box>
             )}
           </Box>
-          <Box width="30%">
+          <Box 
+            width="30%"
+            minWidth={350}
+          >
             {currentConversation && (
               <Box sx={{
                 mt: { xs: 2, md: 2 },
