@@ -13,6 +13,7 @@ import router from "next/router";
 import { fetchCompanyById, updatePartnerCompany } from "@/services/partnerService";
 import BillingAddressFields from "./BillingAddressFields";
 import { useAuthContext } from "@/auth/AuthContext";
+import { PartnerCompanyModel } from "@/models/PartnerCompanyModel";
 
 interface Props {
     submitButtonCaption?: string;
@@ -137,7 +138,8 @@ const PartnerCompanyForm = ({ submitButtonCaption, onComplete }: Props) => {
                 authUser.idToken,
                 partnerUser.companyId,
                 dataToSubmit,
-                (updatedCompany) => {
+                (response: any) => {
+                    const updatedCompany = response?.company as PartnerCompanyModel;
                     if (updatedCompany) {
                         // Update partnerUser's company in the store
                         setPartnerUser({

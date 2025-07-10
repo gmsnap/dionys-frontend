@@ -15,6 +15,7 @@ export interface PartnerCompanyModel {
     updatedAt: Date;
     address: AddressModel | null;
     billingAddress: AddressModel | null;
+    billingDetails: string[];
     locations: LocationModel[] | null;
     subscription: SubscriptionModel | null | undefined;
 }

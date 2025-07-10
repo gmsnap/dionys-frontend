@@ -14,10 +14,7 @@ import {
   Typography,
   Paper,
   Avatar,
-  ListItemButton,
-  Select,
-  MenuItem
-} from '@mui/material';
+  ListItemButton} from '@mui/material';
 import AttachFileIcon from '@mui/icons-material/AttachFile';
 import PartnerContentLayout from '@/layouts/PartnerContentLayout';
 import PageHeadline from '@/features/partners/PageHeadline';
@@ -36,11 +33,7 @@ const SortDropdown = dynamic(() => import('@/pages/partner/messaging/SortDropdow
   });
 
 //import SortDropdown from '@/pages/partner/messaging/SortDropdown';
-  import { SortOption } from '@/pages/partner/messaging/SortDropdown';
-  
-import { c } from 'node_modules/framer-motion/dist/types.d-6pKw1mTI';
-
-
+import { SortOption } from '@/pages/partner/messaging/SortDropdown';
 
 interface ChatMessage {
   id: number;
@@ -213,7 +206,7 @@ const MessagePage: NextPageWithLayout = () => {
     ) => b.id - a.id);
 
     let eventConfigurations = [] as EventConfigurationModel[];
-    let eventConversations = [] as EventConversation[];
+    const eventConversations = [] as EventConversation[];
 
     eventConfigurations = sortedConfs;
 

@@ -27,6 +27,7 @@ import BillingAddressFields from "./BillingAddressFields2";
 import LocationEmbedCode from "./LocationEmbedCode";
 import { WaitIcon } from '@/components/WaitIcon';
 import EventCategoriesEditor from "./EventCategoriesEditor";
+import { uploadFile } from "@/utils/fileUtil";
 
 // Validation schema
 const locationValidationSchema = yup.object().shape({
@@ -201,25 +202,7 @@ const LocationForm = ({
         } finally {
             setIsSubmitting(false);
         }
-    };
-
-    const uploadFile = async (uploadUrl: string, file: File) => {
-        try {
-            const uploadResponse = await fetch(uploadUrl, {
-                method: "PUT",
-                body: file,
-                headers: {
-                    "Content-Type": file.type,
-                },
-            });
-
-            if (!uploadResponse.ok) {
-                throw new Error("Failed to upload the file.");
-            }
-        } catch (error) {
-            console.error("File upload error:", error);
-        }
-    };
+    };    
 
     // Fetch location data
     useEffect(() => {
