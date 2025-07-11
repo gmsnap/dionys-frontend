@@ -133,12 +133,14 @@ const MessagePage: NextPageWithLayout = () => {
     //console.log("sort option ", option);
   switch (option) {
     case SortOption.Unread:
-      return [...convs].sort((a, b) => b.unreadMessages - a.unreadMessages);
+      //return [...convs].sort((a, b) => b.unreadMessages - a.unreadMessages);
+      return [...convs].filter(c => c.unreadMessages > 0);
     case SortOption.Unanswered:
       return [...convs].filter(c => !c.answered);
     case SortOption.Done:
       return [...convs].filter(c => c.answered);
     case SortOption.Newest:
+      return [...convs].filter(c => c.messages == 0);
     default:
       return [...convs].sort((a, b) => {
         const timeA = new Date(a.lastMessage).getTime();
@@ -558,7 +560,7 @@ const MessagePage: NextPageWithLayout = () => {
             minWidth={350}
             borderRight="1px solid #ccc"
             pr={2}
-            sx={{ overflowY: 'auto' }}
+            sx={{ overflowY: 'auto', overflowX: 'hidden' }}
           >
             <Box
               sx={{
