@@ -4,7 +4,6 @@ import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
     Box,
-    Button,
     TextField,
     Typography,
     Grid2,
@@ -13,7 +12,6 @@ import {
     Theme,
     SxProps,
 } from "@mui/material";
-import { Save } from "lucide-react";
 import { CreateLocationResponse } from "@/types/geolocation";
 import { EventCategories } from "@/constants/EventCategories";
 import useStore from '@/stores/partnerStore';
@@ -28,6 +26,7 @@ import LocationEmbedCode from "./LocationEmbedCode";
 import { WaitIcon } from '@/components/WaitIcon';
 import EventCategoriesEditor from "./EventCategoriesEditor";
 import { uploadFile } from "@/utils/fileUtil";
+import SaveButton from "@/components/SaveButton";
 
 // Validation schema
 const locationValidationSchema = yup.object().shape({
@@ -121,7 +120,7 @@ const LocationForm = ({
     const { authUser } = useAuthContext();
 
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [responseMessage, setResponseMessage] = useState("");
+    const [showSuccess, setShowSuccess] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isEdit, setIsEdit] = useState(false);
@@ -136,7 +135,13 @@ const LocationForm = ({
         resolver: yupResolver(locationValidationSchema) as any,
     });
 
-    const { control, handleSubmit, reset, formState: { errors }, getValues } = methods;
+    const {
+        control,
+        handleSubmit,
+        reset,
+        formState: { errors, isDirty },
+        getValues
+    } = methods;
 
     const handleToggle = (e: React.ChangeEvent<HTMLInputElement>) => {
         const toggleState = e.target.checked;
@@ -184,11 +189,9 @@ const LocationForm = ({
                 await uploadFile(responseData.uploadUrl, data.image);
             }
 
-            setResponseMessage(
-                isEdit
-                    ? "Location gespeichert!"
-                    : "Location gespeichert!"
-            );
+            setShowSuccess(true);
+
+            reset(data);
 
             const newID = responseData.location.id;
             if (locationCreated && newID) {
@@ -198,11 +201,11 @@ const LocationForm = ({
             }
         } catch (error) {
             console.error(error);
-            setResponseMessage("An error occurred while submitting the location.");
+            //setError("An error occurred while submitting the location.");
         } finally {
             setIsSubmitting(false);
         }
-    };    
+    };
 
     // Fetch location data
     useEffect(() => {
@@ -213,7 +216,7 @@ const LocationForm = ({
 
         const companyId = partnerUser?.companyId;
 
-        setResponseMessage('');
+        setShowSuccess(false);
 
         if (!companyId) {
             // No user found; reset form to create mode
@@ -467,47 +470,16 @@ const LocationForm = ({
                                         <BillingAddressFields formData={getValues()} errors={errors} />}
                                 </Grid2>
 
-                                {/* Submit */}
-                                <Grid2 size={{ xs: 12 }}>
-                                    <Button
-                                        variant="contained"
-                                        color="primary"
-                                        type="submit"
-                                        disabled={isSubmitting}
-                                        sx={{
-                                            lineHeight: 0,
-                                            outline: '3px solid transparent',
-                                            mt: 4,
-                                            mb: 1,
-                                            '&:hover': {
-                                                outline: '3px solid #00000033',
-                                            },
-                                            '.icon': {
-                                                color: '#ffffff',
-                                            },
-                                            '&:hover .icon': {
-                                                color: '#ffffff',
-                                            },
-                                        }}
-                                    >
-                                        {submitButtonCaption || "Speichern"}
-                                        <Box component="span" sx={{ ml: 1 }}>
-                                            <Save className="icon" width={16} height={16} />
-                                        </Box>
-                                    </Button>
-                                </Grid2>
-
                             </Grid2>
+                            {/* Submit */}
+                            <SaveButton
+                                isSubmitting={isSubmitting}
+                                isDirty={isDirty}
+                                successMessage={"Location gespeichert."}
+                                triggerSuccess={showSuccess}
+                                onFadeOut={() => setShowSuccess(false)} />
                         </form>
                     </FormProvider>
-
-                    {responseMessage && (
-                        <Grid2 size={{ xs: 12, sm: gridColumnsLarge }}>
-                            <Typography variant="body2" color="success">
-                                {responseMessage}
-                            </Typography>
-                        </Grid2>
-                    )}
 
                     {/* Display Event Categories */}
                     {eventCategories.length > 0 && (

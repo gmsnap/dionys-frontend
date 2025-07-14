@@ -1,4 +1,4 @@
-import { Box, Button, Grid2, SxProps, TextField, Theme, Typography } from "@mui/material";
+import { Box, Grid2, SxProps, TextField, Theme, Typography } from "@mui/material";
 import { useForm, Controller, FormProvider } from "react-hook-form";
 import ImageUploadField from "./ImageUploadField";
 import { BillingDetails, createEmptyBillingDetails } from "@/models/BillingDetails";
@@ -7,7 +7,7 @@ import { useAuthContext } from "@/auth/AuthContext";
 import useStore from '@/stores/partnerStore';
 import { useEffect, useState } from "react";
 import { uploadFile } from "@/utils/fileUtil";
-import { Save } from "lucide-react";
+import SaveButton from "@/components/SaveButton";
 
 interface Props {
     sx?: SxProps<Theme>;
@@ -17,34 +17,57 @@ const BillingDetailsForm = ({ sx, }: Props) => {
     const { authUser } = useAuthContext();
     const { partnerUser } = useStore();
 
+    const [showSuccess, setShowSuccess] = useState(false);
+    const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const methods = useForm<BillingDetails>({
         defaultValues: createEmptyBillingDetails(),
     });
 
-    const { handleSubmit, control } = methods;
+    const {
+        handleSubmit,
+        control,
+        formState: { isDirty },
+        reset,
+    } = methods;
 
     const onSubmit = async (data: any) => {
         if (!authUser?.idToken || !partnerUser?.companyId) return;
+
+        setErrorMsg(null);
+        setIsSubmitting(true);
+
         const sendableData = {
             ...data,
             logo: data.logo?.name
                 ? data.logo.name
                 : data.logo ?? undefined
         } as BillingDetails;
-        console.log("send data:", data);
+
         await updateBillingDetails(
             authUser.idToken,
             partnerUser.companyId,
             sendableData,
             async (responseData: any) => {
-                console.log("responseData:", responseData);
                 if (responseData.logoUploadUrl && data.logo) {
                     await uploadFile(responseData.logoUploadUrl, data.logo);
                 }
+
+            },
+            async (msg?: string) => {
+                setErrorMsg(msg ?? "Fehler beim Speichern");
             },
         );
+
+        //await new Promise(resolve => setTimeout(resolve, 5000));
+
+        setIsSubmitting(false);
+        setShowSuccess(true);
+        reset(data);
+        setTimeout(() => {
+            setShowSuccess(false);
+        }, 1500);
     };
 
     const fields: { name: keyof BillingDetails; label: string }[] = [
@@ -64,7 +87,7 @@ const BillingDetailsForm = ({ sx, }: Props) => {
                 response.response.ok &&
                 response.result.billingDetails
             ) {
-                methods.reset(response.result.billingDetails as BillingDetails);
+                reset(response.result.billingDetails as BillingDetails);
             }
         }
         if (partnerUser?.companyId) {
@@ -73,7 +96,7 @@ const BillingDetailsForm = ({ sx, }: Props) => {
     }, [partnerUser]);
 
     return (
-        <Box sx={sx}>
+        <Box sx={{ mb: 4, ...sx }}>
             <FormProvider {...methods}>
                 <form onSubmit={handleSubmit(onSubmit)}>
                     <Box
@@ -123,34 +146,12 @@ const BillingDetailsForm = ({ sx, }: Props) => {
                             </>
                         ))}
 
-                        <Grid2 size={{ xs: 12 }} display={"flex"} gap={2} sx={{ mt: 2 }}>
-                            <Button
-                                variant="contained"
-                                color="primary"
-                                type="submit"
-                                disabled={isSubmitting}
-                                sx={{
-                                    lineHeight: 0,
-                                    outline: '3px solid transparent',
-                                    mt: 4,
-                                    mb: 1,
-                                    '&:hover': {
-                                        outline: '3px solid #00000033',
-                                    },
-                                    '.icon': {
-                                        color: '#ffffff',
-                                    },
-                                    '&:hover .icon': {
-                                        color: '#ffffff',
-                                    },
-                                }}
-                            >
-                                {"Speichern"}
-                                <Box component="span" sx={{ ml: 1 }}>
-                                    <Save className="icon" width={16} height={16} />
-                                </Box>
-                            </Button>
-                        </Grid2>
+                        <SaveButton
+                            isSubmitting={isSubmitting}
+                            isDirty={isDirty}
+                            successMessage={"PDF & Email Anpassungen gespeichert."}
+                            triggerSuccess={showSuccess}
+                            onFadeOut={() => setShowSuccess(false)} />
                     </Box>
                 </form>
             </FormProvider>
