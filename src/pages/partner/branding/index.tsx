@@ -4,14 +4,11 @@ import useStore from '@/stores/partnerStore';
 import type { NextPageWithLayout } from '@/types/page';
 import { Box, Typography } from '@mui/material';
 import PartnerContentLayout from '@/layouts/PartnerContentLayout';
-import LocationsDropDown from '@/features/partners/LocationsDropDown';
-import PackagesPageContent from '@/features/partners/PackagesPageContent';
 import { WaitIcon } from '@/components/WaitIcon';
 import BillingDetailsForm from '@/features/partners/BillingDetailsForm';
 
 const PartnerPage: NextPageWithLayout = () => {
     const { partnerUser, partnerLocations } = useStore();
-    const [locationId, setLocationId] = useState<number | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
 
     const pageTitle = 'PDF & Email Anpassungen';
@@ -51,7 +48,7 @@ const PartnerPage: NextPageWithLayout = () => {
             title={pageTitle}
             description={pageDescription}
         >
-            <BillingDetailsForm sx={{ maxWidth: 600, }} />,
+            <BillingDetailsForm sx={{ maxWidth: 600, }} />
         </PartnerContentLayout>
     );
 };
