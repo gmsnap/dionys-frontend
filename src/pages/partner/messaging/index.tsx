@@ -13,8 +13,10 @@ import {
   ListItemText,
   Typography,
   Paper,
+  useTheme,
   Avatar,
-  ListItemButton} from '@mui/material';
+  ListItemButton,
+  useMediaQuery} from '@mui/material';
 import AttachFileIcon from '@mui/icons-material/AttachFile';
 import PartnerContentLayout from '@/layouts/PartnerContentLayout';
 import PageHeadline from '@/features/partners/PageHeadline';
@@ -27,12 +29,11 @@ import { fetchEventConfigurationsByCompany } from '@/services/eventConfiguration
 import { useAuthContext } from '@/auth/AuthContext';
 import dynamic from 'next/dynamic';
 
-
 const SortDropdown = dynamic(() => import('@/pages/partner/messaging/SortDropdown'), {
     ssr: false,
   });
 
-//import SortDropdown from '@/pages/partner/messaging/SortDropdown';
+
 import { SortOption } from '@/pages/partner/messaging/SortDropdown';
 
 interface ChatMessage {
@@ -75,6 +76,7 @@ const generateUploadUrlEndpoint =
 let currentEventConfiguration: EventConversation | null = null;
 
 const MessagePage: NextPageWithLayout = () => {
+  const theme = useTheme();
   const { authUser } = useAuthContext();
   const { partnerUser, partnerLocations } = useStore();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -88,11 +90,15 @@ const MessagePage: NextPageWithLayout = () => {
   const [sending, setSending] = useState(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isConvLoading, setIsConvLoading] = useState<boolean>(true);
+
+  const [viewArea, setViewArea] = useState<number>(0);
+
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   
 
   const sender = "Booking@VillaHirschberg.onmicrosoft.com"; // from db
 
-  const [sortOption, setSortOption] = useState<SortOption>(SortOption.Newest);
+  const [sortOption, setSortOption] = useState<SortOption>(SortOption.None);
 
   const [isDisabled, setIsDisabled] = useState(false);
 
@@ -285,7 +291,8 @@ const MessagePage: NextPageWithLayout = () => {
   const loadConversation = async (
     conv: EventConversation, 
     markAsRead: boolean,
-    setIsConvLoading: (loading: boolean) => void
+    setIsConvLoading: (loading: boolean) => void,
+    setFocus: boolean = false
   ) => {
     const companyId = partnerUser?.companyId;
     if (!companyId) {
@@ -298,6 +305,7 @@ const MessagePage: NextPageWithLayout = () => {
     }
 
     setIsConvLoading(true);
+    if(setFocus) setViewArea(1);
 
     try {
       const param = markAsRead ? 1 : 0;
@@ -455,7 +463,7 @@ const MessagePage: NextPageWithLayout = () => {
       const updatedConv = sorted.find(conv => conv.id === currentEventConfiguration?.id);
       if (updatedConv) {
         setCurrentConversation(updatedConv);
-        loadConversation(updatedConv, false, setIsConvLoading);
+        loadConversation(updatedConv, false, setIsConvLoading, false);
       } else {
         setCurrentConversation(null);
       }
@@ -556,7 +564,8 @@ const MessagePage: NextPageWithLayout = () => {
         <Box display="flex" height="65vh" mt={4}>
           {/* Linke Spalte: Konversationen */}
           <Box
-            width="20%"
+            width={isMobile ? "100%" : "20%"}
+            display={isMobile && (viewArea != 0) ? "none" : "block"}
             minWidth={350}
             borderRight="1px solid #ccc"
             pr={2}
@@ -602,7 +611,7 @@ const MessagePage: NextPageWithLayout = () => {
                   }}
                 >
                   <ListItemButton
-                    onClick={() => loadConversation(conv, true, setIsConvLoading)}
+                    onClick={() => loadConversation(conv, true, setIsConvLoading, true)}
                     selected={conv.id === currentConversation?.id}
                     sx={{
                       width: '100%',
@@ -640,7 +649,25 @@ const MessagePage: NextPageWithLayout = () => {
           </Box>
 
           {/* Rechte Spalte: Chat */}
-          <Box width="50%" pl={2} display="flex" flexDirection="column">
+          <Box width={isMobile ? "100%" : "50%"} pl={2} display={isMobile && (viewArea != 1) ? "none" : "flex"} flexDirection="column">
+            {currentConversation && isMobile && (viewArea == 1) && (
+              <Box width="100%" display="flex"
+              sx={{
+                  pb: 2
+                }}>
+                <Box width="50%" display="flex">
+                  <Button variant="contained"
+                    sx={{ borderRadius: 0, backgroundColor: '#002a58', '&:hover': { backgroundColor: '#002a58' } }}
+                    onClick={() => { setViewArea(0); }}>Zur Liste</Button>
+                </Box>
+                <Box width="50%" display="flex" justifyContent="flex-end">
+                  <Button variant="contained"
+                    sx={{ borderRadius: 0, backgroundColor: '#002a58', '&:hover': { backgroundColor: '#002a58' } }}
+                    onClick={() => { setViewArea(2); }}>Zeige Details</Button>
+                </Box>
+              </Box>
+            )
+            }
             <Typography sx={{ fontSize: '18px', textAlign: 'center' }} variant="h4" gutterBottom>
               {currentConversation ? `${currentConversation.booker?.givenName} ${currentConversation.booker?.familyName} | Anfrage für ${currentConversation.formatedTime} | ${currentConversation.location?.title} | ${currentConversation.location?.title}` : 'Keine Konversation ausgewählt'}
             </Typography>
@@ -749,9 +776,25 @@ const MessagePage: NextPageWithLayout = () => {
             )}
           </Box>
           <Box 
-            width="30%"
+            width={isMobile ? "100%" : "30%"}
             minWidth={350}
+            display={isMobile && (viewArea != 2) ? "none" : "block"}
           >
+            {isMobile && (viewArea == 2) && (
+              <Box width="100%" display="flex"
+                sx={{
+                  ml: 2,
+                  pr: 2
+                }}>
+                <Box width="50%" display="flex">
+                  <Button 
+                    variant="contained"
+                    sx={{ borderRadius: 0, backgroundColor: '#002a58', '&:hover': { backgroundColor: '#002a58' } }}
+                    onClick={() => { setViewArea(1); }}>Zur Konversation</Button>
+                </Box>
+              </Box>
+            )
+            }
             {currentConversation && (
               <Box sx={{
                 mt: { xs: 2, md: 2 },
@@ -760,7 +803,7 @@ const MessagePage: NextPageWithLayout = () => {
                 pl: 2,
                 pr: 2,
                 width: '100%',
-                bgcolor: '#f2f2f2',
+                bgcolor: '#f2f2f2'
               }}>
                 <Typography gutterBottom>
                   {`Anfrage ${currentConversation.id}`}
@@ -776,12 +819,12 @@ const MessagePage: NextPageWithLayout = () => {
                 </Typography>
                 <Box>
                   <Box sx={{
-                    mt: { xs: 3, md: 3 },
+                    mt: { xs: 2, md: 2 },
                     display: 'flex',
                     flexDirection: 'row',
                     gap: 1,
                     ml: 2,
-                    mb: 5
+                    mb: 3
                   }}>
                     <Box width="50%">
                       <Typography sx={{ fontWeight: 'bold' }} gutterBottom>
@@ -813,7 +856,7 @@ const MessagePage: NextPageWithLayout = () => {
                       flexDirection: 'row',
                       gap: 1,
                       ml: 2,
-                      mb: 5
+                      mb: 3
                     }}>
                       <Box width="50%">
                         <Typography sx={{ fontWeight: 'bold' }} gutterBottom>
@@ -840,7 +883,7 @@ const MessagePage: NextPageWithLayout = () => {
                       flexDirection: 'row',
                       gap: 1,
                       ml: 2,
-                      mb: 5
+                      mb: 3
                     }}>
                       <Box width="50%">
                         <Typography sx={{ fontWeight: 'bold' }} gutterBottom>
@@ -871,7 +914,7 @@ const MessagePage: NextPageWithLayout = () => {
                       flexDirection: 'row',
                       gap: 1,
                       ml: 2,
-                      mb: 5
+                      mb: 3
                     }}>
                       <Box width="50%">
                         <Typography sx={{ fontWeight: 'bold' }} gutterBottom>
@@ -893,7 +936,7 @@ const MessagePage: NextPageWithLayout = () => {
                       flexDirection: 'row',
                       gap: 1,
                       ml: 2,
-                      mb: 5
+                      mb: 3
                     }}>
                       <Box width="50%">
                         <Typography sx={{ fontWeight: 'bold' }} gutterBottom>
@@ -920,7 +963,7 @@ const MessagePage: NextPageWithLayout = () => {
                       flexDirection: 'row',
                       gap: 1,
                       ml: 2,
-                      mb: 5
+                      mb: 3
                     }}>
                       <Box width="50%">
                         <Typography sx={{ fontWeight: 'bold' }} gutterBottom>
