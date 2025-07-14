@@ -1,3 +1,5 @@
+import * as yup from 'yup';
+
 export interface BillingDetails {
     logo?: string;
     iban?: string;
@@ -7,6 +9,8 @@ export interface BillingDetails {
     bankCode?: string;
     invoiceHeader?: string;
     invoiceFooter?: string;
+    legalLink?: string;
+    contactPerson?: string;
 }
 
 export const createEmptyBillingDetails = (): BillingDetails => ({
@@ -17,5 +21,14 @@ export const createEmptyBillingDetails = (): BillingDetails => ({
     bankName: "",
     bankCode: "",
     invoiceHeader: "",
-    invoiceFooter: ""
+    invoiceFooter: "",
+    legalLink: "",
+    contactPerson: "",
+});
+
+// Validation schema
+export const billingDetailsValidationSchema = yup.object().shape({
+    legalLink: yup
+        .string()
+        .url('Bitte eine gültige URL eingeben'),
 });

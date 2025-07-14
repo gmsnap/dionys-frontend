@@ -1,13 +1,18 @@
 import { Box, Grid2, SxProps, TextField, Theme, Typography } from "@mui/material";
 import { useForm, Controller, FormProvider } from "react-hook-form";
 import ImageUploadField from "./ImageUploadField";
-import { BillingDetails, createEmptyBillingDetails } from "@/models/BillingDetails";
+import {
+    BillingDetails,
+    billingDetailsValidationSchema,
+    createEmptyBillingDetails
+} from "@/models/BillingDetails";
 import { fetchCompanyById, updateBillingDetails } from "@/services/partnerService";
 import { useAuthContext } from "@/auth/AuthContext";
 import useStore from '@/stores/partnerStore';
 import { useEffect, useState } from "react";
 import { uploadFile } from "@/utils/fileUtil";
 import SaveButton from "@/components/SaveButton";
+import { yupResolver } from '@hookform/resolvers/yup';
 
 interface Props {
     sx?: SxProps<Theme>;
@@ -23,6 +28,7 @@ const BillingDetailsForm = ({ sx, }: Props) => {
 
     const methods = useForm<BillingDetails>({
         defaultValues: createEmptyBillingDetails(),
+        resolver: yupResolver(billingDetailsValidationSchema) as any,
     });
 
     const {
@@ -77,7 +83,9 @@ const BillingDetailsForm = ({ sx, }: Props) => {
         { name: "accountNumber", label: "Kto-Nr." },
         { name: "bankCode", label: "BLZ" },
         { name: "iban", label: "IBAN" },
-        { name: "bic", label: "BIC" }
+        { name: "bic", label: "BIC" },
+        { name: "contactPerson", label: "Ansprechpartner" },
+        { name: "legalLink", label: "Rechtl. Informationen (Link)" },
     ];
 
     useEffect(() => {
@@ -118,11 +126,15 @@ const BillingDetailsForm = ({ sx, }: Props) => {
                             <>
                                 {index === 2 &&
                                     <Typography variant="h5" sx={{ mt: 2 }}>Bankdaten (Footer)</Typography>}
+
+                                {index === 7 &&
+                                    <Typography variant="h5" sx={{ mt: 2 }}>Weitere Informationen (Footer)</Typography>}
+
                                 <Grid2 container key={index} alignItems="top" rowSpacing={0} sx={{ width: "100%" }}>
-                                    <Grid2 size={{ xs: 12, md: 2 }}>
+                                    <Grid2 size={{ xs: 12, md: 4 }}>
                                         <Typography variant="label">{field.label}</Typography>
                                     </Grid2>
-                                    <Grid2 size={{ xs: 12, md: 10 }}>
+                                    <Grid2 size={{ xs: 12, md: 8 }}>
                                         <Controller
                                             key={field.name}
                                             name={field.name}
