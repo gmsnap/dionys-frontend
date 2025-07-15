@@ -441,7 +441,7 @@ const LocationForm = ({
 
                                 {/* Billing Address */}
                                 <Grid2 size={{ xs: 12 }}>
-                                    <Typography variant="h5" sx={{ mt: 3, mb: 1, color: "primary.main" }}>
+                                    <Typography variant="h5" sx={{ mt: 1, mb: 1, color: "primary.main" }}>
                                         Rechnungsadresse
                                     </Typography>
 
@@ -471,13 +471,16 @@ const LocationForm = ({
                                 </Grid2>
 
                             </Grid2>
-                            {/* Submit */}
-                            <SaveButton
-                                isSubmitting={isSubmitting}
-                                isDirty={isDirty}
-                                successMessage={"Location gespeichert."}
-                                triggerSuccess={showSuccess}
-                                onFadeOut={() => setShowSuccess(false)} />
+                            <Box sx={{ mt: 2, mb: 6 }}>
+                                {/* Submit */}
+                                <SaveButton
+                                    title="Location &nbsp;Speichern"
+                                    isSubmitting={isSubmitting}
+                                    isDirty={isDirty}
+                                    successMessage={"Location gespeichert."}
+                                    triggerSuccess={showSuccess}
+                                    onFadeOut={() => setShowSuccess(false)} />
+                            </Box>
                         </form>
                     </FormProvider>
 

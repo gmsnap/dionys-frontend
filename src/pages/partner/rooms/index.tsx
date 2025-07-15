@@ -62,7 +62,7 @@ const PartnerPage: NextPageWithLayout = () => {
         fetchRoomsFromApi();
     }, [partnerUser, locationId]);
 
-    if (isLoading) {
+    if (isLoading && !rooms) {
         return (
             <PartnerContentLayout title={pageTitle} description={pageDescription}>
                 <WaitIcon sx={{ mt: 20 }} />
@@ -121,15 +121,15 @@ const PartnerPage: NextPageWithLayout = () => {
                             >
                                 <ListItemText
                                     primary="Alle Räume"
-                                    primaryTypographyProps={{
-                                        sx: {
-                                            fontSize: { xs: '12px', sm: 'unset' },
-                                            fontWeight: roomId == null
-                                                ? 800
-                                                : 'normal',
-                                            color: roomId == null
-                                                ? theme.palette.customColors.blue.main
-                                                : theme.palette.customColors.text.tertiary,
+                                    slotProps={{
+                                        primary: {
+                                            sx: {
+                                                fontSize: { xs: '12px', sm: 'unset' },
+                                                fontWeight: roomId == null ? 800 : 'normal',
+                                                color: roomId == null
+                                                    ? theme.palette.customColors.blue.main
+                                                    : theme.palette.customColors.text.tertiary,
+                                            }
                                         }
                                     }}
                                 />
@@ -152,15 +152,17 @@ const PartnerPage: NextPageWithLayout = () => {
                                 >
                                     <ListItemText
                                         primary={room.name}
-                                        primaryTypographyProps={{
-                                            sx: {
-                                                fontSize: { xs: '12px', sm: '16px' },
-                                                fontWeight: roomId === room.id
-                                                    ? 800
-                                                    : 'normal',
-                                                color: roomId === room.id
-                                                    ? theme.palette.customColors.blue.main
-                                                    : theme.palette.customColors.text.tertiary,
+                                        slotProps={{
+                                            primary: {
+                                                sx: {
+                                                    fontSize: { xs: '12px', sm: '16px' },
+                                                    fontWeight: roomId === room.id
+                                                        ? 800
+                                                        : 'normal',
+                                                    color: roomId === room.id
+                                                        ? theme.palette.customColors.blue.main
+                                                        : theme.palette.customColors.text.tertiary,
+                                                }
                                             }
                                         }}
                                     />

@@ -104,7 +104,7 @@ const BillingDetailsForm = ({ sx, }: Props) => {
     }, [partnerUser]);
 
     return (
-        <Box sx={{ mb: 4, ...sx }}>
+        <Box sx={{ mb: 5, ...sx }}>
             <FormProvider {...methods}>
                 <form onSubmit={handleSubmit(onSubmit)}>
                     <Box

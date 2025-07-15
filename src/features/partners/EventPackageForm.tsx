@@ -4,7 +4,6 @@ import {
     Grid2,
     Box,
     Typography,
-    Button,
     TextField,
     InputAdornment,
     FormControl,
@@ -19,7 +18,6 @@ import {
     useTheme,
 } from "@mui/material"
 import { yupResolver } from "@hookform/resolvers/yup"
-import { Save } from "lucide-react"
 import ImageUploadForm from "@/features/partners/ImageUploadForm"
 import DeleteButton from "@/components/DeleteButton"
 import { useAuthContext } from "@/auth/AuthContext"
@@ -40,6 +38,7 @@ import PricingLabelField from "./PricingLabelField"
 import EventCategoriesField2 from "./EventCategoriesField2"
 import { RoomModel } from "@/models/RoomModel"
 import { AvailablePricingLabelsBasic } from "@/utils/pricingManager"
+import SaveButton from "@/components/SaveButton"
 
 const controlWidth = 7
 const labelWidth = 4
@@ -77,7 +76,7 @@ const EventPackageForm = ({
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
-    const [success, setSuccess] = useState(false)
+    const [showSuccess, setShowSuccess] = useState(false)
     const [responseMessage, setResponseMessage] = useState("")
 
     const defaultValues = {
@@ -91,7 +90,7 @@ const EventPackageForm = ({
         setValue,
         reset,
         watch,
-        formState: { errors },
+        formState: { errors, isDirty },
     } = useForm({
         defaultValues,
         resolver: yupResolver(EventPackageValidationSchema),
@@ -297,10 +296,10 @@ const EventPackageForm = ({
     }, [images])
 
     const onSubmit = async (data: any) => {
-        setIsSubmitting(true)
-        setError(null)
-        setSuccess(false)
-        setResponseMessage("")
+        setIsSubmitting(true);
+        setError(null);
+        setShowSuccess(false);
+        setResponseMessage("");
 
         try {
             const isEdit = packageId && packageId > 0
@@ -336,7 +335,8 @@ const EventPackageForm = ({
             }
 
             if (isEdit) {
-                setSuccess(true)
+                reset(data)
+                setShowSuccess(true)
                 setResponseMessage("Paket gespeichert!")
                 updated?.(packageId)
                 return
@@ -345,13 +345,14 @@ const EventPackageForm = ({
             const responseData = await response.json()
             const newId = responseData?.model?.id
             if (newId) {
-                setSuccess(true)
+                reset(data)
+                setShowSuccess(true)
                 setResponseMessage("Paket gespeichert!")
                 created?.(newId)
                 return
             }
 
-            setSuccess(false)
+            setShowSuccess(false)
             setError("Fehler beim Speichern des Paketes.")
         } catch (error) {
             setError("Fehler beim Speichern des Paketes.")
@@ -650,55 +651,43 @@ const EventPackageForm = ({
                             </Grid2>
                         </Grid2>
 
-                        {/* Submit */}
-                        <Grid2 size={{ xs: controlWidth }} display={"flex"} gap={2} sx={{ mt: 2 }}>
-                            <Button
-                                variant="contained"
-                                color="primary"
-                                type="submit"
-                                disabled={isSubmitting}
-                                sx={{
-                                    lineHeight: 0,
-                                    outline: "3px solid transparent",
-                                    mb: 1,
-                                    "&:hover": {
-                                        outline: "3px solid #00000033",
-                                    },
-                                    ".icon": {
-                                        color: "#ffffff",
-                                    },
-                                    "&:hover .icon": {
-                                        color: "#ffffff",
-                                    },
-                                }}
-                            >
-                                {submitButtonCaption || "Speichern"}
-                                <Box component="span" sx={{ ml: 1 }}>
-                                    <Save className="icon" width={16} height={16} />
-                                </Box>
-                            </Button>
+                        <Box
+                            gap={2}
+                            sx={{
+                                display: "flex",
+                                alignItems: "flex-start",
+                                mt: 2,
+                            }}
+                        >
+                            {/* Submit */}
+                            <SaveButton
+                                title={submitButtonCaption || "Speichern"}
+                                isSubmitting={isSubmitting}
+                                isDirty={isDirty}
+                                successMessage={responseMessage}
+                                triggerSuccess={showSuccess}
+                                messagePosition="bottom"
+                                onFadeOut={() => setShowSuccess(false)}
+                            />
 
                             {packageId > 0 && (
                                 <DeleteButton
                                     isDisabled={isSubmitting}
                                     onDelete={() =>
-                                        handleDeleteEventPackage(authUser?.idToken ?? "", packageId, () => deleted?.(packageId))
+                                        handleDeleteEventPackage(
+                                            authUser?.idToken ?? "",
+                                            packageId,
+                                            () => deleted?.(packageId)
+                                        )
                                     }
                                 />
                             )}
-                        </Grid2>
+                        </Box>
 
                         {/* Messages */}
                         {error && (
                             <Grid2 size={{ xs: controlWidth }}>
                                 <Typography color="error">{error}</Typography>
-                            </Grid2>
-                        )}
-                        {success && (
-                            <Grid2 size={{ xs: controlWidth }}>
-                                <Typography variant="body2" color="success">
-                                    {responseMessage}
-                                </Typography>
                             </Grid2>
                         )}
                     </Box>
