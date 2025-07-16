@@ -144,6 +144,16 @@ export const AvailablePriceTypes = [
     "none",
 ];
 
+export const AvailableFoodPriceTypes = [
+    "day",
+    "hour",
+    "person",
+    "personHour",
+    "once",
+    "onConsumption",
+    "none",
+];
+
 export const PricingLabel = {
     exact: "exact",
     from: "from",
@@ -736,6 +746,72 @@ const calculateSlots = (
     };
 };
 
+const createDefaultSlot = (
+    basePrice: number,
+    basePriceType: string,
+    basePriceLabel?: string,
+): PricingSlot => {
+    return {
+        id: 0,
+        roomPricingType: "basic",
+        startDayOfWeek: 0,
+        endDayOfWeek: 6,
+        startTime: "00:00:00",
+        endTime: "23:59:59",
+        price: basePrice,
+        priceType: basePriceType,
+        pricingLabel: basePriceLabel ?? PricingLabel.exact,
+        exclusiveType: "optional",
+        exclusivePriceType: null,
+        exclusivePrice: null,
+    };
+};
+
+const calculateDefaultSlot = ({
+    bookingStart,
+    bookingEnd,
+    persons,
+    basePrice,
+    basePriceType,
+    basePriceLabel,
+    excludeRoomPrice,
+    excludeExclusive,
+    seating,
+    seatings,
+    context,
+    short,
+    isSingleOperation,
+}: BookingPriceProps
+) => {
+    // Create and use a default schedule for room base pricing
+    // when no ranges / schedules are found
+    const defaultSchedule: PricingSlot = createDefaultSlot(
+        basePrice,
+        basePriceType,
+        basePriceLabel
+    );
+
+    return calculateSlots(
+        [{
+            schedule: defaultSchedule,
+            segmentStart: bookingStart,
+            segmentEnd: bookingEnd
+        }],
+        {
+            bookingStart,
+            bookingEnd,
+            persons,
+            excludeRoomPrice,
+            excludeExclusive,
+            seating,
+            seatings,
+            context,
+            short,
+            isSingleOperation,
+        }
+    );
+};
+
 export const calculateBookingPrice = ({
     bookingStart,
     bookingEnd,
@@ -788,7 +864,8 @@ export const calculateBookingPrice = ({
             context,
             short,
             isSingleOperation,
-        });
+        }
+    );
 
     applicableSlots.forEach(slot => {
         if (slot.schedule.roomPricingType === "basic") {
@@ -813,52 +890,31 @@ export const calculateBookingPrice = ({
             appliedSlots
         };
 
-        // Create and use a default schedule for room base pricing
-        // when no ranges / schedules are found
-        const defaultSchedule: PricingSlot = {
-            id: 0,
-            roomPricingType: "basic",
-            startDayOfWeek: 0,
-            endDayOfWeek: 6,
-            startTime: "00:00:00",
-            endTime: "23:59:59",
-            price: basePrice,
-            priceType: basePriceType,
-            pricingLabel: basePriceLabel ?? PricingLabel.exact,
-            exclusiveType: "optional",
-            exclusivePriceType: null,
-            exclusivePrice: null,
-        };
+        const baseResult = calculateDefaultSlot({
+            bookingStart,
+            bookingEnd,
+            persons,
+            basePrice,
+            basePriceType,
+            basePriceLabel,
+            excludeRoomPrice,
+            excludeExclusive,
+            seating,
+            seatings,
+            context,
+            short,
+            isSingleOperation
+        });
 
-        const result = calculateSlots(
-            [{
-                schedule: defaultSchedule,
-                segmentStart: bookingStart,
-                segmentEnd: bookingEnd
-            }],
-            {
-                bookingStart,
-                bookingEnd,
-                persons,
-                excludeRoomPrice,
-                excludeExclusive,
-                seating,
-                seatings,
-                context,
-                short,
-                isSingleOperation,
-            }
-        );
-
-        maxMinConsumption = Math.max(maxMinConsumption, result.maxMinConsumption);
-        maxMinSales = Math.max(maxMinSales, result.maxMinSales);
+        maxMinConsumption = Math.max(maxMinConsumption, baseResult.maxMinConsumption);
+        maxMinSales = Math.max(maxMinSales, baseResult.maxMinSales);
 
         return {
-            total: result.total,
-            totalFormatted: result.totalFormatted,
+            total: baseResult.total,
+            totalFormatted: baseResult.totalFormatted,
             maxMinConsumption,
             maxMinSales,
-            items: result.items,
+            items: baseResult.items,
             appliedSlots
         };
     }
@@ -886,56 +942,56 @@ export const calculateBookingPrice = ({
     if (excludeRoomPrice !== true) {
         let unaccountedStart = bookingStart;
 
-        // Time periods that are covered by ranges
+        const uncoveredSlots = [];
+
+        // Uncovered time periods before and between ranges
         for (const range of mergedBasicRanges) {
             if (isBefore(unaccountedStart, range.start)) {
                 console.log("UNCOVERED RANGES BEFORE!!!");
-                const price = calculatePriceByPriceType(
-                    basePrice,
-                    basePriceType,
-                    unaccountedStart,
-                    range.start,
-                    persons,
-                );
-                totalPrice += price;
+
+                uncoveredSlots.push({
+                    schedule: createDefaultSlot(basePrice, basePriceType, basePriceLabel),
+                    segmentStart: unaccountedStart,
+                    segmentEnd: range.start,
+                });
             }
+
             unaccountedStart = new Date(Math.max(unaccountedStart.getTime(), range.end.getTime()));
         }
 
         // Remaining time period, not covered by ranges
         if (isBefore(unaccountedStart, bookingEnd)) {
             console.log("UNCOVERED RANGES AFTER!!!");
-            const price = calculatePriceByPriceType(
-                basePrice,
-                basePriceType,
-                unaccountedStart,
-                bookingEnd,
-                persons,
+
+            uncoveredSlots.push({
+                schedule: createDefaultSlot(basePrice, basePriceType, basePriceLabel),
+                segmentStart: unaccountedStart,
+                segmentEnd: bookingEnd,
+            });
+        }
+
+        if (uncoveredSlots.length > 0) {
+            const uncoveredResult = calculateSlots(
+                uncoveredSlots,
+                {
+                    bookingStart,
+                    bookingEnd,
+                    persons,
+                    excludeRoomPrice,
+                    excludeExclusive,
+                    seating,
+                    seatings,
+                    context,
+                    short,
+                    isSingleOperation,
+                }
             );
 
-            totalPrice += price;
-
-            items.push({
-                id: -1,
-                name: "Grundpreis",
-                itemType: "basic",
-                price,
-                pricingLabel: basePriceLabel,
-                quantity: 1,
-                unitPrice: price,
-                priceFormatted: FormatPrice.formatPriceWithType(
-                    {
-                        price,
-                        priceType: basePriceType as PriceTypes,
-                    }
-                ),
-                unitPriceFormatted: FormatPrice.formatPriceWithType(
-                    {
-                        price,
-                        priceType: basePriceType as PriceTypes,
-                    }
-                )
-            });
+            totalPrice += uncoveredResult.total;
+            items.push(...uncoveredResult.items);
+            totalFormatted = uncoveredResult.totalFormatted;
+            maxMinConsumption = Math.max(maxMinConsumption, uncoveredResult.maxMinConsumption);
+            maxMinSales = Math.max(maxMinSales, uncoveredResult.maxMinSales);
         }
     }
 
@@ -1209,6 +1265,7 @@ export class FormatPrice {
         "from": "Verbrauchspreis (ab)",
         "minSales": "Mindestumsatz",
         "free": "kostenlos",
+        "onConsumption": "nach Verbrauch",
         "pricing_basic": "Grundpreis",
         "pricing_extra": "Aufpreis",
         "seating_empty": "ohne Mobiliar",
@@ -1229,6 +1286,7 @@ export class FormatPrice {
         "from": "ab",
         "minSales": "Mindestumsatz",
         "free": "kostenlos",
+        "onConsumption": "nach Verbrauch",
         "pricing_basic": "Grundpreis",
         "pricing_extra": "Aufpreis",
         "seating_empty": "ohne Mobiliar",

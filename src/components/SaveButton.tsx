@@ -1,26 +1,32 @@
-import { Box, Button, Typography } from "@mui/material";
-import { Save } from "lucide-react";
+import { Box, Button, Typography, useMediaQuery, useTheme } from "@mui/material";
 import { SxProps, Theme } from "@mui/system";
 import { useEffect, useState } from "react";
 import { Save as SaveIcon } from "lucide-react";
 
 interface Props {
+    title?: string;
     isSubmitting: boolean;
     isDirty?: boolean;
     successMessage: string;
     triggerSuccess: boolean;
+    messagePosition?: "right" | "bottom";
     sx?: SxProps<Theme>;
     onFadeOut?: () => void;
 }
 
 const SaveButton = ({
+    title,
     isSubmitting,
     isDirty,
     successMessage,
     triggerSuccess,
+    messagePosition,
     sx,
     onFadeOut,
 }: Props) => {
+    const theme = useTheme();
+    const isXs = useMediaQuery(theme.breakpoints.down("sm"));
+    const isBottom = messagePosition === "bottom" || isXs;
     const [visible, setVisible] = useState(false);
     const [fadeOut, setFadeOut] = useState(false);
 
@@ -45,9 +51,11 @@ const SaveButton = ({
     return (
         <Box
             sx={{
+                position: "relative",
                 display: "flex",
-                flexDirection: { xs: "column", sm: "row" },
-                alignItems: { xs: "center", sm: "flex-end" },
+                flexDirection: isBottom ? "column" : "row",
+                alignItems: isXs ? "center" : isBottom ? "flex-start" : "flex-end",
+                ...sx,
             }}
         >
             <Button
@@ -58,8 +66,6 @@ const SaveButton = ({
                 sx={{
                     lineHeight: 0,
                     outline: "3px solid transparent",
-                    mt: 4,
-                    mb: 0,
                     "&:hover": {
                         outline: "3px solid #00000033",
                     },
@@ -73,20 +79,23 @@ const SaveButton = ({
                     ...sx,
                 }}
             >
-                Speichern
+                {title || "Speichern"}
                 <Box component="span" sx={{ ml: 1 }}>
                     <SaveIcon className="icon" width={16} height={16} />
                 </Box>
             </Button>
 
-            {(visible || fadeOut) ? (
+            {isBottom ? (
                 <Box
                     sx={{
+                        position: "absolute",
+                        top: "100%",
+                        left: "0",
                         opacity: visible ? 1 : 0,
                         transition: "opacity 1.5s ease",
-                        height: "auto",
-                        mt: 0,
-                        ml: { xs: 0, sm: 2 },
+                        whiteSpace: "nowrap",
+                        ml: 0,
+                        mt: 1,
                     }}
                     onTransitionEnd={() => {
                         if (!visible) {
@@ -96,7 +105,23 @@ const SaveButton = ({
                 >
                     <Typography color="secondary">{successMessage}</Typography>
                 </Box>
-            ) : (<Box>&nbsp;</Box>)}
+            ) : (
+                <Box
+                    sx={{
+                        opacity: visible ? 1 : 0,
+                        transition: "opacity 1.5s ease",
+                        ml: 1,
+                    }}
+                    onTransitionEnd={() => {
+                        if (!visible) {
+                            setFadeOut(false);
+                        }
+                    }}
+                >
+                    <Typography color="secondary">{successMessage}</Typography>
+                </Box>
+            )
+            }
         </Box>
     );
 };

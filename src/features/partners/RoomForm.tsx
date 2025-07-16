@@ -4,7 +4,6 @@ import {
     Grid2,
     Box,
     Typography,
-    Button,
     TextField,
     InputAdornment,
     FormControl,
@@ -16,7 +15,6 @@ import {
 import { createEmptyRoomModel, RoomModel } from '@/models/RoomModel';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Save } from 'lucide-react';
 import { roomsBaseUrl, handleDeleteRoom } from '@/services/roomService';
 import ImageUploadForm from '@/features/partners/ImageUploadForm';
 import DeleteButton from '@/components/DeleteButton';
@@ -27,6 +25,7 @@ import PriceTypeField from './PriceTypeField';
 import RichTextField from '@/components/RichTextField';
 import PricingLabelField from './PricingLabelField';
 import EventCategoriesField2 from './EventCategoriesField2';
+import SaveButton from '@/components/SaveButton';
 
 // Validation schema
 const roomValidationSchema = yup.object().shape({
@@ -136,7 +135,7 @@ const RoomForm = ({
         setValue,
         reset,
         watch,
-        formState: { errors },
+        formState: { errors, isDirty },
     } = useForm({
         defaultValues: createEmptyRoomModel(0),
         resolver: yupResolver(roomValidationSchema),
@@ -314,6 +313,7 @@ const RoomForm = ({
             }
 
             if (isEdit) {
+                reset(data);
                 setSuccess(true);
                 setResponseMessage("Raum gespeichert!");
                 roomUpdated?.(roomId);
@@ -323,6 +323,7 @@ const RoomForm = ({
             const responseData = await response.json();
             const newId = responseData?.room?.id;
             if (newId) {
+                reset(data);
                 setSuccess(true);
                 setResponseMessage("Raum gespeichert!");
                 roomCreated?.(newId);
@@ -642,31 +643,16 @@ const RoomForm = ({
                             gap={2}
                             sx={{ mt: 2 }}
                         >
-                            <Button
-                                variant="contained"
-                                color="primary"
-                                type="submit"
-                                disabled={isSubmitting}
-                                sx={{
-                                    lineHeight: 0,
-                                    outline: '3px solid transparent',
-                                    mb: 1,
-                                    '&:hover': {
-                                        outline: '3px solid #00000033',
-                                    },
-                                    '.icon': {
-                                        color: '#ffffff',
-                                    },
-                                    '&:hover .icon': {
-                                        color: '#ffffff',
-                                    },
-                                }}
-                            >
-                                {submitButtonCaption || "Speichern"}
-                                <Box component="span" sx={{ ml: 1 }}>
-                                    <Save className="icon" width={16} height={16} />
-                                </Box>
-                            </Button>
+                            {/* Submit */}
+                            <SaveButton
+                                title={submitButtonCaption || "Speichern"}
+                                isSubmitting={isSubmitting}
+                                isDirty={isDirty}
+                                successMessage={responseMessage}
+                                triggerSuccess={success}
+                                messagePosition="bottom"
+                                onFadeOut={() => setSuccess(false)}
+                            />
 
                             {roomId > 0 &&
                                 <DeleteButton
