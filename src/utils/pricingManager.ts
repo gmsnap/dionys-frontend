@@ -312,7 +312,7 @@ const getApplicableSlots = (
         const segmentEnd = isAfter(bookingEnd, scheduleEnd) ? scheduleEnd : bookingEnd;
 
         // Only process if there is a valid overlap
-        if (isBefore(segmentStart, segmentEnd) || isEqual(segmentStart, segmentEnd)) {
+        if (isBefore(segmentStart, segmentEnd)) {
             applicableSlots.push({ schedule, segmentStart, segmentEnd });
         }
     });
@@ -321,6 +321,9 @@ const getApplicableSlots = (
 };
 
 export const calculateBooking = (booking: Booking): BookingResult => {
+    const consumptionKey = "consumption";
+    const minSalesKey = "minSales";
+
     const items: PriceItem[] = [];
 
     if (!booking.date || !booking.endDate) {
@@ -377,7 +380,26 @@ export const calculateBooking = (booking: Booking): BookingResult => {
                 isSingleOperation: false,
             });
 
-            roomResult.items = roomResult.items.map(item => ({
+            const spendingItems = roomResult.items.filter(
+                item => item.pricingLabel === consumptionKey || item.pricingLabel === minSalesKey
+            );
+
+            const maxSpendingItem = spendingItems.reduce<PriceItem | undefined>(
+                (max, item) => !max || item.price > max.price ? item : max,
+                undefined
+            );
+
+            // Filter items NOT in spendingItems
+            let processedItems = roomResult.items.filter(
+                item => !spendingItems.includes(item)
+            );
+
+            // Insert maxSpendingItem at the beginning (if present)
+            if (maxSpendingItem) {
+                processedItems = [maxSpendingItem, ...processedItems];
+            }
+
+            processedItems = processedItems.map(item => ({
                 ...item,
                 pos: ++pos,
             }));
@@ -391,7 +413,7 @@ export const calculateBooking = (booking: Booking): BookingResult => {
                 quantity: 1,
                 unitPrice: 0,
                 unitPriceFormatted: "-",
-                items: roomResult.items,
+                items: processedItems,
             });
 
             roomsPriceOtherTotal += roomResult.total;
@@ -457,7 +479,7 @@ export const calculateBooking = (booking: Booking): BookingResult => {
             const consumptionItems = items
                 .filter(i => i.itemType === "room")
                 .flatMap(i => i.items)
-                .filter(i => i != undefined && i.pricingLabel === "consumption");
+                .filter(i => i != undefined && i.pricingLabel === consumptionKey);
 
             const diff = maxMinConsumption - bookedConsumption;
 
@@ -489,7 +511,7 @@ export const calculateBooking = (booking: Booking): BookingResult => {
         const minSalesItems = items
             .filter(i => i.itemType === "room")
             .flatMap(i => i.items)
-            .filter(i => i != undefined && i.pricingLabel === "minSales");
+            .filter(i => i != undefined && i.pricingLabel === minSalesKey);
 
         const diff =
             maxMinSales
@@ -947,7 +969,7 @@ export const calculateBookingPrice = ({
         // Uncovered time periods before and between ranges
         for (const range of mergedBasicRanges) {
             if (isBefore(unaccountedStart, range.start)) {
-                console.log("UNCOVERED RANGES BEFORE!!!");
+                console.log("UNCOVERED RANGES BEFORE!!!", basePrice);
 
                 uncoveredSlots.push({
                     schedule: createDefaultSlot(basePrice, basePriceType, basePriceLabel),
