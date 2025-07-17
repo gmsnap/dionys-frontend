@@ -85,7 +85,6 @@ const BillingDetailsForm = ({ sx, }: Props) => {
         { name: "iban", label: "IBAN" },
         { name: "bic", label: "BIC" },
         { name: "contactPerson", label: "Ansprechpartner" },
-        { name: "legalLink", label: "Rechtl. Informationen (Link)" },
     ];
 
     useEffect(() => {
