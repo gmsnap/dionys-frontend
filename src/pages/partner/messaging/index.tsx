@@ -8,6 +8,7 @@ import {
   TextField,
   Button,
   IconButton,
+  Tooltip,
   List,
   ListItem,
   ListItemText,
@@ -22,8 +23,12 @@ import PartnerContentLayout from '@/layouts/PartnerContentLayout';
 import PageHeadline from '@/features/partners/PageHeadline';
 import { EventConfigurationModel } from '@/models/EventConfigurationModel';
 import DeleteIcon from '@mui/icons-material/Delete';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
+import DownloadIcon from '@mui/icons-material/Download';
 import { WaitIcon } from '@/components/WaitIcon';
 import { WaitIconSmall } from '@/components/WaitIconSmall';
+import { BookingRoom, calculateBooking, calculateBookingPrice, FormatPrice } from "@/utils/pricingManager";
+import { RoomPricingModel, toPricingSlot } from "@/models/RoomPricingModel";
 
 import { fetchEventConfigurationsByCompany } from '@/services/eventConfigurationService';
 import { useAuthContext } from '@/auth/AuthContext';
@@ -78,7 +83,7 @@ let currentEventConfiguration: EventConversation | null = null;
 const MessagePage: NextPageWithLayout = () => {
   const theme = useTheme();
   const { authUser } = useAuthContext();
-  const { partnerUser, partnerLocations } = useStore();
+  const partnerUser = useStore((state) => state.partnerUser);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [conversations, setConversations] = useState<EventConversation[]>([]);
@@ -90,6 +95,8 @@ const MessagePage: NextPageWithLayout = () => {
   const [sending, setSending] = useState(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isConvLoading, setIsConvLoading] = useState<boolean>(true);
+
+  const [roomPricings, setRoomPricings] = useState<RoomPricingModel[] | null>(null);
 
   const [viewArea, setViewArea] = useState<number>(0);
 
@@ -132,7 +139,36 @@ const MessagePage: NextPageWithLayout = () => {
     return () => clearInterval(interval);
   }, [partnerUser, authUser]);
 
-
+  const formatRooms = (conf: EventConfigurationModel) => {
+          const rooms = conf.rooms;
+  
+          if (!(rooms && conf && conf.date && conf.endDate && conf.persons)) {
+              return <Typography>?</Typography>;
+          }
+  
+          return rooms.map((room) => {
+              const pricings = roomPricings?.filter((p) => p.roomId === room.id);
+              const name = room.name ?? "?";
+              const price = FormatPrice.formatPriceWithType({
+                  price: calculateBookingPrice({
+                      bookingStart: new Date(conf.date!),
+                      bookingEnd: new Date(conf.endDate!),
+                      persons: conf.persons!,
+                      basePrice: room.price,
+                      basePriceType: room.priceType,
+                      excludeExclusive: conf.roomExtras?.some(r => r.roomId === room.id) !== true,
+                      schedules: pricings ?? undefined,
+                      isSingleOperation: true,
+                  }).total,
+              });
+              const isExclusive = room.RoomsEventConfigurations?.isExclusive === true;
+              return (
+                  <Typography key={name}>
+                      {price}
+                  </Typography>
+              );
+          });
+      };
 
 
   const sortConversations = (convs: EventConversation[], option: SortOption): EventConversation[] => {
@@ -430,6 +466,11 @@ const MessagePage: NextPageWithLayout = () => {
     const startDate = conf ? new Intl.DateTimeFormat('de-DE').format(new Date(conf)) : '?';
     const startDay = conf ? new Intl.DateTimeFormat('de-DE', { weekday: 'short' }).format(new Date(conf)) : '?';
     return `${startDay}, ${startDate}`;
+  }
+
+  const capitalize = (word: string) => {
+    if (!word) return "";
+    return word.charAt(0).toUpperCase() + word.slice(1);
   }
 
   const formatDates = (conf: EventConfigurationModel) => {
@@ -871,7 +912,11 @@ const MessagePage: NextPageWithLayout = () => {
                           Event Kategorie
                         </Typography>
                         <Typography gutterBottom>
-                          {`${currentConversation.eventCategory}`}
+                          {currentConversation.eventCategory != null && (
+                            <Typography gutterBottom>
+                              {capitalize(currentConversation.eventCategory)}
+                            </Typography>
+                          )}
                         </Typography>
                       </Box>
                     </Box>
@@ -920,12 +965,29 @@ const MessagePage: NextPageWithLayout = () => {
                         <Typography sx={{ fontWeight: 'bold' }} gutterBottom>
                           Angebotspreis
                         </Typography>
-                        <Typography gutterBottom>
-                          €7.800 (Brutto)
-                        </Typography>
+                        {formatRooms(currentConversation)}
                       </Box>
-                      <Box width="50%">
+                      <Box width="50%" display="flex" gap={2} alignItems="center">
+                        <Tooltip title="PDF ansehen">
+                          <IconButton
+                            component="a"
+                            href="/pfad/zur/anzeige.pdf" // z.B. Viewer-URL oder direktes PDF
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            <PictureAsPdfIcon color="primary" />
+                          </IconButton>
+                        </Tooltip>
 
+                        <Tooltip title="PDF herunterladen">
+                          <IconButton
+                            component="a"
+                            href="/pfad/zum/download.pdf"
+                            download
+                          >
+                            <DownloadIcon color="action" />
+                          </IconButton>
+                        </Tooltip>
                       </Box>
                     </Box>
                   </Box>
@@ -934,11 +996,12 @@ const MessagePage: NextPageWithLayout = () => {
                       mt: { xs: 1, md: 1 },
                       display: 'flex',
                       flexDirection: 'row',
+                      flexWrap: 'wrap',
                       gap: 1,
                       ml: 2,
                       mb: 3
                     }}>
-                      <Box width="50%">
+                      <Box  width="37%">
                         <Typography sx={{ fontWeight: 'bold' }} gutterBottom>
                           Telefon
                         </Typography>
@@ -946,11 +1009,11 @@ const MessagePage: NextPageWithLayout = () => {
                           {`${currentConversation.booker?.phoneNumber}`}
                         </Typography>
                       </Box>
-                      <Box width="50%">
+                      <Box>
                         <Typography sx={{ fontWeight: 'bold' }} gutterBottom>
                           E-Mail
                         </Typography>
-                        <Typography gutterBottom>
+                        <Typography gutterBottom noWrap>
                           {`${currentConversation.booker?.email}`}
                         </Typography>
                       </Box>
@@ -970,7 +1033,12 @@ const MessagePage: NextPageWithLayout = () => {
                           Rechnungsanschrift
                         </Typography>
                         <Typography gutterBottom>
-                          {`${currentConversation.booker?.bookingCompany?.streetAddress}`}
+                          {currentConversation.booker?.bookingCompany?.streetAddress?.trim() 
+                            ? currentConversation.booker.bookingCompany.streetAddress 
+                            : "Nicht angegeben"}
+                            {currentConversation.booker?.bookingCompany?.city?.trim() 
+                            ? currentConversation.booker.bookingCompany.city 
+                            : ""}
                         </Typography>
                       </Box>
                       <Box width="50%">
