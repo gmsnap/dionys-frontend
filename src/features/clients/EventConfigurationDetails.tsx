@@ -59,34 +59,34 @@ const EventConfigurationDetails = ({
 
                     {bookingResult.items
                         .filter((item) => item.itemType === "room")
-                        .flatMap(
-                            (item) =>
-                                item.items?.map((subItem, subIndex) => (
-                                    <Box
-                                        key={`${item.name}-${subIndex}`}
-                                        sx={{
-                                            display: "flex",
-                                            flexDirection: "row",
-                                            gap: 1,
-                                            width: "100%",
-                                            justifyContent: "space-between",
-                                            mb: 1,
-                                        }}
-                                    >
-                                        <Typography variant="body2" sx={{ flex: "0 0 3%", fontSize: { xs: 12, sm: 14 }, }}><strong>{subItem.pos}.</strong></Typography>
+                        .map((item, index) => (
+                            <Box
+                                key={index}
+                                sx={{
+                                    display: "flex",
+                                    flexDirection: "row",
+                                    gap: 1,
+                                    width: "100%",
+                                    justifyContent: "space-between",
+                                    mb: 1,
+                                }}
+                            >
+                                <Typography variant="body2" sx={{ flex: "0 0 3%", fontSize: { xs: 12, sm: 14 }, }}><strong>{item.pos}.</strong></Typography>
 
-                                        <Typography variant="body2" sx={{ flex: "0 0 47%", fontSize: { xs: 12, sm: 14 } }}>
-                                            <strong>{subItem.itemType === "basic" ? `${item.name} ${subItem.name}` : subItem.name}</strong>
-                                        </Typography>
+                                <Box sx={{ flex: "0 0 47%", fontSize: { xs: 12, sm: 14 } }}>
+                                    <Typography variant="body2" sx={{ fontSize: { xs: 12, sm: 14 } }}><strong>{item.name}</strong></Typography>
+                                    <Typography variant="body2" sx={{ fontSize: { xs: 12, sm: 14 } }}>
+                                        {item.items?.map((subItem) => subItem.name).join(", ") || ""}
+                                    </Typography>
+                                </Box>
 
-                                        <Typography variant="body2" sx={{ flex: "0 0 10%", fontSize: { xs: 12, sm: 14 }, textAlign: "right" }}>{subItem.quantity} Stk</Typography>
+                                <Typography variant="body2" sx={{ flex: "0 0 10%", fontSize: { xs: 12, sm: 14 }, textAlign: "right" }}>{item.quantity} Stk</Typography>
 
-                                        <Typography variant="body2" sx={{ flex: "0 0 20%", fontSize: { xs: 12, sm: 14 }, textAlign: "right" }}>{subItem.unitPriceFormatted}</Typography>
+                                <Typography variant="body2" sx={{ flex: "0 0 20%", fontSize: { xs: 12, sm: 14 }, textAlign: "right" }}>{item.unitPriceFormatted}</Typography>
 
-                                        <Typography variant="body2" sx={{ flex: "0 0 20%", fontSize: { xs: 12, sm: 14 }, textAlign: "right" }}>{subItem.priceFormatted}</Typography>
-                                    </Box>
-                                )) || [],
-                        )
+                                <Typography variant="body2" sx={{ flex: "0 0 20%", fontSize: { xs: 12, sm: 14 }, textAlign: "right" }}>{item.priceFormatted}</Typography>
+                            </Box>
+                        ))
                     }
 
                     {cateringItems && cateringItems.length > 0 &&
