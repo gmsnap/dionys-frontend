@@ -1,4 +1,4 @@
-import { Box, Grid2, SxProps, TextField, Theme, Typography } from "@mui/material";
+import { Box, Button, Grid2, SxProps, TextField, Theme, Typography, useTheme } from "@mui/material";
 import { useForm, Controller, FormProvider } from "react-hook-form";
 import ImageUploadField from "./ImageUploadField";
 import {
@@ -13,14 +13,18 @@ import { useEffect, useState } from "react";
 import { uploadFile } from "@/utils/fileUtil";
 import SaveButton from "@/components/SaveButton";
 import { yupResolver } from '@hookform/resolvers/yup';
+import { useHeaderContext } from "@/components/headers/PartnerHeaderContext";
+import { ArrowRight } from "lucide-react";
 
 interface Props {
     sx?: SxProps<Theme>;
 }
 
 const BillingDetailsForm = ({ sx, }: Props) => {
+    const theme = useTheme();
     const { authUser } = useAuthContext();
     const { partnerUser } = useStore();
+    const { setIsOverlayOpen } = useHeaderContext();
 
     const [showSuccess, setShowSuccess] = useState(false);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -37,6 +41,10 @@ const BillingDetailsForm = ({ sx, }: Props) => {
         formState: { isDirty },
         reset,
     } = methods;
+
+    const onLinkClick = () => {
+        setIsOverlayOpen(true);
+    };
 
     const onSubmit = async (data: any) => {
         if (!authUser?.idToken || !partnerUser?.companyId) return;
@@ -84,7 +92,6 @@ const BillingDetailsForm = ({ sx, }: Props) => {
         { name: "bankCode", label: "BLZ" },
         { name: "iban", label: "IBAN" },
         { name: "bic", label: "BIC" },
-        { name: "contactPerson", label: "Ansprechpartner" },
     ];
 
     useEffect(() => {
@@ -126,9 +133,6 @@ const BillingDetailsForm = ({ sx, }: Props) => {
                                 {index === 2 &&
                                     <Typography variant="h5" sx={{ mt: 2 }}>Bankdaten (Footer)</Typography>}
 
-                                {index === 7 &&
-                                    <Typography variant="h5" sx={{ mt: 2 }}>Weitere Informationen (Footer)</Typography>}
-
                                 <Grid2 container key={index} alignItems="top" rowSpacing={0} sx={{ width: "100%" }}>
                                     <Grid2 size={{ xs: 12, md: 4 }}>
                                         <Typography variant="label">{field.label}</Typography>
@@ -156,6 +160,22 @@ const BillingDetailsForm = ({ sx, }: Props) => {
                                 </Grid2>
                             </>
                         ))}
+
+                        <Button
+                            onClick={onLinkClick}
+                            sx={{
+                                mt: 1,
+                                mb: 1,
+                                pl: 0,
+                                color: theme.palette.customColors.blue.light,
+                                justifyContent: "flex-start",
+                            }}
+                        >
+                            <ArrowRight size={16} color={theme.palette.customColors.blue.light} />
+                            <Typography variant="body1" sx={{ ml: 1 }}>
+                                Unternehmensdaten bearbeiten
+                            </Typography>
+                        </Button>
 
                         <SaveButton
                             isSubmitting={isSubmitting}

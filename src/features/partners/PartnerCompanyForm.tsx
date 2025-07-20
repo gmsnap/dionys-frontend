@@ -33,7 +33,7 @@ const PartnerCompanyForm = ({ submitButtonCaption, onComplete }: Props) => {
         address: { city: "", streetAddress: "", postalCode: "", country: "" },
         billingAddress: { city: "", streetAddress: "", postalCode: "", country: "" },
         billingAddressId: null,
-        billingDetails: { legalLink: "" },
+        billingDetails: { contactPerson: "" },
     });
 
     const [billingToggle, setBillingToggle] = useState(true);
@@ -293,12 +293,12 @@ const PartnerCompanyForm = ({ submitButtonCaption, onComplete }: Props) => {
                     <Grid2 size={{ xs: 12 }}>
                         <Grid2 container alignItems="top">
                             <Grid2 size={{ xs: 12, sm: 4 }}>
-                                <Typography variant="label">Link</Typography>
+                                <Typography variant="label">Ansprechpartner</Typography>
                             </Grid2>
                             <Grid2 size={{ xs: 12, sm: 8 }}>
                                 <TextField
-                                    name="billingDetails.legalLink"
-                                    value={formData.billingDetails?.legalLink || ""}
+                                    name="billingDetails.contactPerson"
+                                    value={formData.billingDetails?.contactPerson || ""}
                                     onChange={handleChange}
                                     fullWidth
                                     variant="outlined"
