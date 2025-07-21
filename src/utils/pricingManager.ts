@@ -27,6 +27,7 @@ export interface PriceItem {
     source?: object;
     minConsumptionPrice?: number;
     minSalesPrice?: number;
+    ignore?: boolean;
 };
 
 export interface PricingSlot {
@@ -355,123 +356,7 @@ export const getApplicableSlots = (
     return applicableSlots;
 };
 
-export const _getApplicableSlots = (
-    bookingStart: Date,
-    bookingEnd: Date,
-    schedules?: PricingSlot[],
-): { schedule: PricingSlot, segmentStart: Date, segmentEnd: Date }[] => {
-    const applicableSlots: { schedule: PricingSlot, segmentStart: Date, segmentEnd: Date }[] = [];
-
-    const bookingStartCorrected = new Date(bookingStart.getTime());
-    bookingStartCorrected.setDate(bookingStartCorrected.getDate());
-
-    const bookingEndCorrected = new Date(bookingEnd.getTime());
-    bookingEndCorrected.setDate(bookingEndCorrected.getDate());
-
-    schedules?.forEach((schedule) => {
-        const doLog = schedule.id === 37 || schedule.id === 17;
-
-        // Check if schedule days overlap with booking days
-        const bookingStartDayOfWeek = convertToCustomDay(bookingStartCorrected.getDay());
-
-        const adjustedEnd = bookingEndCorrected.getHours() === 0 && bookingEndCorrected.getMinutes() === 0 &&
-            bookingEndCorrected.getSeconds() === 0 && bookingEndCorrected.getMilliseconds() === 0
-            ? new Date(bookingEndCorrected.getTime() - 1)
-            : bookingEndCorrected;
-
-        const bookingEndDayOfWeek = convertToCustomDay(adjustedEnd.getDay());
-
-        let daysOverlap = false;
-        if (schedule.startDayOfWeek <= schedule.endDayOfWeek) {
-            daysOverlap =
-                (bookingStartDayOfWeek >= schedule.startDayOfWeek && bookingStartDayOfWeek <= schedule.endDayOfWeek) ||
-                (bookingEndDayOfWeek >= schedule.startDayOfWeek && bookingEndDayOfWeek <= schedule.endDayOfWeek) ||
-                (bookingStartDayOfWeek <= schedule.startDayOfWeek && bookingEndDayOfWeek >= schedule.endDayOfWeek);
-        } else {
-            daysOverlap =
-                (bookingStartDayOfWeek >= schedule.startDayOfWeek || bookingStartDayOfWeek <= schedule.endDayOfWeek) ||
-                (bookingEndDayOfWeek >= schedule.startDayOfWeek || bookingEndDayOfWeek <= schedule.endDayOfWeek) ||
-                (bookingStartDayOfWeek <= schedule.endDayOfWeek && bookingEndDayOfWeek >= schedule.startDayOfWeek);
-        }
-
-        if (doLog) {
-            console.log("<--");
-            console.log("check schedule: ", schedule.id, schedule.price);
-            console.log("bookingStart", getDay(bookingStart), bookingStartDayOfWeek, bookingStartCorrected.toTimeString());
-            console.log("schedule range", schedule.startDayOfWeek, schedule.startTime, "-", schedule.endDayOfWeek, schedule.endTime);
-            console.log("bookingEnd", bookingEndDayOfWeek, bookingEndCorrected.toTimeString());
-            console.log("daysOverlap", daysOverlap ? "true" : "false -> CANCEL");
-        }
-
-        if (!daysOverlap) return;
-
-        // Calculate the schedule's full time range relative to bookingStart
-        //const weekStart = startOfDay(bookingStartCorrected); // Date of the first day of booking (00:00:00)
-        const weekStart1 = startOfWeek(bookingStartCorrected);
-        const weekStart1Corrected = addDays(weekStart1, 1 + (bookingStartDayOfWeek == 6 ? -7 : schedule.startDayOfWeek));
-        const weekStart2 = startOfWeek(bookingEndCorrected);
-        const weekStart2Corrected = addDays(weekStart2, 1 + (bookingEndDayOfWeek == 6 ? -7 : schedule.endDayOfWeek));
-        //const startDayOffset = (schedule.startDayOfWeek - weekStart.getDay() + 7) % 7;
-        //const endDayOffset = (schedule.endDayOfWeek - weekStart.getDay() + 7) % 7;
-
-        // Set schedule start
-        let scheduleStart = new Date(weekStart1Corrected);
-        scheduleStart.setDate(weekStart1Corrected.getDate() + schedule.startDayOfWeek);
-        const [startHour, startMinute] = schedule.startTime.split(":").map(Number);
-        scheduleStart = set(scheduleStart, { hours: startHour, minutes: startMinute, seconds: 0, milliseconds: 0 });
-
-        // Set schedule end
-        let scheduleEnd = new Date(weekStart2Corrected);
-        scheduleEnd.setDate(weekStart2Corrected.getDate() + schedule.endDayOfWeek);
-        const [endHour, endMinute] = schedule.endTime.split(":").map(Number);
-        scheduleEnd = set(scheduleEnd, { hours: endHour, minutes: endMinute, seconds: 0, milliseconds: 0 });
-
-        // Handle overnight schedules (same day, e.g., 8 PM to 2 AM)
-        if (schedule.endTime <= schedule.startTime && schedule.startDayOfWeek === schedule.endDayOfWeek) {
-            scheduleEnd.setDate(scheduleEnd.getDate() + 1);
-        }
-
-        // If schedule ends before it starts (e.g., wraps around week), adjust
-        if (isBefore(scheduleEnd, scheduleStart)) {
-            scheduleEnd.setDate(scheduleEnd.getDate() + 7);
-        }
-
-        // Determine the overlapping segment
-        const segmentStart = isBefore(bookingStartCorrected, scheduleStart) ? scheduleStart : bookingStartCorrected;
-        const segmentEnd = isAfter(bookingEndCorrected, scheduleEnd) ? scheduleEnd : bookingEndCorrected;
-
-        // Only process if there is a valid overlap
-        //if (isBefore(segmentStart, segmentEnd) || isEqual(segmentStart, segmentEnd)) {
-        if (isBefore(segmentStart, segmentEnd)) {
-            applicableSlots.push({ schedule, segmentStart, segmentEnd });
-        }
-
-        if (doLog) {
-            console.log("!!scheduleStart", scheduleStart);
-            console.log("!!bookingStartCorrected", bookingStartCorrected);
-            console.log("scheduleEnd", scheduleEnd);
-            console.log("bookingEndCorrected", bookingEndCorrected);
-            console.log("schedule.startDayOfWeek", schedule.startDayOfWeek);
-            console.log("schedule.endDayOfWeek", schedule.endDayOfWeek);
-            console.log("weekStart1", weekStart1);
-            console.log("weekStart1Corrected", weekStart1Corrected);
-            console.log("weekStart2Corrected", weekStart2Corrected);
-            console.log("scheduleStart", scheduleStart);
-            console.log("scheduleEnd", scheduleEnd);
-            console.log("segmentStart", segmentStart);
-            console.log("segmentEnd", segmentEnd);
-            console.log("push", schedule.id, isBefore(segmentStart, segmentEnd));
-            console.log("-->");
-        }
-    });
-
-    return applicableSlots;
-};
-
 export const calculateBooking = (booking: Booking): BookingResult => {
-    const consumptionKey = "consumption";
-    const minSalesKey = "minSales";
-
     const items: PriceItem[] = [];
 
     if (!booking.date || !booking.endDate) {
@@ -491,22 +376,6 @@ export const calculateBooking = (booking: Booking): BookingResult => {
 
     // Collect all consumption, minSales
 
-    const applicableSlots: {
-        schedule: PricingSlot,
-        segmentStart: Date,
-        segmentEnd: Date
-    }[] = [];
-
-    booking.rooms?.forEach(room => {
-        const slotsOfRoom = getApplicableSlots(
-            bookingStart,
-            bookingEnd,
-            room.roomPricings);
-        slotsOfRoom.forEach(slot => {
-            applicableSlots.push(slot);
-        })
-    });
-
     let roomsPriceOtherTotal = 0;
 
     booking.rooms?.forEach(room => {
@@ -521,31 +390,12 @@ export const calculateBooking = (booking: Booking): BookingResult => {
                 basePrice: room.price,
                 basePriceType: room.priceType,
                 basePriceLabel: room.pricingLabel,
-                schedules: applicableSlots.map(slot => slot.schedule),
+                schedules: room.roomPricings,
                 excludeExclusive,
                 seatings: room.roomSeatings,
                 seating,
                 isSingleOperation: false,
             });
-
-            //const otherItems = roomResult.items.filter(
-            //    item => !(item.pricingLabel === consumptionKey || item.pricingLabel === minSalesKey)
-            //);
-
-            console.log("roomResult: ", roomResult);
-
-            const priceItem: PriceItem = {
-                id: room.id,
-                name: room.name,
-                itemType: "room",
-                price: roomResult.total,
-                priceFormatted: FormatPrice.formatPriceValue(roomResult.total),
-                quantity: 1,
-                unitPrice: 0,
-                unitPriceFormatted: roomResult.totalFormatted,
-                pos: ++pos,
-                items: roomResult.items,
-            };
 
             items.push({
                 id: room.id,
@@ -854,6 +704,12 @@ const calculateSlots = (
         const consumableShare = baseValueForSeating > 0 ? consumablePrice / baseValueForSeating : 0;
         const consumablePriceAdjusted = consumableShare * totalRoomPrice;
 
+        items
+            .filter(item => item.pricingLabel === "consumption" || item.pricingLabel === "minSales")
+            .forEach(item => {
+                item.ignore = item.id !== mostExpensiveConsumableSlot.slot?.id;
+            })
+
         // Use consumption
         if (mostExpensiveConsumableSlot.slot.pricingLabel == "consumption") {
             return {
@@ -870,6 +726,7 @@ const calculateSlots = (
                 items,
                 maxMinConsumption: consumablePriceAdjusted,
                 maxMinSales: 0,
+                usedConsumableSlot: mostExpensiveConsumableSlot.slot?.id ?? 0,
                 seatingTotal: calculatedSeating.total,
             };
         }
@@ -886,6 +743,7 @@ const calculateSlots = (
             items,
             maxMinConsumption: 0,
             maxMinSales: consumablePriceAdjusted,
+            usedConsumableSlot: mostExpensiveConsumableSlot.slot?.id ?? 0,
             seatingTotal: calculatedSeating.total
         };
     }
@@ -904,6 +762,7 @@ const calculateSlots = (
         items,
         maxMinConsumption: 0,
         maxMinSales: 0,
+        usedConsumableSlot: 0,
         seatingTotal: calculatedSeating.total
     };
 };
