@@ -76,7 +76,7 @@ const EventConfigurationDetails = ({
                                 <Box sx={{ flex: "0 0 47%", fontSize: { xs: 12, sm: 14 } }}>
                                     <Typography variant="body2" sx={{ fontSize: { xs: 12, sm: 14 } }}><strong>{item.name}</strong></Typography>
                                     <Typography variant="body2" sx={{ fontSize: { xs: 12, sm: 14 } }}>
-                                        {item.items?.map((subItem) => subItem.name).join(", ") || ""}
+                                        {item.items?.filter((subItem) => subItem.ignore !== true).map((subItem) => subItem.name).join(", ") || ""}
                                     </Typography>
                                 </Box>
 
