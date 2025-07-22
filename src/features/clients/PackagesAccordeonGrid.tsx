@@ -2,11 +2,11 @@ import React, { } from 'react';
 import { Grid2, SxProps, Theme, Typography } from '@mui/material';
 import AccordionGridItem from '@/components/AccordionGridItem';
 import useStore from '@/stores/eventStore';
-import { formatPriceWithType } from '@/utils/formatPrice';
 import { HandCoins, Package } from 'lucide-react';
 import { formatPackageCategory } from '@/utils/formatPackageCategories';
 import theme from '@/theme';
 import { PackageCategories } from '@/constants/PackageCategories';
+import { FormatPrice } from '@/utils/pricingManager';
 
 interface Props {
     packageCategory?: PackageCategories,
@@ -57,6 +57,8 @@ const PackagesAccordeonGrid = ({ packageCategory, sx }: Props) => {
             )
     );
 
+
+
     return (
         <Grid2 container spacing={1} sx={{ ...sx }}>
             {filteredPackages.map((p) => (
@@ -80,9 +82,14 @@ const PackagesAccordeonGrid = ({ packageCategory, sx }: Props) => {
                         selectRequested={(id) => togglePackage(id)}
                         title={p.title}
                         subTitle={
-                            p.priceType === "none"
-                                ? undefined
-                                : `${formatPriceWithType(p.price, p.priceType, p.pricingLabel)}`
+                            FormatPrice.formatPriceWithType({
+                                price: p.price,
+                                priceType: p.priceType,
+                                pricingLabel: p.pricingLabel,
+                                context: "booker",
+                                short: true,
+                                noneLabelKey: "free",
+                            })
                         }
                         information={p.description}
                         infoItems={[
@@ -92,7 +99,13 @@ const PackagesAccordeonGrid = ({ packageCategory, sx }: Props) => {
                             },
                             {
                                 icon: <HandCoins color={iconColor} />,
-                                label: formatPriceWithType(p.price, p.priceType, p.pricingLabel),
+                                label: FormatPrice.formatPriceWithType({
+                                    price: p.price,
+                                    priceType: p.priceType,
+                                    pricingLabel: p.pricingLabel,
+                                    context: "booker",
+                                    noneLabelKey: "free",
+                                }),
                             },
                         ]}
                     />

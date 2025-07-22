@@ -110,6 +110,8 @@ export const EventPackageValidationSchema = yup.object().shape({
 
 export const toBookingPackage = (model: EventPackageModel): BookingPackage => ({
     id: model.id,
+    name: model.title,
+    packageCategory: model.packageCategory,
     price: model.price,
     priceType: model.priceType as string,
     minPersons: model.minPersons ?? 1,

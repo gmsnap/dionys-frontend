@@ -1,6 +1,5 @@
 import { EventConfigurationModel, toBooking } from "@/models/EventConfigurationModel";
-import { formatPrice, formatPriceWithType } from "@/utils/formatPrice";
-import { calculateBooking, calculateBookingPrice } from "@/utils/pricingManager";
+import { calculateBooking, calculateBookingPrice, FormatPrice } from "@/utils/pricingManager";
 import { Box, SxProps, Theme, Typography } from "@mui/material";
 
 interface Props {
@@ -12,46 +11,6 @@ interface Props {
 const EventConfigurationDetails = ({
     model, showNotes, sx
 }: Props) => {
-
-    const formatLocation = (conf: EventConfigurationModel) => {
-        const location = conf.location;
-        if (!location) return '?';
-        return location.title;
-    }
-
-    const formatRooms = (conf: EventConfigurationModel) => {
-        const rooms = conf.rooms;
-        if (!rooms || !conf.date || !conf.endDate) return <Typography>?</Typography>;
-
-        const startDate = new Date(conf.date);
-        const endDate = new Date(conf.endDate);
-
-        return rooms.map(room => {
-            const name = room.name ?? "?";
-            const extra = model.roomExtras?.find(r => r.roomId === room.id);
-            const isExclusive = extra?.isExclusive === true;
-            const seating = extra?.seating;
-            const price = formatPrice(
-                calculateBookingPrice({
-                    bookingStart: startDate,
-                    bookingEnd: endDate,
-                    persons: conf.persons ?? 1,
-                    basePrice: room.price,
-                    basePriceType: room.priceType,
-                    isExclusive,
-                    schedules: room.roomPricings,
-                    seatings: room.roomSeatings,
-                    seating,
-                }),
-                room.pricingLabel
-            );
-            return (
-                <Typography key={name}>
-                    {name} ({price}) {isExclusive ? ', Exklusive Buchung' : ''}
-                </Typography>
-            );
-        });
-    };
 
     const getCompanyName = (conf: EventConfigurationModel) => {
         const company = conf.booker?.bookingCompany;
@@ -79,31 +38,126 @@ const EventConfigurationDetails = ({
     }
 
     const bookingModel = toBooking(model);
+    const bookingResult = bookingModel && calculateBooking(bookingModel);
+    const cateringItems = bookingResult?.items
+        .filter(item => item.itemType === 'catering');
+    const equipmentItems = bookingResult?.items
+        .filter(item => item.itemType === 'equipment');
+
+    console.log(bookingResult);
 
     return (
         <Box sx={{ ...sx }}>
             <Typography variant="h5" sx={{ mt: 2, mb: 1 }}>Eventdaten</Typography>
             <Typography>{formatDates(model)}</Typography>
             <Typography>{model.persons} Personen</Typography>
-            <Typography>{formatRooms(model)}</Typography>
 
-            {model.packages &&
-                <>
-                    <Typography variant="h5" sx={{ mt: 2 }}>Pakete</Typography>
-                    {model.packages.map((item, index) => (
-                        <Box key={index} sx={{}}>
-                            <Typography>{item.title} ({formatPriceWithType(item.price, item.priceType, item.pricingLabel)})</Typography>
-                        </Box>
-                    ))}
+            {bookingResult
+                ? <><Box sx={{ width: { xs: "90%", sm: "95%" } }}>
+
+                    <Typography variant="h5" sx={{ mt: 2, mb: 1 }}>Rooms & Tables</Typography>
+
+                    {bookingResult.items
+                        .filter((item) => item.itemType === "room")
+                        .map((item, index) => (
+                            <Box
+                                key={index}
+                                sx={{
+                                    display: "flex",
+                                    flexDirection: "row",
+                                    gap: 1,
+                                    width: "100%",
+                                    justifyContent: "space-between",
+                                    mb: 1,
+                                }}
+                            >
+                                <Typography variant="body2" sx={{ flex: "0 0 3%", fontSize: { xs: 12, sm: 14 }, }}><strong>{item.pos}.</strong></Typography>
+
+                                <Box sx={{ flex: "0 0 47%", fontSize: { xs: 12, sm: 14 } }}>
+                                    <Typography variant="body2" sx={{ fontSize: { xs: 12, sm: 14 } }}><strong>{item.name}</strong></Typography>
+                                    <Typography variant="body2" sx={{ fontSize: { xs: 12, sm: 14 } }}>
+                                        {item.items?.filter((subItem) => subItem.ignore !== true).map((subItem) => subItem.name).join(", ") || ""}
+                                    </Typography>
+                                </Box>
+
+                                <Typography variant="body2" sx={{ flex: "0 0 10%", fontSize: { xs: 12, sm: 14 }, textAlign: "right" }}>{item.quantity} Stk</Typography>
+
+                                <Typography variant="body2" sx={{ flex: "0 0 20%", fontSize: { xs: 12, sm: 14 }, textAlign: "right" }}>{item.unitPriceFormatted}</Typography>
+
+                                <Typography variant="body2" sx={{ flex: "0 0 20%", fontSize: { xs: 12, sm: 14 }, textAlign: "right" }}>{item.priceFormatted}</Typography>
+                            </Box>
+                        ))
+                    }
+
+                    {cateringItems && cateringItems.length > 0 &&
+                        <>
+                            <Typography variant="h5" sx={{ mt: 2, mb: 1 }}>Food & Beverages</Typography>
+                            {cateringItems
+                                .map((item, index) => (
+                                    <Box
+                                        key={index}
+                                        sx={{
+                                            display: "flex",
+                                            flexDirection: "row",
+                                            gap: 1,
+                                            width: "100%",
+                                            justifyContent: "space-between",
+                                            mb: 1,
+                                        }}
+                                    >
+                                        <Typography variant="body2" sx={{ flex: "0 0 3%", fontSize: { xs: 12, sm: 14 }, }}><strong>{item.pos}.</strong></Typography>
+
+                                        <Typography variant="body2" sx={{ flex: "0 0 47%", fontSize: { xs: 12, sm: 14 } }}><strong>{item.name}</strong></Typography>
+
+                                        <Typography variant="body2" sx={{ flex: "0 0 10%", fontSize: { xs: 12, sm: 14 }, textAlign: "right" }}>{item.quantity} Stk</Typography>
+
+                                        <Typography variant="body2" sx={{ flex: "0 0 20%", fontSize: { xs: 12, sm: 14 }, textAlign: "right" }}>{item.unitPriceFormatted}</Typography>
+
+                                        <Typography variant="body2" sx={{ flex: "0 0 20%", fontSize: { xs: 12, sm: 14 }, textAlign: "right" }}>{item.priceFormatted}</Typography>
+                                    </Box>
+                                ))
+                            }
+                        </>
+                    }
+
+                    {equipmentItems && equipmentItems.length > 0 &&
+                        <>
+                            <Typography variant="h5" sx={{ mt: 2, mb: 1 }}>Look & Feel</Typography>
+                            {equipmentItems
+                                .map((item, index) => (
+                                    <Box
+                                        key={index}
+                                        sx={{
+                                            display: "flex",
+                                            flexDirection: "row",
+                                            gap: 1,
+                                            width: "100%",
+                                            justifyContent: "space-between",
+                                            mb: 1,
+                                        }}
+                                    >
+                                        <Typography variant="body2" sx={{ flex: "0 0 3%", fontSize: { xs: 12, sm: 14 } }}><strong>{item.pos}.</strong></Typography>
+
+                                        <Typography variant="body2" sx={{ flex: "0 0 47%", fontSize: { xs: 12, sm: 14 } }}><strong>{item.name}</strong></Typography>
+
+                                        <Typography variant="body2" sx={{ flex: "0 0 10%", fontSize: { xs: 12, sm: 14 }, textAlign: "right" }}>{item.quantity} Stk</Typography>
+
+                                        <Typography variant="body2" sx={{ flex: "0 0 20%", fontSize: { xs: 12, sm: 14 }, textAlign: "right" }}>{item.unitPriceFormatted}</Typography>
+
+                                        <Typography variant="body2" sx={{ flex: "0 0 20%", fontSize: { xs: 12, sm: 14 }, textAlign: "right" }}>{item.priceFormatted}</Typography>
+                                    </Box>
+                                ))}
+                        </>}
+                </Box>
+                    <Typography sx={{ fontWeight: 'bold', fontSize: { xs: 12, sm: 14 }, textAlign: 'right', width: "100%", mt: 2 }}>
+                        Gesamt: {FormatPrice.formatPriceValue(bookingResult.total)}
+                    </Typography>
                 </>
-            }
-            {bookingModel
-                ? <Typography sx={{ fontWeight: 'bold', mt: 2 }}>
-                    Gesamt: {formatPrice(calculateBooking(bookingModel))}
-                </Typography>
                 : <Typography sx={{ color: 'red', fontWeight: 'bold', mt: 2 }}>
-                    Gesamtpreis kann nicht berechnet werden.
-                </Typography>}
+                    Keine Daten
+                </Typography>
+            }
+
             {model.booker &&
                 <>
                     <Typography variant="h5" sx={{ mt: 2, mb: 1 }}>Persönliche Daten</Typography>

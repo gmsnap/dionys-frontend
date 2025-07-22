@@ -24,9 +24,8 @@ import { ChevronDown, Circle, CircleHelp, CirclePlus, Plus, Save, Trash2 } from 
 import { useEffect, useState } from "react"
 import theme from "@/theme"
 import { useAuthContext } from "@/auth/AuthContext"
-import { AvailablePriceTypes, doPricingSlotsOverlap, PriceTypes } from "@/utils/pricingManager"
+import { AvailablePriceTypes, AvailablePricingLabels, AvailablePricingLabelsBasic, doPricingSlotsOverlap, FormatPrice, PriceTypes } from "@/utils/pricingManager"
 import { WaitIcon } from "@/components/WaitIcon"
-import { translatePrice } from "@/utils/formatPrice"
 
 // German days of week
 const germanDaysOfWeek = [
@@ -51,30 +50,26 @@ const germanShortDaysOfWeek = [
 
 // Generate time options in 30 min steps
 const generateTimeOptions = () => {
-    const options = []
+    const options = [];
     for (let hour = 0; hour < 24; hour++) {
         for (let minute = 0; minute < 60; minute += 30) {
-            const hourStr = hour.toString().padStart(2, "0")
-            const minuteStr = minute.toString().padStart(2, "0")
+            const hourStr = hour.toString().padStart(2, "0");
+            const minuteStr = minute.toString().padStart(2, "0");
             options.push({
                 value: `${hourStr}:${minuteStr}:00`,
                 label: `${hourStr}:${minuteStr}`,
-            })
+            });
         }
     }
-    return options
-}
+    // Add 23:59 as the "end of day" option
+    options.push({
+        value: "23:59:00",
+        label: "Ende des Tages (00:00)",
+    });
+    return options;
+};
 
 const timeOptions = generateTimeOptions()
-
-// Price type options
-const priceTypeOptions = [
-    { value: "hour", label: "Fix pro Stunde" },
-    { value: "person", label: "Pro Person" },
-    { value: "personHour", label: "Pro Person u. Stunde" },
-    { value: "once", label: "einmalig" },
-    { value: "none", label: "kostenlos" },
-]
 
 // Exclusive type options
 const exclusiveTypeOptions = [
@@ -87,12 +82,6 @@ const exclusiveTypeOptions = [
 const roomPricingTypeOptions = [
     { value: "basic", label: "Grundpreis" },
     { value: "extra", label: "Aufpreis" },
-]
-
-// Pricing labels options
-const pricingLabelOptions = [
-    { value: "exact", label: "genau" },
-    { value: "from", label: "ab" },
 ]
 
 const roomPriceTypeInfo = "Der Grundpreis legt den Basispreis für deinen Raum fest. " +
@@ -508,7 +497,10 @@ const RoomPricings = ({ roomId }: Props) => {
                                                 >
                                                     {AvailablePriceTypes.map((priceType) => (
                                                         <MenuItem key={priceType} value={priceType as PriceTypes}>
-                                                            {translatePrice(priceType as PriceTypes)}
+                                                            {FormatPrice.translatePrice(
+                                                                priceType as PriceTypes,
+                                                                { noneLabelKey: "free" }
+                                                            )}
                                                         </MenuItem>
                                                     ))}
                                                 </Select>
@@ -523,11 +515,14 @@ const RoomPricings = ({ roomId }: Props) => {
                                                     label="Preis-Label"
                                                     onChange={(e) => handlePricingChange(index, "pricingLabel", e.target.value)}
                                                 >
-                                                    {pricingLabelOptions.map((label) => (
-                                                        <MenuItem key={label.value} value={label.value}>
-                                                            {label.label}
-                                                        </MenuItem>
-                                                    ))}
+                                                    {(pricing.roomPricingType == "extra"
+                                                        ? AvailablePricingLabelsBasic
+                                                        : AvailablePricingLabels).
+                                                        map((label) => (
+                                                            <MenuItem key={label} value={label}>
+                                                                {FormatPrice.translate(label)}
+                                                            </MenuItem>
+                                                        ))}
                                                 </Select>
                                             </FormControl>
                                         </Grid2>
@@ -654,9 +649,12 @@ const RoomPricings = ({ roomId }: Props) => {
                                                             disabled={pricing.exclusiveType === "none" || !pricing.exclusiveType}
                                                             onChange={(e) => handlePricingChange(index, "exclusivePriceType", e.target.value)}
                                                         >
-                                                            {priceTypeOptions.map((type) => (
-                                                                <MenuItem key={type.value} value={type.value}>
-                                                                    {type.label}
+                                                            {AvailablePriceTypes.map((priceType) => (
+                                                                <MenuItem key={priceType} value={priceType as PriceTypes}>
+                                                                    {FormatPrice.translatePrice(
+                                                                        priceType as PriceTypes,
+                                                                        { noneLabelKey: "free" }
+                                                                    )}
                                                                 </MenuItem>
                                                             ))}
                                                         </Select>
@@ -671,9 +669,9 @@ const RoomPricings = ({ roomId }: Props) => {
                                                             label="Preis-Label Exklusivität"
                                                             onChange={(e) => handlePricingChange(index, "exclusivePricingLabel", e.target.value)}
                                                         >
-                                                            {pricingLabelOptions.map((label) => (
-                                                                <MenuItem key={label.value} value={label.value}>
-                                                                    {label.label}
+                                                            {AvailablePricingLabelsBasic.map((priceType) => (
+                                                                <MenuItem key={priceType} value={priceType as PriceTypes}>
+                                                                    {FormatPrice.translatePrice(priceType as PriceTypes)}
                                                                 </MenuItem>
                                                             ))}
                                                         </Select>

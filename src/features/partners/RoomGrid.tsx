@@ -1,13 +1,13 @@
 import React, { } from 'react';
 import { Box, SxProps, Theme, Grid2, Button } from '@mui/material';
 import GridItem from '@/components/GridItem';
-import { formatPrice, formatPriceWithType } from '@/utils/formatPrice';
 import { Pencil, User, X } from 'lucide-react';
 import GridAddItem from '@/components/GridAddItem';
 import { RoomModel } from '@/models/RoomModel';
 import { handleDeleteRoom } from '@/services/roomService';
 import theme from '@/theme';
 import { useAuthContext } from '@/auth/AuthContext';
+import { FormatPrice } from '@/utils/pricingManager';
 
 interface RoomGridProps {
     sx?: SxProps<Theme>;
@@ -28,7 +28,12 @@ const RoomGrid = ({ sx, rooms, addButton = true, selectHandler, roomsChanged }: 
                         id={room.id}
                         image={room.images[0]}
                         title={room.name}
-                        priceTag={formatPriceWithType(room.price, room.priceType)}
+                        priceTag={FormatPrice.formatPriceWithType(
+                            {
+                                price: room.price,
+                                priceType: room.priceType,
+                            }
+                        )}
                         listItems={[{
                             icon: <User color={theme.palette.customColors.blue.main} />,
                             label: `${room.minPersons}-${room.maxPersons}`
@@ -39,7 +44,18 @@ const RoomGrid = ({ sx, rooms, addButton = true, selectHandler, roomsChanged }: 
                                 variant="edit"
                                 onClick={() => { selectHandler?.(room.id); }}
                             >
-                                Bearbeiten
+                                <Box
+                                    component="span"
+                                    sx={{
+                                        display: {
+                                            xs: 'inline',
+                                            sm: 'none',
+                                            lg: 'inline',
+                                        },
+                                    }}
+                                >
+                                    Bearbeiten
+                                </Box>
                                 <Box component="span" sx={{ ml: 1, }}>
                                     <Pencil className="icon" width={12} height={12} />
                                 </Box>
@@ -58,12 +74,24 @@ const RoomGrid = ({ sx, rooms, addButton = true, selectHandler, roomsChanged }: 
                                         : {}
                                 }
                             >
-                                Löschen
+                                <Box
+                                    component="span"
+                                    sx={{
+                                        display: {
+                                            xs: 'inline',
+                                            sm: 'none',
+                                            lg: 'inline',
+                                        },
+                                    }}
+                                >
+                                    Löschen
+                                </Box>
                                 <Box component="span" sx={{ ml: 1 }}>
                                     <X className="icon" width={16} height={16} />
                                 </Box>
                             </Button>,
                         ]}
+                        onImageClick={() => { selectHandler?.(room.id); }}
                     />
                 </Grid2>
             ))}

@@ -20,7 +20,7 @@ const PartnerSettings: React.FC = () => {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
-    const [selectedItem, setSelectedItem] = useState(0);
+    const [selectedItem, setSelectedItem] = useState(1);
 
     const menuItems = [
         isMobile ? "Profil" : "Persönliche Informationen",

@@ -59,6 +59,7 @@ const Header: FC = () => {
             { label: 'Food & Beverage', link: '/partner/food' },
             { label: 'Look & Feel', link: '/partner/lookandfeel' },
             { label: 'Revenue Manager', link: '/partner/revenuemanager' },
+            { label: 'PDF & E-Mail', link: '/partner/branding' },
         ],
         [],
     );
@@ -226,7 +227,7 @@ const Header: FC = () => {
                             userSelect: 'none',
                             cursor: 'pointer',
                         }}
-                        onClick={() => router.push('/')}
+                        onClick={() => router.push('/partner/events')}
                     >
                         DIONYS
                     </Typography>

@@ -87,13 +87,22 @@ const GridItem: React.FC<GridItemProps> = ({
                         }}
                     >
                         {title}
-                        <br />
-                        {subTitle && subTitle.split("|").map((part, index) => (
-                            <React.Fragment key={index}>
-                                {index > 0 && <br />}
-                                {part.trim()}
-                            </React.Fragment>
-                        ))}
+                        {subTitle && (
+                            <>
+                                {subTitle.split("|").map((part, index) => (
+                                    <React.Fragment key={index}>
+                                        <span
+                                            style={{
+                                                fontSize: '80%',
+                                                display: 'block',
+                                            }}
+                                        >
+                                            {part.trim()}
+                                        </span>
+                                    </React.Fragment>
+                                ))}
+                            </>
+                        )}
                     </Typography>
                 </Box>
 

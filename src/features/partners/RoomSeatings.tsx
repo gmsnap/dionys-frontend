@@ -29,20 +29,20 @@ import { WaitIcon } from "@/components/WaitIcon"
 
 // Price type options
 const priceTypeOptions = [
-    { value: "hour", label: "Fix pro Stunde" },
+    { value: "hour", label: "Pro Stunde" },
     { value: "person", label: "Pro Person" },
     { value: "personHour", label: "Pro Person u. Stunde" },
-    { value: "once", label: "einmalig" },
-    { value: "none", label: "kostenlos" },
+    { value: "once", label: "pro Event" },
+    { value: "none", label: "inklusive" },
 ]
 
 // Reconfig price type options
 const reconfigPriceTypeOptions = [
     { value: "none", label: "Kein Aufpreis" },
-    { value: "hour", label: "Fix pro Stunde" },
-    { value: "person", label: "Fix pro Person" },
+    { value: "hour", label: "Pro Stunde" },
+    { value: "person", label: "Pro Person" },
     { value: "personHour", label: "Pro Person u. Stunde" },
-    { value: "once", label: "einmalig" },
+    { value: "once", label: "pro Event" },
 ]
 
 // Function to format price for display

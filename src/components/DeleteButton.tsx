@@ -9,31 +9,48 @@ interface DeleteButtonProps {
 
 const DeleteButton: React.FC<DeleteButtonProps> = ({ isDisabled, onDelete }) => {
     return (
-        <Button
-            variant="contained"
-            disabled={isDisabled}
+        <Box
             sx={{
-                lineHeight: 0,
-                outline: '3px solid transparent',
-                backgroundColor: '#ff0000',
-                mb: 1,
-                '&:hover': {
-                    outline: '3px solid #FF000033',
-                },
-                '.icon': {
-                    color: '#ffffff',
-                },
-                '&:hover .icon': {
-                    color: '#ffffff',
-                },
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "flex-start",
             }}
-            onClick={onDelete}
         >
-            Löschen
-            <Box component="span" sx={{ ml: 1 }}>
-                <X className="icon" width={16} height={16} />
-            </Box>
-        </Button>
+            <Button
+                variant="contained"
+                disabled={isDisabled}
+                sx={{
+                    lineHeight: 0,
+                    outline: '3px solid transparent',
+                    backgroundColor: '#ff0000',
+                    '&:hover': {
+                        outline: '3px solid #FF000033',
+                    },
+                    '.icon': {
+                        color: '#ffffff',
+                    },
+                    '&:hover .icon': {
+                        color: '#ffffff',
+                    },
+                }}
+                onClick={onDelete}
+            >
+                <Box
+                    component="span"
+                    sx={{
+                        display: {
+                            xs: 'none',
+                            sm: 'inline',
+                        },
+                    }}
+                >
+                    Löschen
+                </Box>
+                <Box component="span" sx={{ ml: 1 }}>
+                    <X className="icon" width={16} height={16} />
+                </Box>
+            </Button>
+        </Box>
     );
 };
 

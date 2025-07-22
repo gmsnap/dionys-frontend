@@ -5,10 +5,10 @@ import router from 'next/router';
 import { User, MapPin, Layers2 } from 'lucide-react';
 import useStore, { createDefaultEventConfigurationModel } from '@/stores/eventStore';
 import GridItem from '../../components/GridItem';
-import { formatPrice } from '@/utils/formatPrice';
 import { LocationModel } from '@/models/LocationModel';
 import { formatEventCategoriesSync } from '@/utils/formatEventCategories';
 import { allLocationsUrl } from '@/services/locationService';
+import { FormatPrice } from '@/utils/pricingManager';
 
 interface ListItem {
     icon: React.ReactNode;
@@ -93,7 +93,7 @@ const LocationGrid = ({ sx }: LocationGridProps) => {
                             id={location.id}
                             image={location.image as string}
                             title={location.title}
-                            priceTag={`Ab ${formatPrice(0)} / Tag`}
+                            priceTag={`Ab ${FormatPrice.formatPriceValue(0)} / Tag`}
                             listItems={[
                                 { icon: <MapPin />, label: location.area },
                                 { icon: <User />, label: '10-50' },

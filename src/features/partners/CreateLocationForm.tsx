@@ -4,14 +4,14 @@ import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
     Box,
-    Button,
     TextField,
     Typography,
     Grid2,
     FormControlLabel,
     Switch,
+    Theme,
+    SxProps,
 } from "@mui/material";
-import { Save } from "lucide-react";
 import { CreateLocationResponse } from "@/types/geolocation";
 import { EventCategories } from "@/constants/EventCategories";
 import useStore from '@/stores/partnerStore';
@@ -25,6 +25,8 @@ import BillingAddressFields from "./BillingAddressFields2";
 import LocationEmbedCode from "./LocationEmbedCode";
 import { WaitIcon } from '@/components/WaitIcon';
 import EventCategoriesEditor from "./EventCategoriesEditor";
+import { uploadFile } from "@/utils/fileUtil";
+import SaveButton from "@/components/SaveButton";
 
 // Validation schema
 const locationValidationSchema = yup.object().shape({
@@ -106,13 +108,19 @@ interface LocationFormProps {
     locationId: number;
     submitButtonCaption?: string;
     locationCreated?: (id: number) => void;
+    sx?: SxProps<Theme>;
 }
 
-const LocationForm = ({ locationId, submitButtonCaption, locationCreated }: LocationFormProps) => {
+const LocationForm = ({
+    locationId,
+    submitButtonCaption,
+    locationCreated,
+    sx
+}: LocationFormProps) => {
     const { authUser } = useAuthContext();
 
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [responseMessage, setResponseMessage] = useState("");
+    const [showSuccess, setShowSuccess] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isEdit, setIsEdit] = useState(false);
@@ -127,7 +135,13 @@ const LocationForm = ({ locationId, submitButtonCaption, locationCreated }: Loca
         resolver: yupResolver(locationValidationSchema) as any,
     });
 
-    const { control, handleSubmit, reset, formState: { errors }, getValues } = methods;
+    const {
+        control,
+        handleSubmit,
+        reset,
+        formState: { errors, isDirty },
+        getValues
+    } = methods;
 
     const handleToggle = (e: React.ChangeEvent<HTMLInputElement>) => {
         const toggleState = e.target.checked;
@@ -175,11 +189,9 @@ const LocationForm = ({ locationId, submitButtonCaption, locationCreated }: Loca
                 await uploadFile(responseData.uploadUrl, data.image);
             }
 
-            setResponseMessage(
-                isEdit
-                    ? "Location gespeichert!"
-                    : "Location gespeichert!"
-            );
+            setShowSuccess(true);
+
+            reset(data);
 
             const newID = responseData.location.id;
             if (locationCreated && newID) {
@@ -189,27 +201,9 @@ const LocationForm = ({ locationId, submitButtonCaption, locationCreated }: Loca
             }
         } catch (error) {
             console.error(error);
-            setResponseMessage("An error occurred while submitting the location.");
+            //setError("An error occurred while submitting the location.");
         } finally {
             setIsSubmitting(false);
-        }
-    };
-
-    const uploadFile = async (uploadUrl: string, file: File) => {
-        try {
-            const uploadResponse = await fetch(uploadUrl, {
-                method: "PUT",
-                body: file,
-                headers: {
-                    "Content-Type": file.type,
-                },
-            });
-
-            if (!uploadResponse.ok) {
-                throw new Error("Failed to upload the file.");
-            }
-        } catch (error) {
-            console.error("File upload error:", error);
         }
     };
 
@@ -222,7 +216,7 @@ const LocationForm = ({ locationId, submitButtonCaption, locationCreated }: Loca
 
         const companyId = partnerUser?.companyId;
 
-        setResponseMessage('');
+        setShowSuccess(false);
 
         if (!companyId) {
             // No user found; reset form to create mode
@@ -306,13 +300,13 @@ const LocationForm = ({ locationId, submitButtonCaption, locationCreated }: Loca
         );
     }
 
-    const controlWidth = 10;
+    const gridColumnsLarge = 10;
 
     return (
-        <>
+        <Box sx={{ ...sx }}>
             {isLoading ?
                 (<WaitIcon />) :
-                (<Box sx={{ maxWidth: 500, mx: "auto", mt: 4 }}>
+                (<Box sx={{ maxWidth: 500, width: "100%", mx: "auto", mt: 4 }}>
                     <Typography variant="h5"
                         sx={{ mb: 2, color: 'primary.main' }}>
                         Allgemein
@@ -322,7 +316,7 @@ const LocationForm = ({ locationId, submitButtonCaption, locationCreated }: Loca
                             <Grid2 container spacing={2}>
 
                                 {/* Title */}
-                                <Grid2 size={{ xs: 12, sm: controlWidth }}>
+                                <Grid2 size={{ xs: 12, sm: gridColumnsLarge }}>
                                     <Grid2 container alignItems="top">
                                         <Grid2 size={{ xs: 12, sm: 4 }}>
                                             <Typography variant="label">Name der Location</Typography>
@@ -346,7 +340,7 @@ const LocationForm = ({ locationId, submitButtonCaption, locationCreated }: Loca
                                 </Grid2>
 
                                 {/* City */}
-                                <Grid2 size={{ xs: 12, sm: controlWidth }}>
+                                <Grid2 size={{ xs: 12, sm: gridColumnsLarge }}>
                                     <Grid2 container alignItems="top">
                                         <Grid2 size={{ xs: 12, sm: 4 }}>
                                             <Typography variant="label">Stadt</Typography>
@@ -370,7 +364,7 @@ const LocationForm = ({ locationId, submitButtonCaption, locationCreated }: Loca
                                 </Grid2>
 
                                 {/* Area */}
-                                <Grid2 size={{ xs: 12, sm: controlWidth }}>
+                                <Grid2 size={{ xs: 12, sm: gridColumnsLarge }}>
                                     <Grid2 container alignItems="top">
                                         <Grid2 size={{ xs: 12, sm: 4 }}>
                                             <Typography variant="label">Lage (z.B. Stadtteil)</Typography>
@@ -394,7 +388,7 @@ const LocationForm = ({ locationId, submitButtonCaption, locationCreated }: Loca
                                 </Grid2>
 
                                 {/* Street Address */}
-                                <Grid2 size={{ xs: 12, sm: controlWidth }}>
+                                <Grid2 size={{ xs: 12, sm: gridColumnsLarge }}>
                                     <Grid2 container alignItems="top">
                                         <Grid2 size={{ xs: 12, sm: 4 }}>
                                             <Typography variant="label">Anschrift</Typography>
@@ -418,7 +412,7 @@ const LocationForm = ({ locationId, submitButtonCaption, locationCreated }: Loca
                                 </Grid2>
 
                                 {/* Postal Code */}
-                                <Grid2 size={{ xs: 12, sm: controlWidth }}>
+                                <Grid2 size={{ xs: 12, sm: gridColumnsLarge }}>
                                     <Grid2 container alignItems="flex-start">
                                         <Grid2 size={{ xs: 12, sm: 4 }} >
                                             <Typography variant="label">Postleitzahl</Typography>
@@ -441,68 +435,54 @@ const LocationForm = ({ locationId, submitButtonCaption, locationCreated }: Loca
                                     </Grid2>
                                 </Grid2>
 
-                                <Grid2 size={{ xs: 12, sm: controlWidth }} mt={2} mb={2}>
+                                <Grid2 size={{ xs: 12, sm: gridColumnsLarge }} mt={2} mb={2}>
                                     <ImageUploadField name="image" />
                                 </Grid2>
 
                                 {/* Billing Address */}
-                                <Typography variant="h5" sx={{ mt: 3, mb: 1, color: "primary.main" }}>
-                                    Rechnungsadresse
-                                </Typography>
-
-                                {/* Billing Address Toggle */}
                                 <Grid2 size={{ xs: 12 }}>
+                                    <Typography variant="h5" sx={{ mt: 1, mb: 1, color: "primary.main" }}>
+                                        Rechnungsadresse
+                                    </Typography>
+
+                                    {/* Billing Address Toggle */}
                                     <FormControlLabel
                                         control={<Switch checked={billingToggle} onChange={handleToggle} />}
-                                        label="entspricht Unternehmensadresse"
-                                    />
-                                </Grid2>
-
-                                {/* Billing Address Fields */}
-                                {!billingToggle &&
-                                    <BillingAddressFields formData={getValues()} errors={errors} />}
-
-                                {/* Submit */}
-                                <Grid2 size={{ xs: 12 }}>
-                                    <Button
-                                        variant="contained"
-                                        color="primary"
-                                        type="submit"
-                                        disabled={isSubmitting}
+                                        label={
+                                            <Box sx={{ ml: 2 }}>
+                                                entspricht Unternehmensadresse
+                                            </Box>
+                                        }
                                         sx={{
-                                            lineHeight: 0,
-                                            outline: '3px solid transparent',
-                                            mt: 4,
-                                            mb: 1,
-                                            '&:hover': {
-                                                outline: '3px solid #00000033',
+                                            flexDirection: {
+                                                xs: "column",
+                                                sm: "row"
                                             },
-                                            '.icon': {
-                                                color: '#ffffff',
-                                            },
-                                            '&:hover .icon': {
-                                                color: '#ffffff',
+                                            alignItems: {
+                                                xs: "flex-start",
+                                                sm: "center"
                                             },
                                         }}
-                                    >
-                                        {submitButtonCaption || "Speichern"}
-                                        <Box component="span" sx={{ ml: 1 }}>
-                                            <Save className="icon" width={16} height={16} />
-                                        </Box>
-                                    </Button>
+                                    />
+
+                                    {/* Billing Address Fields */}
+                                    {!billingToggle &&
+                                        <BillingAddressFields formData={getValues()} errors={errors} />}
                                 </Grid2>
 
                             </Grid2>
+                            <Box sx={{ mt: 2, mb: 6 }}>
+                                {/* Submit */}
+                                <SaveButton
+                                    title="Location &nbsp;Speichern"
+                                    isSubmitting={isSubmitting}
+                                    isDirty={isDirty}
+                                    successMessage={"Location gespeichert."}
+                                    triggerSuccess={showSuccess}
+                                    onFadeOut={() => setShowSuccess(false)} />
+                            </Box>
                         </form>
                     </FormProvider>
-
-                    {responseMessage && (
-                        <Grid2 size={{ xs: 12, sm: controlWidth }}>
-                            <Typography variant="body2" color="success">
-                                {responseMessage}
-                            </Typography>
-                        </Grid2>
-                    )}
 
                     {/* Display Event Categories */}
                     {eventCategories.length > 0 && (
@@ -570,7 +550,7 @@ const LocationForm = ({ locationId, submitButtonCaption, locationCreated }: Loca
                     }
                 </Box >)
             }
-        </>
+        </Box>
     );
 };
 
