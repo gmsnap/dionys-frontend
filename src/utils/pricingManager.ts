@@ -6,7 +6,10 @@ import {
     isBefore,
     isEqual,
     startOfDay,
-    set
+    set,
+    startOfWeek,
+    getDay,
+    subWeeks
 } from "date-fns";
 
 export interface PriceItem {
@@ -22,6 +25,9 @@ export interface PriceItem {
     pos?: number;
     items?: PriceItem[];
     source?: object;
+    minConsumptionPrice?: number;
+    minSalesPrice?: number;
+    ignore?: boolean;
 };
 
 export interface PricingSlot {
@@ -240,7 +246,7 @@ const calculateUnitQuantity = (
     }
 };
 
-const getApplicableSlots = (
+export const getApplicableSlots = (
     bookingStart: Date,
     bookingEnd: Date,
     schedules?: PricingSlot[],
@@ -248,44 +254,69 @@ const getApplicableSlots = (
     const applicableSlots: { schedule: PricingSlot, segmentStart: Date, segmentEnd: Date }[] = [];
 
     schedules?.forEach((schedule) => {
+        const doLog = false;//schedule.id === 40;
+        const scheduleStartDayOfWeek = schedule.startDayOfWeek == 6 ? 0 : schedule.startDayOfWeek + 1;
+        const scheduleEndDayOfWeek = schedule.endDayOfWeek == 6 ? 0 : schedule.endDayOfWeek + 1;
+
         // Check if schedule days overlap with booking days
-        const bookingStartDay = convertToCustomDay(bookingStart.getDay());
-        const bookingEndDay = convertToCustomDay(bookingEnd.getDay());
+        const bookingStartDayOfWeek = bookingStart.getDay();
+
+        const adjustedEnd = bookingEnd.getHours() === 0 && bookingEnd.getMinutes() === 0 &&
+            bookingEnd.getSeconds() === 0 && bookingEnd.getMilliseconds() === 0
+            ? new Date(bookingEnd.getTime() - 1)
+            : bookingEnd;
+
+        const bookingEndDayOfWeek = adjustedEnd.getDay();
 
         let daysOverlap = false;
-        if (schedule.startDayOfWeek <= schedule.endDayOfWeek) {
+        if (scheduleStartDayOfWeek <= scheduleEndDayOfWeek) {
             daysOverlap =
-                (bookingStartDay >= schedule.startDayOfWeek && bookingStartDay <= schedule.endDayOfWeek) ||
-                (bookingEndDay >= schedule.startDayOfWeek && bookingEndDay <= schedule.endDayOfWeek) ||
-                (bookingStartDay <= schedule.startDayOfWeek && bookingEndDay >= schedule.endDayOfWeek);
+                (bookingStartDayOfWeek >= scheduleStartDayOfWeek && bookingStartDayOfWeek <= scheduleEndDayOfWeek) ||
+                (bookingEndDayOfWeek >= scheduleStartDayOfWeek && bookingEndDayOfWeek <= scheduleEndDayOfWeek) ||
+                (bookingStartDayOfWeek <= scheduleStartDayOfWeek && bookingEndDayOfWeek >= scheduleEndDayOfWeek);
         } else {
             daysOverlap =
-                (bookingStartDay >= schedule.startDayOfWeek || bookingStartDay <= schedule.endDayOfWeek) ||
-                (bookingEndDay >= schedule.startDayOfWeek || bookingEndDay <= schedule.endDayOfWeek) ||
-                (bookingStartDay <= schedule.endDayOfWeek && bookingEndDay >= schedule.startDayOfWeek);
+                (bookingStartDayOfWeek >= scheduleStartDayOfWeek || bookingStartDayOfWeek <= scheduleEndDayOfWeek) ||
+                (bookingEndDayOfWeek >= scheduleStartDayOfWeek || bookingEndDayOfWeek <= scheduleEndDayOfWeek) ||
+                (bookingStartDayOfWeek <= scheduleEndDayOfWeek && bookingEndDayOfWeek >= scheduleStartDayOfWeek);
+        }
+
+        if (doLog) {
+            console.log("<--");
+            console.log("check schedule: ", schedule.id, schedule.price);
+            console.log("bookingStart", bookingStartDayOfWeek,);
+            console.log("schedule range", scheduleStartDayOfWeek, schedule.startTime, "-", scheduleEndDayOfWeek, schedule.endTime);
+            console.log("bookingEnd", bookingEndDayOfWeek);
+            console.log("daysOverlap", daysOverlap ? "true" : "false -> CANCEL");
         }
 
         if (!daysOverlap) return;
 
         // Calculate the schedule's full time range relative to bookingStart
-        const weekStart = startOfDay(bookingStart);
-        const startDayOffset = 0;//(convertToCustomDay(weekStart.getDay()) - schedule.startDayOfWeek + 7) % 7;
-        const endDayOffset = (schedule.endDayOfWeek - convertToCustomDay(weekStart.getDay()) + 7) % 7;
+        // Date of the first day of booking (00:00:00)
+        const weekStart1 = bookingStartDayOfWeek === 0 && scheduleStartDayOfWeek > 0
+            ? subWeeks(startOfWeek(bookingStart), 1)
+            : startOfWeek(bookingStart);
+        const weekStart2 = bookingEndDayOfWeek === 0 && scheduleEndDayOfWeek > 0
+            ? subWeeks(startOfWeek(bookingEnd), 1)
+            : startOfWeek(bookingEnd);
+        //const startDayOffset = (scheduleStartDayOfWeek - weekStart.getDay() + 7) % 7;
+        //const endDayOffset = (scheduleEndDayOfWeek - weekStart.getDay() + 7) % 7;
 
         // Set schedule start
-        let scheduleStart = new Date(weekStart);
-        scheduleStart.setDate(weekStart.getDate() + startDayOffset);
+        let scheduleStart = new Date(weekStart1);
+        scheduleStart.setDate(weekStart1.getDate() + scheduleStartDayOfWeek);
         const [startHour, startMinute] = schedule.startTime.split(":").map(Number);
         scheduleStart = set(scheduleStart, { hours: startHour, minutes: startMinute, seconds: 0, milliseconds: 0 });
 
         // Set schedule end
-        let scheduleEnd = new Date(weekStart);
-        scheduleEnd.setDate(weekStart.getDate() + endDayOffset);
+        let scheduleEnd = new Date(weekStart2);
+        scheduleEnd.setDate(weekStart2.getDate() + scheduleEndDayOfWeek);
         const [endHour, endMinute] = schedule.endTime.split(":").map(Number);
         scheduleEnd = set(scheduleEnd, { hours: endHour, minutes: endMinute, seconds: 0, milliseconds: 0 });
 
         // Handle overnight schedules (same day, e.g., 8 PM to 2 AM)
-        if (schedule.endTime <= schedule.startTime && schedule.startDayOfWeek === schedule.endDayOfWeek) {
+        if (schedule.endTime <= schedule.startTime && scheduleStartDayOfWeek === scheduleEndDayOfWeek) {
             scheduleEnd.setDate(scheduleEnd.getDate() + 1);
         }
 
@@ -294,26 +325,31 @@ const getApplicableSlots = (
             scheduleEnd.setDate(scheduleEnd.getDate() + 7);
         }
 
-        //console.log("startDayOffset:", startDayOffset);
-        //console.log("endDayOffset:", endDayOffset);
-        //console.log("weekStart:", weekStart);
-        //console.log("isBefore(bookingStart, scheduleStart):", isBefore(bookingStart, scheduleStart));
-
-        //console.log("<-- Schedule Details -->");
-        //console.log("Schedule ID:", (schedule as any).id);
-        //console.log("Schedule Start:", scheduleStart);
-        //console.log("Schedule End:", scheduleEnd);
-        //console.log("Booking Start:", bookingStart);
-        //console.log("Booking End:", bookingEnd);
-        //console.log("-->");
-
         // Determine the overlapping segment
         const segmentStart = isBefore(bookingStart, scheduleStart) ? scheduleStart : bookingStart;
         const segmentEnd = isAfter(bookingEnd, scheduleEnd) ? scheduleEnd : bookingEnd;
 
         // Only process if there is a valid overlap
+        //if (isBefore(segmentStart, segmentEnd) || isEqual(segmentStart, segmentEnd)) {
         if (isBefore(segmentStart, segmentEnd)) {
             applicableSlots.push({ schedule, segmentStart, segmentEnd });
+        }
+
+        if (doLog) {
+            console.log("!!scheduleStart", scheduleStart);
+            console.log("!!bookingStart", bookingStart);
+            console.log("scheduleEnd", scheduleEnd);
+            console.log("bookingEnd", bookingEnd);
+            console.log("scheduleStartDayOfWeek", scheduleStartDayOfWeek);
+            console.log("scheduleEndDayOfWeek", scheduleEndDayOfWeek);
+            console.log("weekStart1", weekStart1);
+            console.log("weekStart2", weekStart2);
+            console.log("scheduleStart", scheduleStart);
+            console.log("scheduleEnd", scheduleEnd);
+            console.log("segmentStart", segmentStart);
+            console.log("segmentEnd", segmentEnd);
+            console.log("push", schedule.id, isBefore(segmentStart, segmentEnd));
+            console.log("-->");
         }
     });
 
@@ -321,9 +357,6 @@ const getApplicableSlots = (
 };
 
 export const calculateBooking = (booking: Booking): BookingResult => {
-    const consumptionKey = "consumption";
-    const minSalesKey = "minSales";
-
     const items: PriceItem[] = [];
 
     if (!booking.date || !booking.endDate) {
@@ -343,22 +376,6 @@ export const calculateBooking = (booking: Booking): BookingResult => {
 
     // Collect all consumption, minSales
 
-    const applicableSlots: {
-        schedule: PricingSlot,
-        segmentStart: Date,
-        segmentEnd: Date
-    }[] = [];
-
-    booking.rooms?.forEach(room => {
-        const slotsOfRoom = getApplicableSlots(
-            bookingStart,
-            bookingEnd,
-            room.roomPricings);
-        slotsOfRoom.forEach(slot => {
-            applicableSlots.push(slot);
-        })
-    });
-
     let roomsPriceOtherTotal = 0;
 
     booking.rooms?.forEach(room => {
@@ -373,36 +390,12 @@ export const calculateBooking = (booking: Booking): BookingResult => {
                 basePrice: room.price,
                 basePriceType: room.priceType,
                 basePriceLabel: room.pricingLabel,
-                schedules: applicableSlots.map(slot => slot.schedule),
+                schedules: room.roomPricings,
                 excludeExclusive,
                 seatings: room.roomSeatings,
                 seating,
                 isSingleOperation: false,
             });
-
-            const spendingItems = roomResult.items.filter(
-                item => item.pricingLabel === consumptionKey || item.pricingLabel === minSalesKey
-            );
-
-            const maxSpendingItem = spendingItems.reduce<PriceItem | undefined>(
-                (max, item) => !max || item.price > max.price ? item : max,
-                undefined
-            );
-
-            // Filter items NOT in spendingItems
-            let processedItems = roomResult.items.filter(
-                item => !spendingItems.includes(item)
-            );
-
-            // Insert maxSpendingItem at the beginning (if present)
-            if (maxSpendingItem) {
-                processedItems = [maxSpendingItem, ...processedItems];
-            }
-
-            processedItems = processedItems.map(item => ({
-                ...item,
-                pos: ++pos,
-            }));
 
             items.push({
                 id: room.id,
@@ -412,14 +405,22 @@ export const calculateBooking = (booking: Booking): BookingResult => {
                 priceFormatted: FormatPrice.formatPriceValue(roomResult.total),
                 quantity: 1,
                 unitPrice: 0,
-                unitPriceFormatted: "-",
-                items: processedItems,
+                unitPriceFormatted: roomResult.totalFormatted,
+                minConsumptionPrice: roomResult.maxMinConsumption,
+                minSalesPrice: roomResult.maxMinSales,
+                pos: ++pos,
+                items: roomResult.items,
             });
 
-            roomsPriceOtherTotal += roomResult.total;
+            roomsPriceOtherTotal +=
+                roomResult.total
+                - roomResult.maxMinConsumption
+                - roomResult.maxMinSales;
+
             maxMinConsumption = Math.max(
                 maxMinConsumption,
                 roomResult.maxMinConsumption);
+
             maxMinSales = Math.max(maxMinSales, roomResult.maxMinSales);
         }
     });
@@ -478,8 +479,7 @@ export const calculateBooking = (booking: Booking): BookingResult => {
             // Distribute uncovered consumption evenly across rooms
             const consumptionItems = items
                 .filter(i => i.itemType === "room")
-                .flatMap(i => i.items)
-                .filter(i => i != undefined && i.pricingLabel === consumptionKey);
+                .filter(i => i != undefined && i.minConsumptionPrice != undefined);
 
             const diff = maxMinConsumption - bookedConsumption;
 
@@ -510,8 +510,7 @@ export const calculateBooking = (booking: Booking): BookingResult => {
         // Distribute uncovered consumption evenly across rooms
         const minSalesItems = items
             .filter(i => i.itemType === "room")
-            .flatMap(i => i.items)
-            .filter(i => i != undefined && i.pricingLabel === minSalesKey);
+            .filter(i => i != undefined && i.minSalesPrice != undefined);
 
         const diff =
             maxMinSales
@@ -572,67 +571,57 @@ const calculateSlots = (
     const items: PriceItem[] = [];
 
     let totalOtherPrice = 0;
-    let maxMinConsumption = 0;
-    let maxMinSales = 0;
 
     let totalFormatted: string | null | undefined = undefined;
 
+    const mostExpensiveConsumableSlot: { slot: PricingSlot | null, price: number } = { slot: null, price: 0 };
+
     slots.forEach(slot => {
-        const schedule = slot.schedule;
+        const schedule: PricingSlot = slot.schedule;
         const segmentStart = slot.segmentStart;
         const segmentEnd = slot.segmentEnd;
-        const price = schedule.price;
         const priceType = schedule.priceType;
         const pricingLabel = schedule.pricingLabel;
         const roomPricingType = schedule.roomPricingType
 
         // calculate segment
 
-        const p = props.excludeRoomPrice === true
+        const price = props.excludeRoomPrice === true
             ? 0
             : calculatePriceByPriceType(
-                price,
+                schedule.price,
                 priceType,
                 segmentStart,
                 segmentEnd,
                 props.persons,
             );
 
-        let otherPrice = 0;
-        let minConsumption = 0;
-        let minSales = 0;
+        const isMinConsumption = pricingLabel === PricingLabel.consumption;
+        const isMinSales = pricingLabel === PricingLabel.minSales;
+        const isOther = !isMinConsumption && !isMinSales;
 
-        switch (pricingLabel) {
-            case PricingLabel.consumption:
-                minConsumption = p;
-                break;
-            case PricingLabel.minSales:
-                minSales = p;
-                break;
-            default:
-                otherPrice = p;
-        }
+        let otherPrice = isOther ? price : 0;
 
         const itemName =
-            minConsumption > 0 || minSales > 0
-                ? minConsumption > minSales
-                    ? FormatPrice.translate("consumption", props.short)
-                    : FormatPrice.translate("minSales", props.short)
-                : FormatPrice.translate(
-                    "pricing_" + schedule.roomPricingType,
-                    props.short)
+            isMinConsumption
+                ? FormatPrice.translate("consumption", props.short)
+                : isMinSales
+                    ? FormatPrice.translate("minSales", props.short)
+                    : FormatPrice.translate(
+                        "pricing_" + schedule.roomPricingType,
+                        props.short);
 
         // Add base price item
         items.push({
             id: schedule.id,
             name: itemName,
             itemType: schedule.roomPricingType,
-            price: p,
+            price: price,
             pricingLabel,
             quantity: 1,
-            unitPrice: p,
-            priceFormatted: FormatPrice.formatPriceValue(p),
-            unitPriceFormatted: FormatPrice.formatPriceValue(p),
+            unitPrice: price,
+            priceFormatted: FormatPrice.formatPriceValue(price),
+            unitPriceFormatted: FormatPrice.formatPriceValue(price),
         });
 
         // Add exclusive price
@@ -669,8 +658,10 @@ const calculateSlots = (
             });
         }
 
-        maxMinConsumption = Math.max(minConsumption, maxMinConsumption);
-        maxMinSales = Math.max(minSales, maxMinSales);
+        if (!isOther && (mostExpensiveConsumableSlot.slot === null || price > mostExpensiveConsumableSlot.slot.price)) {
+            mostExpensiveConsumableSlot.slot = schedule as PricingSlot;
+            mostExpensiveConsumableSlot.price = price;
+        }
 
         totalOtherPrice += otherPrice;
 
@@ -681,12 +672,11 @@ const calculateSlots = (
         }
     }); // End slots loop
 
+    const consumablePrice = mostExpensiveConsumableSlot?.price ?? 0;
+
     // Add seating
 
-    const baseValueForSeating = Math.max(
-        totalOtherPrice + maxMinConsumption,
-        maxMinSales > 0 ? Math.max(maxMinSales, totalOtherPrice) : 0,
-    );
+    const baseValueForSeating = consumablePrice + totalOtherPrice;
 
     const calculatedSeating = calculateSeating({
         totalPrice: baseValueForSeating,
@@ -697,73 +687,82 @@ const calculateSlots = (
         seating: props.seating,
     });
 
+    items.push(...calculatedSeating.items);
+
+    const totalRoomPrice = baseValueForSeating + calculatedSeating.total;
+
     /*console.log(
         "totalOtherPrice", totalOtherPrice,
         "calculatedSeating", calculatedSeating.total,
         "baseValueForSeating", baseValueForSeating,
-        "maxMinConsumption", maxMinConsumption,);*/
+        "maxMinConsumption", maxMinConsumption,
+        "items", items,);*/
 
-    items.push(...calculatedSeating.items);
+    // Min spendings found
+    if (mostExpensiveConsumableSlot.slot) {
 
-    const totalOtherWithSeating = totalOtherPrice + calculatedSeating.total;
+        const consumableShare = baseValueForSeating > 0 ? consumablePrice / baseValueForSeating : 0;
+        const consumablePriceAdjusted = consumableShare * totalRoomPrice;
 
-    // Single operation -> apply min spendings directly
-    if (props.isSingleOperation) {
-        // Min spendings found
-        if (maxMinSales > 0 || maxMinConsumption > 0) {
+        items
+            .filter(item => item.pricingLabel === "consumption" || item.pricingLabel === "minSales")
+            .forEach(item => {
+                item.ignore = item.id !== mostExpensiveConsumableSlot.slot?.id;
+            })
 
-            // consumption > min sales
-            if (maxMinConsumption > maxMinSales) {
-                /*console.log("totalOtherPrice", totalOtherPrice,
-                    "totalOtherWithSeating", totalOtherWithSeating,
-                    "maxMinConsumption", maxMinConsumption,);*/
-                const displayPrice = maxMinConsumption + totalOtherWithSeating;
-                return {
-                    total: displayPrice,
-                    totalFormatted: FormatPrice.formatPriceWithCustomText(
-                        displayPrice,
-                        totalOtherWithSeating > 0
-                            ? `(inkl. ${maxMinConsumption} ${FormatPrice.translate("consumption")})`
+        // Use consumption
+        if (mostExpensiveConsumableSlot.slot.pricingLabel == "consumption") {
+            return {
+                total: totalRoomPrice,
+                totalFormatted: props.isSingleOperation
+                    ? FormatPrice.formatPriceWithCustomText(
+                        totalRoomPrice,
+                        totalRoomPrice > consumablePriceAdjusted
+                            ? `(inkl. ${FormatPrice.formatPriceValue(consumablePriceAdjusted)} ${FormatPrice.translate("consumption")})`
                             : FormatPrice.translate("consumption"),
                         true
-                    ),
-                    items,
-                    maxMinConsumption,
-                    maxMinSales,
-                    seatingTotal: calculatedSeating.total
-                };
-            }
-
-            // consumption < min sales
-            const exceedsMinSales = totalOtherWithSeating > maxMinSales;
-            return {
-                total: exceedsMinSales ? maxMinSales + totalOtherWithSeating : maxMinSales,
-                totalFormatted: FormatPrice.formatPriceWithCustomText(
-                    maxMinSales,
-                    FormatPrice.translate("minSales")
-                ),
+                    )
+                    : FormatPrice.formatPriceValue(totalRoomPrice),
                 items,
-                maxMinConsumption,
-                maxMinSales,
-                seatingTotal: calculatedSeating.total
+                maxMinConsumption: consumablePriceAdjusted,
+                maxMinSales: 0,
+                usedConsumableSlot: mostExpensiveConsumableSlot.slot?.id ?? 0,
+                seatingTotal: calculatedSeating.total,
             };
         }
+
+        // Use min sales
+        return {
+            total: totalRoomPrice,
+            totalFormatted: props.isSingleOperation
+                ? FormatPrice.formatPriceWithCustomText(
+                    consumablePriceAdjusted,
+                    FormatPrice.translate("minSales")
+                )
+                : FormatPrice.formatPriceValue(consumablePriceAdjusted),
+            items,
+            maxMinConsumption: 0,
+            maxMinSales: consumablePriceAdjusted,
+            usedConsumableSlot: mostExpensiveConsumableSlot.slot?.id ?? 0,
+            seatingTotal: calculatedSeating.total
+        };
     }
 
-    // Multipass operation or no min spendings 
+    // No min spendings 
     // -> just return collected prices
     return {
-        total: totalOtherWithSeating,
+        total: totalRoomPrice,
         totalFormatted: FormatPrice.formatPriceWithType({
-            price: totalOtherWithSeating,
+            price: totalRoomPrice,
             //pricingLabel: pricingLabel as PricingLabels,
             context: props.context,
             short: props.short === true,
             noneLabelKey: "free"
         }),
         items,
-        maxMinConsumption,
-        maxMinSales,
+        maxMinConsumption: 0,
+        maxMinSales: 0,
+        usedConsumableSlot: 0,
         seatingTotal: calculatedSeating.total
     };
 };
@@ -1042,7 +1041,7 @@ export const calculateSeating = ({
     if (seatingToApply) {
         const seatingBasePrice = seatingToApply.isAbsolute
             ? seatingToApply.price
-            : totalPrice * (seatingToApply.price / 100);
+            : totalPrice * (seatingToApply.price / 100) - totalPrice;
 
         const seatingPrice = calculatePriceByPriceType(
             seatingBasePrice,
@@ -1060,7 +1059,7 @@ export const calculateSeating = ({
         ) {
             const reconfigBasePrice = seatingToApply.reconfigIsAbsolute
                 ? seatingToApply.reconfigPrice
-                : totalPrice * (seatingToApply.reconfigPrice / 100); // or seatingPrice * (seatingToApply.reconfigPrice / 100)
+                : (totalPrice + seatingPrice) * (seatingToApply.reconfigPrice / 100);
 
             const reconfigPrice = calculatePriceByPriceType(
                 reconfigBasePrice,
@@ -1173,7 +1172,7 @@ export const doPricingSlotsOverlap = (pricing1: PricingSlot, pricing2: PricingSl
     return false;
 };
 
-export const getPricingSlotsForDates = (
+const getPricingSlotsForDates = (
     bookingStart: Date,
     bookingEnd: Date,
     schedules: PricingSlot[] // Added parameter to pass the pricing slots to check

@@ -22,7 +22,7 @@ import {
     calculateBookingPrice,
     calculateSeating,
     FormatPrice,
-    getPricingSlotsForDates
+    getApplicableSlots,
 } from '@/utils/pricingManager';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
@@ -77,13 +77,14 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
                 const seatings = location?.rooms?.find((r) => r.id === roomId)?.roomSeatings;
 
                 if (schedules && eventConfiguration.date && eventConfiguration.endDate) {
-                    const overlaps = getPricingSlotsForDates(
+                    const overlaps = getApplicableSlots(
                         new Date(eventConfiguration.date),
                         new Date(eventConfiguration.endDate),
                         schedules
                     );
 
-                    const hasExclusiveOverlap = overlaps.some(schedule => schedule.exclusiveType !== "none");
+                    const hasExclusiveOverlap = overlaps
+                        .some(overlap => overlap.schedule.exclusiveType !== "none");
                     const hasSeatings = seatings && seatings.length > 0;
 
                     if (hasExclusiveOverlap || hasSeatings) {
@@ -188,14 +189,15 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
 
         const pricings = room.roomPricings;
         const overlaps = pricings
-            ? getPricingSlotsForDates(
+            ? getApplicableSlots(
                 new Date(eventConfiguration.date),
                 new Date(eventConfiguration.endDate),
                 pricings
             )
             : [];
 
-        const hasExclusiveOption = overlaps.some(schedule => schedule.exclusiveType !== "none");
+        const hasExclusiveOption = overlaps
+            .some(overlap => overlap.schedule.exclusiveType !== "none");
         const hasSeatingOptions = room.roomSeatings && room.roomSeatings.length > 0;
 
         const bookingStart = new Date(eventConfiguration.date);
@@ -255,10 +257,16 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
                                         seating: seating.seating,
                                     }).total;
 
+                                    const formattedSeatingPrice = seatingPrice > 0
+                                        ? ` (+ ${FormatPrice.formatPriceValue(seatingPrice)})`
+                                        : seatingPrice < 0
+                                            ? ` (${FormatPrice.formatPriceValue(seatingPrice)})`
+                                            : '';
+
                                     return (
                                         <MenuItem key={seating.id} value={seating.seating}>
                                             {(seatingTypeOptions?.find(o => o.value === seating.seating)?.label ?? seating.seating) +
-                                                (seatingPrice > 0 ? ` (+ ${FormatPrice.formatPriceValue(seatingPrice)})` : '')}
+                                                formattedSeatingPrice}
                                         </MenuItem>
                                     );
                                 })}
