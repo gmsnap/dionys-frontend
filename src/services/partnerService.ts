@@ -1,4 +1,5 @@
 import { AuthUser } from "@/auth/useAuth";
+import { BillingDetails } from "@/models/BillingDetails";
 import { PartnerCompanyModel } from "@/models/PartnerCompanyModel";
 import { PartnerUserModel } from "@/models/PartnerUserModel";
 
@@ -179,8 +180,7 @@ export const updatePartnerCompany = async (
         );
 
         if (response.ok) {
-            const updatedCompany = (await response?.json())?.company as PartnerCompanyModel;
-            onSuccess?.(updatedCompany);
+            onSuccess?.(await response?.json());
         } else {
             const errorMessage = await response.text();
             console.error(errorMessage);
@@ -191,4 +191,20 @@ export const updatePartnerCompany = async (
         console.error('Error updating user:', error);
         onError?.();
     }
+};
+
+export const updateBillingDetails = async (
+    idToken: string,
+    companyId: number,
+    billingDetails: BillingDetails,
+    onSuccess?: (result: PartnerCompanyModel) => void,
+    onError?: (message?: string) => void,
+): Promise<void> => {
+    await updatePartnerCompany(
+        idToken,
+        companyId,
+        { billingDetails },
+        onSuccess,
+        onError
+    );
 };

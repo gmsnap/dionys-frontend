@@ -13,6 +13,7 @@ import router from "next/router";
 import { fetchCompanyById, updatePartnerCompany } from "@/services/partnerService";
 import BillingAddressFields from "./BillingAddressFields";
 import { useAuthContext } from "@/auth/AuthContext";
+import { PartnerCompanyModel } from "@/models/PartnerCompanyModel";
 
 interface Props {
     submitButtonCaption?: string;
@@ -32,6 +33,7 @@ const PartnerCompanyForm = ({ submitButtonCaption, onComplete }: Props) => {
         address: { city: "", streetAddress: "", postalCode: "", country: "" },
         billingAddress: { city: "", streetAddress: "", postalCode: "", country: "" },
         billingAddressId: null,
+        billingDetails: { contactPerson: "" },
     });
 
     const [billingToggle, setBillingToggle] = useState(true);
@@ -41,29 +43,20 @@ const PartnerCompanyForm = ({ submitButtonCaption, onComplete }: Props) => {
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
+        const keys = name.split(".");
 
         setFormData((prevData) => {
-            const [field, subField] = name.split(".");
+            const updatedData = { ...prevData };
+            let currentLevel: any = updatedData;
 
-            if (subField) {
-                const fieldValue = prevData[field as keyof typeof formData];
-
-                // Ensure fieldValue is an object before spreading
-                if (typeof fieldValue === "object" && fieldValue !== null) {
-                    return {
-                        ...prevData,
-                        [field]: {
-                            ...fieldValue,
-                            [subField]: value,
-                        },
-                    };
-                } else {
-                    console.error(`Expected '${field}' to be an object, but got:`, fieldValue);
-                    return prevData; // Return unchanged state if the field isn't valid
-                }
-            } else {
-                return { ...prevData, [name]: value };
+            for (let i = 0; i < keys.length - 1; i++) {
+                const key = keys[i];
+                currentLevel[key] = currentLevel[key] ?? {};
+                currentLevel = currentLevel[key];
             }
+
+            currentLevel[keys[keys.length - 1]] = value;
+            return updatedData;
         });
     };
 
@@ -137,7 +130,8 @@ const PartnerCompanyForm = ({ submitButtonCaption, onComplete }: Props) => {
                 authUser.idToken,
                 partnerUser.companyId,
                 dataToSubmit,
-                (updatedCompany) => {
+                (response: any) => {
+                    const updatedCompany = response?.company as PartnerCompanyModel;
                     if (updatedCompany) {
                         // Update partnerUser's company in the store
                         setPartnerUser({
@@ -289,6 +283,22 @@ const PartnerCompanyForm = ({ submitButtonCaption, onComplete }: Props) => {
                                 <TextField
                                     name="phoneNumber"
                                     value={formData.phoneNumber}
+                                    onChange={handleChange}
+                                    fullWidth
+                                    variant="outlined"
+                                />
+                            </Grid2>
+                        </Grid2>
+                    </Grid2>
+                    <Grid2 size={{ xs: 12 }}>
+                        <Grid2 container alignItems="top">
+                            <Grid2 size={{ xs: 12, sm: 4 }}>
+                                <Typography variant="label">Ansprechpartner</Typography>
+                            </Grid2>
+                            <Grid2 size={{ xs: 12, sm: 8 }}>
+                                <TextField
+                                    name="billingDetails.contactPerson"
+                                    value={formData.billingDetails?.contactPerson || ""}
                                     onChange={handleChange}
                                     fullWidth
                                     variant="outlined"

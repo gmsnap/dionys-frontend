@@ -28,7 +28,12 @@ const RoomGrid = ({ sx, rooms, addButton = true, selectHandler, roomsChanged }: 
                         id={room.id}
                         image={room.images[0]}
                         title={room.name}
-                        priceTag={FormatPrice.formatPriceWithType(room.price, room.priceType)}
+                        priceTag={FormatPrice.formatPriceWithType(
+                            {
+                                price: room.price,
+                                priceType: room.priceType,
+                            }
+                        )}
                         listItems={[{
                             icon: <User color={theme.palette.customColors.blue.main} />,
                             label: `${room.minPersons}-${room.maxPersons}`
@@ -86,6 +91,7 @@ const RoomGrid = ({ sx, rooms, addButton = true, selectHandler, roomsChanged }: 
                                 </Box>
                             </Button>,
                         ]}
+                        onImageClick={() => { selectHandler?.(room.id); }}
                     />
                 </Grid2>
             ))}

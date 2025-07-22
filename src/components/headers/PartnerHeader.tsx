@@ -59,6 +59,7 @@ const Header: FC = () => {
             { label: 'Food & Beverage', link: '/partner/food' },
             { label: 'Look & Feel', link: '/partner/lookandfeel' },
             { label: 'Revenue Manager', link: '/partner/revenuemanager' },
+            { label: 'PDF & E-Mail', link: '/partner/branding' },
         ],
         [],
     );
