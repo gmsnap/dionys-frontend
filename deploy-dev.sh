@@ -6,10 +6,16 @@ DISTRIBUTION_ID="E2MWRU0094HI44"
 BUILD_FOLDER="out"
 AWS_PROFILE="digital-events-ppl-dev-frontend"
 
+echo "replace .env.local"
+cp .env.development .env.local
+
 # Run the build command
 echo "Running npm build..."
 #NODE_ENV=development npm run build-dev
 npm run build
+
+echo "restore .env.local"
+cp .env.local-copy .env.local
 
 # Sync build output to S3 with specified AWS profile
 echo "Deploying to S3 bucket: $BUCKET_NAME using profile: $AWS_PROFILE"
