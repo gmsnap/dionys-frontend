@@ -121,15 +121,15 @@ const PartnerPage: NextPageWithLayout = () => {
                             >
                                 <ListItemText
                                     primary="Alle Räume"
-                                    slotProps={{
-                                        primary: {
-                                            sx: {
-                                                fontSize: { xs: '12px', sm: 'unset' },
-                                                fontWeight: roomId == null ? 800 : 'normal',
-                                                color: roomId == null
-                                                    ? theme.palette.customColors.blue.main
-                                                    : theme.palette.customColors.text.tertiary,
-                                            }
+                                    primaryTypographyProps={{
+                                        sx: {
+                                            fontSize: { xs: '12px', sm: 'unset' },
+                                            fontWeight: roomId == null
+                                                ? 800
+                                                : 'normal',
+                                            color: roomId == null
+                                                ? theme.palette.customColors.blue.main
+                                                : theme.palette.customColors.text.tertiary,
                                         }
                                     }}
                                 />
@@ -152,17 +152,15 @@ const PartnerPage: NextPageWithLayout = () => {
                                 >
                                     <ListItemText
                                         primary={room.name}
-                                        slotProps={{
-                                            primary: {
-                                                sx: {
-                                                    fontSize: { xs: '12px', sm: '16px' },
-                                                    fontWeight: roomId === room.id
-                                                        ? 800
-                                                        : 'normal',
-                                                    color: roomId === room.id
-                                                        ? theme.palette.customColors.blue.main
-                                                        : theme.palette.customColors.text.tertiary,
-                                                }
+                                        primaryTypographyProps={{
+                                            sx: {
+                                                fontSize: { xs: '12px', sm: '16px' },
+                                                fontWeight: roomId === room.id
+                                                    ? 800
+                                                    : 'normal',
+                                                color: roomId === room.id
+                                                    ? theme.palette.customColors.blue.main
+                                                    : theme.palette.customColors.text.tertiary,
                                             }
                                         }}
                                     />
