@@ -468,6 +468,14 @@ const MessagePage: NextPageWithLayout = () => {
     return `${startDay}, ${startDate}`;
   }
 
+  const getBookingDay = (conf: number) => {
+    const options = { day: '2-digit', month: '2-digit' } as const;
+    const startDate = conf
+    ? new Intl.DateTimeFormat('de-DE', options).format(new Date(conf))
+    : '?';
+  return `${startDate}`;
+  }
+
   const capitalize = (word: string) => {
     if (!word) return "";
     return word.charAt(0).toUpperCase() + word.slice(1);
@@ -592,8 +600,7 @@ const MessagePage: NextPageWithLayout = () => {
   return (
     <Box>
       <PageHeadline title='Messages' />
-      <Box sx={{
-        mt: { xs: 5, md: 10 },
+      <Box sx={{ 
         display: 'flex',
         flexDirection: 'row',
         gap: 1,
@@ -610,7 +617,7 @@ const MessagePage: NextPageWithLayout = () => {
             minWidth={350}
             borderRight="1px solid #ccc"
             pr={2}
-            sx={{ overflowY: 'auto', overflowX: 'hidden' }}
+            sx={{ overflowY: 'auto', overflowX: 'hidden', height: '100%' }}
           >
             <Box
               sx={{
@@ -637,6 +644,13 @@ const MessagePage: NextPageWithLayout = () => {
               />
 
             </Box>
+            <Box
+            sx={{
+              flexGrow: 1,
+              overflowY: 'auto',
+              overflowX: 'hidden',
+            }}
+          >
 
             {isLoading ?
             (<WaitIcon />) :
@@ -664,7 +678,7 @@ const MessagePage: NextPageWithLayout = () => {
                     }}
                   >
                     <Typography sx={{ fontSize: '14px', textAlign: 'left', margin: '0px' }} gutterBottom>
-                      {`Anfrage ${conv.id}: ${conv.location?.title}`}
+                      {`${conv.id}, ${conv.date ? getBookingDay(conv.date) : ''}, ${conv.location?.title}`}
                     </Typography>
                     <Typography sx={{ fontSize: '14px', textAlign: 'left', margin: '0px' }} gutterBottom>
                       {conv.extract ? `"${conv.extract}"` : ''}
@@ -687,6 +701,7 @@ const MessagePage: NextPageWithLayout = () => {
               ))}
             </List>)
             }
+          </Box>
           </Box>
 
           {/* Rechte Spalte: Chat */}
@@ -944,9 +959,9 @@ const MessagePage: NextPageWithLayout = () => {
                         <Typography sx={{ fontWeight: 'bold' }} gutterBottom>
                           Leistungen
                         </Typography>
-                        {currentConversation.roomExtras?.map((extra, index) => (
+                        {currentConversation.packages?.map((extra, index) => (
                           <Typography key={index}>
-                            {extra.seating}
+                            {extra.title}
                           </Typography>
                         ))}
                       </Box>
@@ -971,7 +986,7 @@ const MessagePage: NextPageWithLayout = () => {
                         <Tooltip title="PDF ansehen">
                           <IconButton
                             component="a"
-                            href="/pfad/zur/anzeige.pdf" // z.B. Viewer-URL oder direktes PDF
+                            href={`${process.env.NEXT_PUBLIC_DOCUMENTS_URL}/${currentConversation.proposalData?.document}`} // z.B. Viewer-URL oder direktes PDF
                             target="_blank"
                             rel="noopener noreferrer"
                           >
@@ -982,7 +997,7 @@ const MessagePage: NextPageWithLayout = () => {
                         <Tooltip title="PDF herunterladen">
                           <IconButton
                             component="a"
-                            href="/pfad/zum/download.pdf"
+                            href={`${process.env.NEXT_PUBLIC_DOCUMENTS_URL}/${currentConversation.proposalData?.document}`}
                             download
                           >
                             <DownloadIcon color="action" />
