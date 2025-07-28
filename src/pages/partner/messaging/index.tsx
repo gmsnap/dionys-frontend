@@ -27,7 +27,7 @@ import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import DownloadIcon from '@mui/icons-material/Download';
 import { WaitIcon } from '@/components/WaitIcon';
 import { WaitIconSmall } from '@/components/WaitIconSmall';
-import { BookingRoom, calculateBooking, calculateBookingPrice, FormatPrice } from "@/utils/pricingManager";
+import { calculateBookingPrice, FormatPrice } from "@/utils/pricingManager";
 import { RoomPricingModel, toPricingSlot } from "@/models/RoomPricingModel";
 
 import { fetchEventConfigurationsByCompany } from '@/services/eventConfigurationService';
@@ -454,7 +454,7 @@ const MessagePage: NextPageWithLayout = () => {
     }
 
     const days = Math.floor(diffMs / oneDay);
-    return `vor ${days} Tag${days !== 1 ? 'e' : ''}`;
+    return `vor ${days} Tag${days !== 1 ? 'en' : ''}`;
   }
 
   const getDayTime = (conf: number) => {
@@ -598,7 +598,9 @@ const MessagePage: NextPageWithLayout = () => {
   };
 
   return (
-    <Box>
+    <Box
+      sx={{ overflowY: 'hidden', overflowX: 'hidden', height: '100%' }}
+    >
       <PageHeadline title='Messages' />
       <Box sx={{ 
         display: 'flex',
@@ -608,8 +610,12 @@ const MessagePage: NextPageWithLayout = () => {
         mb: 5
       }}>
       </Box>
-      <Container >
-        <Box display="flex" height="65vh" mt={4}>
+      <Container 
+        sx={{ overflowY: 'hidden', overflowX: 'hidden', height: '100%' }}
+      >
+        <Box display="flex" height="65vh" mt={4}
+          sx={{ overflowY: 'auto', overflowX: 'hidden'}}
+        >
           {/* Linke Spalte: Konversationen */}
           <Box
             width={isMobile ? "100%" : "20%"}
@@ -704,8 +710,11 @@ const MessagePage: NextPageWithLayout = () => {
           </Box>
           </Box>
 
-          {/* Rechte Spalte: Chat */}
-          <Box width={isMobile ? "100%" : "50%"} pl={2} display={isMobile && (viewArea != 1) ? "none" : "flex"} flexDirection="column">
+          {/* Mittlere Spalte: Chat */}
+          <Box width={isMobile ? "100%" : "50%"} pl={2} display={isMobile && (viewArea != 1) ? "none" : "flex"} flexDirection="column" sx={{
+                      overflowY: 'hidden',
+                      overflowX: 'hidden'
+                  }}>
             {currentConversation && isMobile && (viewArea == 1) && (
               <Box width="100%" display="flex"
               sx={{
@@ -727,7 +736,28 @@ const MessagePage: NextPageWithLayout = () => {
             <Typography sx={{ fontSize: '18px', textAlign: 'center' }} variant="h4" gutterBottom>
               {currentConversation ? `${currentConversation.booker?.givenName} ${currentConversation.booker?.familyName} | Anfrage für ${currentConversation.formatedTime} | ${currentConversation.location?.title} | ${currentConversation.location?.title}` : 'Keine Konversation ausgewählt'}
             </Typography>
-            <Paper elevation={3} sx={{ flex: 1, overflow: 'auto', padding: 2 }}>
+            <Paper elevation={3} sx={{ 
+              flex: 1, 
+              overflow: 'auto', 
+              padding: 2,
+              overflowY: 'auto',
+              '&::-webkit-scrollbar': {
+                width: '8px',
+              },
+              '&::-webkit-scrollbar-track': {
+                backgroundColor: '#f0f0f0',
+                borderRadius: '4px',
+              },
+              '&::-webkit-scrollbar-thumb': {
+                backgroundColor: '#888',
+                borderRadius: '4px',
+              },
+              '&::-webkit-scrollbar-thumb:hover': {
+                backgroundColor: '#002a58',
+              },
+              scrollbarWidth: 'auto', // für Firefox
+              scrollbarColor: '#888 #f0f0f0', // für Firefox
+            }}>
             {isConvLoading && currentConversation ?
               (<WaitIcon />) :
               (<List>
@@ -835,6 +865,10 @@ const MessagePage: NextPageWithLayout = () => {
             width={isMobile ? "100%" : "30%"}
             minWidth={350}
             display={isMobile && (viewArea != 2) ? "none" : "block"}
+            sx={{
+                      overflowY: 'hidden',
+                      overflowX: 'hidden'
+                  }}
           >
             {isMobile && (viewArea == 2) && (
               <Box width="100%" display="flex"
@@ -859,7 +893,10 @@ const MessagePage: NextPageWithLayout = () => {
                 pl: 2,
                 pr: 2,
                 width: '100%',
-                bgcolor: '#f2f2f2'
+                bgcolor: '#f2f2f2',
+                overflowY: 'hidden',
+                overflowX: 'hidden',
+                height: 'calc(100vh - 64px)'
               }}>
                 <Typography gutterBottom>
                   {`Anfrage ${currentConversation.id}`}
@@ -873,14 +910,22 @@ const MessagePage: NextPageWithLayout = () => {
                 <Typography sx={{ fontSize: '18px', textAlign: 'center' }} gutterBottom>
                   {currentConversation.booker?.bookingCompany ? `${currentConversation.booker?.bookingCompany}` : ''}
                 </Typography>
-                <Box>
+                <Box
+                  sx={{
+                      overflowY: 'auto',
+                      overflowX: 'hidden',
+                      height: '500px'
+                  }}
+                >
                   <Box sx={{
                     mt: { xs: 2, md: 2 },
                     display: 'flex',
                     flexDirection: 'row',
                     gap: 1,
                     ml: 2,
-                    mb: 3
+                    mb: 3,
+                      overflowY: 'auto',
+                      overflowX: 'hidden'
                   }}>
                     <Box width="50%">
                       <Typography sx={{ fontWeight: 'bold' }} gutterBottom>
