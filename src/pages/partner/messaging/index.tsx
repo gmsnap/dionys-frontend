@@ -613,7 +613,7 @@ const MessagePage: NextPageWithLayout = () => {
       <Container 
         sx={{ overflowY: 'hidden', overflowX: 'hidden', height: '100%' }}
       >
-        <Box display="flex" height="65vh" mt={4}
+        <Box display="flex" height="calc(100vh - 300px)" mt={4}
           sx={{ overflowY: 'auto', overflowX: 'hidden'}}
         >
           {/* Linke Spalte: Konversationen */}
@@ -621,9 +621,10 @@ const MessagePage: NextPageWithLayout = () => {
             width={isMobile ? "100%" : "20%"}
             display={isMobile && (viewArea != 0) ? "none" : "block"}
             minWidth={350}
+            flexDirection="column"
             borderRight="1px solid #ccc"
             pr={2}
-            sx={{ overflowY: 'auto', overflowX: 'hidden', height: '100%' }}
+            sx={{ overflow: 'hidden', height: '100%' }}
           >
             <Box
               sx={{
@@ -635,6 +636,10 @@ const MessagePage: NextPageWithLayout = () => {
                 gap: 1,
                 ml: 0,
                 mb: 2,
+                flexGrow: 1,
+                overflowY: 'hidden',
+                overflowX: 'hidden',
+                height: '50px'
               }}
             >
               <Typography variant="h6" gutterBottom>
@@ -652,20 +657,41 @@ const MessagePage: NextPageWithLayout = () => {
             </Box>
             <Box
             sx={{
+              height: 'calc(100% - 85px)',
               flexGrow: 1,
               overflowY: 'auto',
               overflowX: 'hidden',
+              '&::-webkit-scrollbar': {
+                width: '8px',
+              },
+              '&::-webkit-scrollbar-track': {
+                backgroundColor: '#f0f0f0',
+                borderRadius: '4px',
+              },
+              '&::-webkit-scrollbar-thumb': {
+                backgroundColor: '#888',
+                borderRadius: '4px',
+              },
+              '&::-webkit-scrollbar-thumb:hover': {
+                backgroundColor: '#002a58',
+              },
+              scrollbarWidth: 'auto', // für Firefox
+              scrollbarColor: '#888 #f0f0f0', // für Firefox
             }}
           >
 
             {isLoading ?
             (<WaitIcon />) :
-            (<List>
+            (<List sx={{ 
+              overflowY: 'auto'
+            }}>
               {sortConversations(conversations, sortOption).map(conv => (
                 <ListItem
                   key={conv.id}
                   disablePadding
                   sx={{
+                    
+              
                     borderRadius: 1,
                     mb: 1,
                     bgcolor: conv.id === currentConversation?.id ? '#e6f5fa' : '#eeeeee',
@@ -864,6 +890,7 @@ const MessagePage: NextPageWithLayout = () => {
           <Box 
             width={isMobile ? "100%" : "30%"}
             minWidth={350}
+            height={"100%"}
             display={isMobile && (viewArea != 2) ? "none" : "block"}
             sx={{
                       overflowY: 'hidden',
@@ -914,7 +941,23 @@ const MessagePage: NextPageWithLayout = () => {
                   sx={{
                       overflowY: 'auto',
                       overflowX: 'hidden',
-                      height: '500px'
+                      height: 'calc(100% - 140px)',
+                      '&::-webkit-scrollbar': {
+                width: '8px',
+              },
+              '&::-webkit-scrollbar-track': {
+                backgroundColor: '#f0f0f0',
+                borderRadius: '4px',
+              },
+              '&::-webkit-scrollbar-thumb': {
+                backgroundColor: '#888',
+                borderRadius: '4px',
+              },
+              '&::-webkit-scrollbar-thumb:hover': {
+                backgroundColor: '#002a58',
+              },
+              scrollbarWidth: 'auto', // für Firefox
+              scrollbarColor: '#888 #f0f0f0', // für Firefox
                   }}
                 >
                   <Box sx={{
@@ -924,8 +967,8 @@ const MessagePage: NextPageWithLayout = () => {
                     gap: 1,
                     ml: 2,
                     mb: 3,
-                      overflowY: 'auto',
-                      overflowX: 'hidden'
+                    overflowY: 'auto',
+                    overflowX: 'hidden'
                   }}>
                     <Box width="50%">
                       <Typography sx={{ fontWeight: 'bold' }} gutterBottom>
@@ -1095,7 +1138,7 @@ const MessagePage: NextPageWithLayout = () => {
                         <Typography gutterBottom>
                           {currentConversation.booker?.bookingCompany?.streetAddress?.trim() 
                             ? currentConversation.booker.bookingCompany.streetAddress 
-                            : "Nicht angegeben"}
+                            : "Nicht angegeben sfsdfs sd sf sf fds fs fsd fsf sf sf s fs fsf sf sf sf sfsf sf sdf sdf sdfdsf dsf dsf dsfs fsfsf sf s fs fsfsd fdsf sf sf sf sdf dsf ds f"}
                             {currentConversation.booker?.bookingCompany?.city?.trim() 
                             ? currentConversation.booker.bookingCompany.city 
                             : ""}
