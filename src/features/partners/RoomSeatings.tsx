@@ -48,7 +48,7 @@ const reconfigPriceTypeOptions = [
 // Function to format price for display
 const formatPriceForDisplay = (value: number): string => {
     // Using comma as decimal separator for German formatting
-    return value.toFixed(2).replace(".", ",")
+    return value.toString().replace(".", ",")
 }
 
 // Add seating type options at the top of the file, after the reconfigPriceTypeOptions

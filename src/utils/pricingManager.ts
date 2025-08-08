@@ -484,7 +484,7 @@ export const calculateBooking = (booking: Booking): BookingResult => {
             const diff = maxMinConsumption - bookedConsumption;
 
             const share = diff > 0
-                ? Math.round(diff / consumptionItems.length)
+                ? Math.round(diff / consumptionItems.length * 100) / 100
                 : 0;
 
             consumptionItems
@@ -519,7 +519,7 @@ export const calculateBooking = (booking: Booking): BookingResult => {
             - roomsPriceOtherTotal;
 
         const share = diff > 0
-            ? Math.round(diff / minSalesItems.length)
+            ? Math.round(diff / minSalesItems.length * 100) / 100
             : 0;
 
         minSalesItems
