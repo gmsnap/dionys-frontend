@@ -484,16 +484,17 @@ export const calculateBooking = (booking: Booking): BookingResult => {
             const diff = maxMinConsumption - bookedConsumption;
 
             const share = diff > 0
-                ? Math.round(diff / consumptionItems.length)
+                ? Math.round(diff / consumptionItems.length * 100) / 100
                 : 0;
 
             consumptionItems
                 .filter(i => i != undefined)
                 .forEach(i => {
                     i.price = share;
-                    i.priceFormatted = share > 0
+                    i.priceFormatted = i.unitPriceFormatted;
+                    /*i.priceFormatted = share > 0
                         ? FormatPrice.formatPriceWithType({ price: share })
-                        : FormatPrice.formatPriceValue(share);
+                        : FormatPrice.formatPriceValue(share);*/
                 });
 
             return {
@@ -519,16 +520,17 @@ export const calculateBooking = (booking: Booking): BookingResult => {
             - roomsPriceOtherTotal;
 
         const share = diff > 0
-            ? Math.round(diff / minSalesItems.length)
+            ? Math.round(diff / minSalesItems.length * 100) / 100
             : 0;
 
         minSalesItems
             .filter(i => i != undefined)
             .forEach(i => {
                 i.price = share;
-                i.priceFormatted = share > 0
+                i.priceFormatted = i.unitPriceFormatted;
+                /*i.priceFormatted = share > 0
                     ? FormatPrice.formatPriceWithType({ price: share })
-                    : FormatPrice.formatPriceValue(share);
+                    : FormatPrice.formatPriceValue(share);*/
             });
 
         return {
