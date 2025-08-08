@@ -491,9 +491,10 @@ export const calculateBooking = (booking: Booking): BookingResult => {
                 .filter(i => i != undefined)
                 .forEach(i => {
                     i.price = share;
-                    i.priceFormatted = share > 0
+                    i.priceFormatted = i.unitPriceFormatted;
+                    /*i.priceFormatted = share > 0
                         ? FormatPrice.formatPriceWithType({ price: share })
-                        : FormatPrice.formatPriceValue(share);
+                        : FormatPrice.formatPriceValue(share);*/
                 });
 
             return {
@@ -526,9 +527,10 @@ export const calculateBooking = (booking: Booking): BookingResult => {
             .filter(i => i != undefined)
             .forEach(i => {
                 i.price = share;
-                i.priceFormatted = share > 0
+                i.priceFormatted = i.unitPriceFormatted;
+                /*i.priceFormatted = share > 0
                     ? FormatPrice.formatPriceWithType({ price: share })
-                    : FormatPrice.formatPriceValue(share);
+                    : FormatPrice.formatPriceValue(share);*/
             });
 
         return {
