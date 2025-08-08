@@ -6,6 +6,7 @@ import { BookingUserModel } from './BookingUserModel';
 import { LocationModel } from './LocationModel';
 import { Booking } from '@/utils/pricingManager';
 import { RoomExtra } from './RoomExtra';
+import { ProposalData } from './ProposalData';
 
 export interface EventConfigurationModel {
     id: number;
@@ -24,6 +25,7 @@ export interface EventConfigurationModel {
     packages: EventPackageModel[] | null;
     booker: BookingUserModel | null;
     notes: string | null;
+    proposalData?: ProposalData;
 }
 
 export const EventConfValidationSchema = yup.object().shape({

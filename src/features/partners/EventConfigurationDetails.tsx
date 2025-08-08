@@ -1,6 +1,6 @@
 import { EventConfigurationModel, toBooking } from "@/models/EventConfigurationModel";
 import { deleteEventConfiguration } from "@/services/eventConfigurationService";
-import { Box, Button, SxProps, Theme, Typography } from "@mui/material";
+import { Box, Button, Link, SxProps, Theme, Typography } from "@mui/material";
 import { X } from "lucide-react";
 import { useAuthContext } from '@/auth/AuthContext';
 import { BookingRoom, calculateBooking, calculateBookingPrice, FormatPrice } from "@/utils/pricingManager";
@@ -174,6 +174,19 @@ const EventConfigurationDetails = ({ model, onDeleted, sx }: Props) => {
                     ? FormatPrice.formatPriceValue(calculateBooking(bookingModel).total)
                     : "Nicht berechnet"}
             </Typography>
+            {model.proposalData?.document && process.env.NEXT_PUBLIC_DOCUMENTS_URL && (
+                <Typography>
+                    <Link
+                        href={`${process.env.NEXT_PUBLIC_DOCUMENTS_URL}/${model.proposalData?.document}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        underline="hover"
+                    >
+                        Download Angebot
+                    </Link>
+                </Typography>
+
+            )}
             {model.booker && (<>
                 <Typography variant="h5" sx={{ mt: 2 }}>Kontaktdaten</Typography>
                 <Typography>{model.booker.givenName} {model.booker.familyName}</Typography>
