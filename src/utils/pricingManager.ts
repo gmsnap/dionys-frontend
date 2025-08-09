@@ -717,15 +717,26 @@ const calculateSlots = (
 
     slots.filter(s => s.schedule.roomPricingType === "extra").forEach(slot => {
         const schedule = slot.schedule;
+        const segmentStart = slot.segmentStart;
+        const segmentEnd = slot.segmentEnd;
+
+        const extraPrice = calculatePriceByPriceType(
+            schedule.price,
+            schedule.priceType,
+            segmentStart,
+            segmentEnd,
+            props.persons,
+        );
+
         additionalItems.push({
             id: schedule.id,
             name: schedule.customName ?? "Aufpreis",
             itemType: schedule.roomPricingType,
-            price: schedule.price,
+            price: extraPrice,
             pricingLabel: schedule.pricingLabel,
             quantity: 1,
             unitPrice: schedule.price,
-            priceFormatted: FormatPrice.formatPriceValue(schedule.price),
+            priceFormatted: FormatPrice.formatPriceValue(extraPrice),
             unitPriceFormatted: FormatPrice.formatPriceValue(schedule.price),
         });
     });
@@ -905,7 +916,6 @@ export const calculateBookingPrice = ({
     const appliedSlots: PricingSlot[] = [];
 
     const basicRanges: { start: Date; end: Date }[] = [];
-    const extraRanges: { start: Date; end: Date; price: number }[] = [];
 
     let maxMinConsumption = 0;
     let maxMinSales = 0;
@@ -946,7 +956,7 @@ export const calculateBookingPrice = ({
     maxMinSales = Math.max(maxMinSales, slotsResult.maxMinSales);
 
     // No ranges from schedules -> return base prices
-    if (basicRanges.length === 0 && extraRanges.length === 0) {
+    if (basicRanges.length === 0) {
         if (excludeRoomPrice === true) return {
             total: 0,
             totalFormatted: FormatPrice.formatPriceValue(0),
@@ -982,7 +992,7 @@ export const calculateBookingPrice = ({
             maxMinConsumption,
             maxMinSales,
             items: baseResult.items,
-            additionalItems: baseResult.additionalItems,
+            additionalItems: slotsResult.additionalItems,
             appliedSlots
         };
     }
