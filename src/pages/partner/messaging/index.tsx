@@ -109,6 +109,8 @@ const MessagePage: NextPageWithLayout = () => {
 
   const [isDisabled, setIsDisabled] = useState(false);
 
+  const [isDragging, setIsDragging] = useState(false);
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
@@ -358,7 +360,20 @@ const MessagePage: NextPageWithLayout = () => {
       const data = await res.json() as ChatMessage[];
       if (markAsRead) conv.unreadMessages = 0;
       updateConversation(conv);
-      setMessages(data);
+
+      const firstMessage: ChatMessage = {
+        id: 0,
+        conversationId: conv.id.toString(),
+        messageId: "",
+        sender: conv.booker?.email ?? "",
+        receiver: "",
+        subject: conv.location?.title ?? "",
+        content: "Das ist eine Anfrage",
+        received: conv.createdAt ?? "",
+        attachments: [],
+      };
+
+      setMessages([firstMessage, ...data]);
       setCurrentConversation({ ...conv });
     } catch (err) {
       console.error('Fehler beim Laden der Konversation:', err);
@@ -391,11 +406,16 @@ const MessagePage: NextPageWithLayout = () => {
     }
   };
 
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files?.[0]) {
+      doFileUpload(event.target.files[0]);
+    }
+  };
+
+  const doFileUpload = async (file: File) => {
+
       setIsDisabled(true);
       setUploading(true);
-      const file = event.target.files[0];
 
       setSelectedFile((prev) => [...prev, file]);
 
@@ -426,7 +446,7 @@ const MessagePage: NextPageWithLayout = () => {
         setUploading(false);
         setIsDisabled(false);
       }
-    }
+    
   };
 
   const getRequestTime = (created: string) => {
@@ -521,6 +541,10 @@ const MessagePage: NextPageWithLayout = () => {
   });
 };
 
+const handleFileDrop = (files : File[]) => {
+  //setSelectedFile(files);
+  doFileUpload(files[0]); // hier deine Upload-Logik
+};
 
 
   const handleSend = async () => {
@@ -601,19 +625,11 @@ const MessagePage: NextPageWithLayout = () => {
     <Box
       sx={{ overflowY: 'hidden', overflowX: 'hidden', height: '100%' }}
     >
-      <PageHeadline title='Messages' />
-      <Box sx={{ 
-        display: 'flex',
-        flexDirection: 'row',
-        gap: 1,
-        ml: 2,
-        mb: 5
-      }}>
-      </Box>
+      
       <Container 
         sx={{ overflowY: 'hidden', overflowX: 'hidden', height: '100%' }}
       >
-        <Box display="flex" height="calc(100vh - 300px)" mt={4}
+        <Box display="flex" height="calc(100vh - 200px)" mt={4}
           sx={{ overflowY: 'auto', overflowX: 'hidden'}}
         >
           {/* Linke Spalte: Konversationen */}
@@ -790,7 +806,15 @@ const MessagePage: NextPageWithLayout = () => {
                 {messages.map((msg) => {
                   const isOwnMessage = msg.sender === sender;
                   return (
-                    <ListItem key={msg.id} sx={{ display: 'flex', justifyContent: 'center', px: 0 }}>
+                    <ListItem 
+                      key={msg.id} 
+                      sx={{ 
+                        display: 'flex',
+                        justifyContent: isOwnMessage ? 'flex-end' : 'flex-start',
+                        px: 0,
+                        pl: isOwnMessage ? 0 : 2, // Linker Abstand nur bei fremden Nachrichten
+                        pr: isOwnMessage ? 2 : 0, // Rechter Abstand nur bei eigenen Nachrichten
+                      }}>
                       <Avatar sx={{ width: 32, height: 32, mr: 1, visibility: isOwnMessage ? 'hidden' : 'visible' }}>
 
                         {msg.sender.charAt(0).toUpperCase()}
@@ -833,14 +857,55 @@ const MessagePage: NextPageWithLayout = () => {
             </Paper>
 
             {currentConversation && (
-              <Box mt={2}>
+              <Box 
+                mt={2}
+                position="relative" // wichtig für Overlay-Positionierung
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setIsDragging(true);
+                }}
+                onDragLeave={(e) => {
+                  e.preventDefault();
+                  setIsDragging(false);
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setIsDragging(false);
+                  if (e.dataTransfer.files.length > 0) {
+                    const files = Array.from(e.dataTransfer.files);
+                    handleFileDrop(files); // Upload sofort starten
+                  }
+                }}
+                sx={{
+                  border: isDragging ? '1px dashed' : '1px solid',
+                  borderColor: isDragging ? '#1976d2' : '#fff',
+                  borderRadius: 0,
+                  padding: 0,
+                  backgroundColor: isDragging ? '#e3f2fd' : '#ffffff',
+                  //transition: 'all 0.2s ease-in-out',
+                  //overflow: 'hidden', // verhindert, dass das Overlay rausläuft
+                }}
+              >
                 <TextField
                   label="Deine Antwort"
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
                   fullWidth
                   multiline
-                  rows={4}
+                  minRows={1}  // Startet einzeilig
+                  maxRows={5}  // Skaliert bis 5 Zeilen, danach Scrollbar
+                  inputProps={{
+                    style: {
+                      whiteSpace: 'pre-wrap',     // Umbruch bei Zeilenende oder Enter
+                      wordBreak: 'break-word',    // bricht lange Wörter nur wenn nötig
+                      overflowWrap: 'break-word', // sichert das Verhalten in allen Browsern
+                    },
+                  }}
+                  sx={{
+                    '& .MuiInputBase-input': {
+                      overflowY: 'auto', // Scrollbar wenn mehr als maxRows
+                    },
+                  }}
                 />
                 <Box mt={1} display="flex" justifyContent="space-between" alignItems="center">
                   <Button
@@ -882,6 +947,29 @@ const MessagePage: NextPageWithLayout = () => {
                         </ListItem>
                       ))}
                     </List>
+                  </Box>
+                )}
+                {/* Overlay bei Dragging */}
+                {isDragging && (
+                  <Box
+                    position="absolute"
+                    top={0}
+                    left={0}
+                    width="100%"
+                    height="100%"
+                    display="flex"
+                    justifyContent="center"
+                    alignItems="center"
+                    sx={{
+                      backgroundColor: 'rgba(25, 118, 210, 0.3)',
+                      color: '#fff',
+                      fontSize: '1.5rem',
+                      fontWeight: 'bold',
+                      zIndex: 10,
+                      pointerEvents: 'none', // Overlay blockiert keine Klicks
+                    }}
+                  >
+                    Dateien hier ablegen
                   </Box>
                 )}
               </Box>
@@ -941,7 +1029,7 @@ const MessagePage: NextPageWithLayout = () => {
                   sx={{
                       overflowY: 'auto',
                       overflowX: 'hidden',
-                      height: 'calc(100% - 140px)',
+                      height: 'calc(100% - 270px)',
                       '&::-webkit-scrollbar': {
                 width: '8px',
               },

@@ -20,7 +20,6 @@ const SortDropdown: React.FC<Props> = ({ value, onChange }) => {
       <option value={SortOption.Newest}>Neue Anfragen</option>
       <option value={SortOption.Unread}>ungelesene Nachrichten</option>
       <option value={SortOption.Unanswered}>Antwort ausstehend</option>
-      <option value={SortOption.Done}>erledigt</option>
     </select>
   );
 };
