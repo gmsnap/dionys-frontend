@@ -43,8 +43,16 @@ const PriceInput = ({ control, errors }: PriceInputProps) => {
                         value={displayValue}
                         onChange={(e) => {
                             const rawValue = e.target.value.replace(/[^\d,]/g, ""); // Allow digits and comma
-                            setInputValue(rawValue); // Update local input value
-                            field.onChange(rawValue); // Store raw string in form state
+                            setInputValue(rawValue); // Update local input value for display while typing
+
+                            // Normalize to a parseable number and store as number in form state
+                            const normalized = rawValue.replace(/\./g, "").replace(/,/, ".");
+                            const numericValue = parseFloat(normalized);
+                            if (!isNaN(numericValue)) {
+                                field.onChange(Number(numericValue.toFixed(2)));
+                            } else {
+                                field.onChange(""); // keep empty when not a number
+                            }
                         }}
                         slotProps={{
                             input: {
