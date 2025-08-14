@@ -229,9 +229,20 @@ const RoomPricings = ({ roomId }: Props) => {
             }
         }
 
+        // Normalize before sending to ensure numbers are sent
+        const normalizedForSave = {
+            ...pricing,
+            price: typeof pricing.price === "string" ? Number.parseFloat(pricing.price as unknown as string) : pricing.price,
+            exclusivePrice: pricing.exclusivePrice === null || pricing.exclusivePrice === undefined
+                ? null
+                : (typeof pricing.exclusivePrice === "string"
+                    ? Number.parseFloat(pricing.exclusivePrice as unknown as string)
+                    : pricing.exclusivePrice),
+        } as RoomPricingModel
+
         await createRoomPricing(
             authUser.idToken,
-            pricing,
+            normalizedForSave,
             (result) => {
                 if (result.id) {
                     pricing.id = result.id
@@ -669,7 +680,7 @@ const RoomPricings = ({ roomId }: Props) => {
                                                             label="Preis-Label Exklusivität"
                                                             onChange={(e) => handlePricingChange(index, "exclusivePricingLabel", e.target.value)}
                                                         >
-                                                            {AvailablePricingLabelsBasic.map((priceType) => (
+                                                            {AvailablePricingLabels.map((priceType) => (
                                                                 <MenuItem key={priceType} value={priceType as PriceTypes}>
                                                                     {FormatPrice.translatePrice(priceType as PriceTypes)}
                                                                 </MenuItem>
