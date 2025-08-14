@@ -8,7 +8,6 @@ import {
     startOfDay,
     set,
     startOfWeek,
-    getDay,
     subWeeks
 } from "date-fns";
 
@@ -204,18 +203,23 @@ const calculatePriceByPriceType = (
     endDate: Date,
     persons: number,
 ) => {
+    // Normalize price to number in case API provided a string
+    const numericPrice: number = Number(price as unknown as number);
+    if (!Number.isFinite(numericPrice)) {
+        return 0;
+    }
     const hours = differenceInMinutes(endDate, startDate) / 60;
 
     switch (priceType) {
         case "hour":
             //console.log("-- hour: ", hours, " --");
-            return hours ? hours * price : 0;
+            return hours ? hours * numericPrice : 0;
         case "person":
             //console.log("-- person --");
-            return persons * price;
+            return persons * numericPrice;
         case "personHour":
             //console.log("-- personHour --");
-            return hours * persons * price;
+            return hours * persons * numericPrice;
         case "day":
             const days = eachDayOfInterval({ start: startDate, end: endDate });
             const uniqueDays = new Set(days.map(day => startOfDay(day).toISOString()));
@@ -226,10 +230,10 @@ const calculatePriceByPriceType = (
             //console.log("D ", uniqueDays.size);
             //console.log("days --");
 
-            return uniqueDays.size ? uniqueDays.size * price : 0;
+            return uniqueDays.size ? uniqueDays.size * numericPrice : 0;
         case "once":
             //console.log("-- once --");
-            return price;
+            return numericPrice;
         case "none":
         default:
             return 0;
@@ -428,11 +432,30 @@ export const calculateBooking = (booking: Booking): BookingResult => {
                 - roomResult.maxMinConsumption
                 - roomResult.maxMinSales;
 
+            // Update global min consumption (MV)
             maxMinConsumption = Math.max(
                 maxMinConsumption,
                 roomResult.maxMinConsumption);
 
+            // Update global min sales (MU)
             maxMinSales = Math.max(maxMinSales, roomResult.maxMinSales);
+
+            // Update global min consumption (MV) and min sales (MU)
+            // by sub items
+            roomResult.items
+                ?.filter(i => i.ignore === false)
+                .forEach(item => {
+                    if (item.minConsumptionPrice) {
+                        maxMinConsumption = Math.max(
+                            maxMinConsumption,
+                            item.minConsumptionPrice!);
+                    }
+                    if (item.minSalesPrice) {
+                        maxMinSales = Math.max(
+                            maxMinSales,
+                            item.minSalesPrice!);
+                    }
+                });
 
             roomResult.additionalItems.forEach(item => {
                 roomsPriceOtherTotal += Number(item.price);
@@ -596,9 +619,15 @@ const calculateSlots = (
 
     let totalOtherPrice = 0;
 
-    let totalFormatted: string | null | undefined = undefined;
-
-    const mostExpensiveConsumableSlot: { slot: PricingSlot | null, price: number } = { slot: null, price: 0 };
+    const mostExpensiveConsumableSlot: {
+        slotId: number | null,
+        price: number,
+        pricingLabel: string,
+    } = {
+        slotId: null,
+        price: 0,
+        pricingLabel: "",
+    };
 
     slots.filter(s => s.schedule.roomPricingType === "basic").forEach(slot => {
         const schedule: PricingSlot = slot.schedule;
@@ -610,7 +639,7 @@ const calculateSlots = (
 
         // calculate segment
 
-        const price = props.excludeRoomPrice === true
+        let price: number = props.excludeRoomPrice === true
             ? 0
             : calculatePriceByPriceType(
                 schedule.price,
@@ -620,11 +649,92 @@ const calculateSlots = (
                 props.persons,
             );
 
-        const isMinConsumption = pricingLabel === PricingLabel.consumption;
-        const isMinSales = pricingLabel === PricingLabel.minSales;
-        const isOther = !isMinConsumption && !isMinSales;
+        let isMinConsumption = pricingLabel === PricingLabel.consumption;
+        let isMinSales = pricingLabel === PricingLabel.minSales;
 
-        let otherPrice = isOther ? price : 0;
+        let otherPrice = (!isMinConsumption && !isMinSales) ? price : 0;
+
+        // Handle exclusivity
+        if (
+            props.excludeExclusive !== true &&
+            roomPricingType === "basic" &&
+            schedule.exclusivePrice &&
+            schedule.exclusivePriceType
+        ) {
+            const isExclusiveMinConsumption = schedule.exclusivePricingLabel === PricingLabel.consumption;
+            const isExclusiveMinSales = schedule.exclusivePricingLabel === PricingLabel.minSales;
+            const isExclusiveFixPrice = !isExclusiveMinConsumption && !isExclusiveMinSales;
+
+            const exclusivePrice: number = calculatePriceByPriceType(
+                schedule.exclusivePrice,
+                schedule.exclusivePriceType,
+                segmentStart,
+                segmentEnd,
+                props.persons,
+            );
+
+            let useExlusivityItem = false;
+
+            if (isExclusiveFixPrice) {
+                otherPrice += exclusivePrice;
+            } else {
+                // Exclusive price is not fixed price
+                // -> modify base price by exclusive price
+                if (isExclusiveMinConsumption) {
+                    if (isMinConsumption) {
+                        // Both is min consumption -> use higher price
+                        price = Math.max(price, exclusivePrice);
+                    } else if (isMinSales) {
+                        // Exclusive is min consumption
+                        // but basic is min sales
+                        // -> only use exclusive price when greater
+                        if (exclusivePrice > price) {
+                            price = exclusivePrice;
+                            isMinConsumption = true;
+                            isMinSales = false;
+                        }
+                    } else {
+                        // Basic price is fix price
+                        // -> use basic price 
+                        // -> exclusive min consumption must be calculated from subitem later
+                        useExlusivityItem = true;
+                    }
+                } else if (isExclusiveMinSales) {
+                    if (isMinConsumption) {
+                        if (exclusivePrice > price) {
+                            price = exclusivePrice;
+                            isMinConsumption = false;
+                            isMinSales = true;
+                        }
+                    } else if (isMinSales) {
+                        price = Math.max(price, exclusivePrice);
+                    } else {
+                        price = exclusivePrice;
+                        isMinConsumption = false;
+                        isMinSales = true;
+                    }
+                }
+            }
+
+            items.push({
+                id: schedule.id,
+                name: "Exklusivität",
+                itemType: "exclusivity",
+                price: exclusivePrice,
+                quantity: 1,
+                unitPrice: schedule.exclusivePrice,
+                pricingLabel: schedule.exclusivePricingLabel,
+                priceFormatted: FormatPrice.formatPriceWithType(
+                    { price: exclusivePrice, noneLabelKey: "none" }
+                ),
+                unitPriceFormatted: FormatPrice.formatPriceWithType(
+                    { price: exclusivePrice, noneLabelKey: "none" }
+                ),
+                ignore: useExlusivityItem ? false : undefined,
+                minConsumptionPrice: isExclusiveMinConsumption ? exclusivePrice : undefined,
+                minSalesPrice: isExclusiveMinSales ? exclusivePrice : undefined,
+            });
+        }
 
         const itemName =
             isMinConsumption
@@ -648,52 +758,14 @@ const calculateSlots = (
             unitPriceFormatted: FormatPrice.formatPriceValue(price),
         });
 
-        // Add exclusive price
-        if (
-            props.excludeExclusive !== true &&
-            roomPricingType === "basic" &&
-            schedule.exclusivePrice &&
-            schedule.exclusivePriceType
-        ) {
-            const exclusive = calculatePriceByPriceType(
-                schedule.exclusivePrice,
-                schedule.exclusivePriceType,
-                segmentStart,
-                segmentEnd,
-                props.persons,
-            );
-
-            otherPrice += exclusive;
-
-            items.push({
-                id: schedule.id,
-                name: "Exklusivität",
-                itemType: "exclusivity",
-                price: exclusive,
-                quantity: 1,
-                unitPrice: schedule.exclusivePrice,
-                pricingLabel: schedule.exclusivePricingLabel,
-                priceFormatted: FormatPrice.formatPriceWithType(
-                    { price: exclusive, noneLabelKey: "none" }
-                ),
-                unitPriceFormatted: FormatPrice.formatPriceWithType(
-                    { price: exclusive, noneLabelKey: "none" }
-                ),
-            });
-        }
-
-        if (!isOther && (mostExpensiveConsumableSlot.slot === null || price > mostExpensiveConsumableSlot.slot.price)) {
-            mostExpensiveConsumableSlot.slot = schedule as PricingSlot;
+        if ((isMinConsumption || isMinSales) &&
+            (mostExpensiveConsumableSlot.slotId === null || price > mostExpensiveConsumableSlot.price)) {
+            mostExpensiveConsumableSlot.slotId = schedule.id;
+            mostExpensiveConsumableSlot.pricingLabel = isMinConsumption ? "consumption" : "minSales";
             mostExpensiveConsumableSlot.price = price;
         }
 
         totalOtherPrice += otherPrice;
-
-        if (totalFormatted === undefined) {
-            totalFormatted = totalFormatted;
-        } else {
-            totalFormatted = null;
-        }
     }); // End slots loop
 
     const consumablePrice = mostExpensiveConsumableSlot?.price ?? 0;
@@ -749,7 +821,7 @@ const calculateSlots = (
         "items", items,);*/
 
     // Min spendings found
-    if (mostExpensiveConsumableSlot.slot) {
+    if (mostExpensiveConsumableSlot.slotId) {
 
         const consumableShare = baseValueForSeating > 0 ? consumablePrice / baseValueForSeating : 0;
         const consumablePriceAdjusted = consumableShare * totalRoomPrice;
@@ -757,11 +829,11 @@ const calculateSlots = (
         items
             .filter(item => item.pricingLabel === "consumption" || item.pricingLabel === "minSales")
             .forEach(item => {
-                item.ignore = item.id !== mostExpensiveConsumableSlot.slot?.id;
-            })
+                //item.ignore = item.id !== mostExpensiveConsumableSlot.slotId;
+            });
 
         // Use consumption
-        if (mostExpensiveConsumableSlot.slot.pricingLabel == "consumption") {
+        if (mostExpensiveConsumableSlot.pricingLabel == "consumption") {
             return {
                 total: totalRoomPrice,
                 totalFormatted: props.isSingleOperation
@@ -776,7 +848,7 @@ const calculateSlots = (
                 items,
                 maxMinConsumption: consumablePriceAdjusted,
                 maxMinSales: 0,
-                usedConsumableSlot: mostExpensiveConsumableSlot.slot?.id ?? 0,
+                usedConsumableSlot: mostExpensiveConsumableSlot.slotId ?? 0,
                 seatingTotal: calculatedSeating.total,
                 additionalItems: additionalItems,
             };
@@ -794,7 +866,7 @@ const calculateSlots = (
             items,
             maxMinConsumption: 0,
             maxMinSales: consumablePriceAdjusted,
-            usedConsumableSlot: mostExpensiveConsumableSlot.slot?.id ?? 0,
+            usedConsumableSlot: mostExpensiveConsumableSlot.slotId ?? 0,
             seatingTotal: calculatedSeating.total,
             additionalItems: additionalItems,
         };
