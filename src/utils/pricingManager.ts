@@ -38,7 +38,7 @@ export interface PricingSlot {
     endTime: string;    // 'HH:MM:SS'
     price: number;
     priceType: string;
-    exclusiveType: string;
+    exclusiveType: "none" | "optional" | "mandatory";
     exclusivePriceType: string | null;
     exclusivePrice: number | null;
     pricingLabel: string;

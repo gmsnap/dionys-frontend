@@ -13,7 +13,7 @@ export interface RoomPricingModel {
     price: number;
     priceType: string;
     pricingLabel: string;
-    exclusiveType: string;
+    exclusiveType: "none" | "optional" | "mandatory";
     exclusivePriceType: string | null;
     exclusivePrice: number | null;
     exclusivePricingLabel: string;

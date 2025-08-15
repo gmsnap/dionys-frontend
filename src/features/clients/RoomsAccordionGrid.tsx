@@ -49,6 +49,7 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
     const [pendingRoomId, setPendingRoomId] = useState<number | null>(null);
     const [selectedSeating, setSelectedSeating] = useState<string>('');
     const [isExclusiveSelected, setIsExclusiveSelected] = useState(false);
+    const [lockExclusive, setLockExclusive] = useState(false);
 
     const getDefaultSeating = (seatings: RoomSeatingModel[] | undefined) => {
         if (!seatings) return '';
@@ -78,21 +79,38 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
                 const seatings = location?.rooms?.find((r) => r.id === roomId)?.roomSeatings;
 
                 if (schedules && eventConfiguration.date && eventConfiguration.endDate) {
-                    const overlaps = getApplicableSlots(
+                    const applicableSlots = getApplicableSlots(
                         new Date(eventConfiguration.date),
                         new Date(eventConfiguration.endDate),
                         schedules
                     );
 
-                    const hasExclusiveOverlap = overlaps
-                        .some(overlap => overlap.schedule.exclusiveType !== "none");
+                    const exclusiveSlots = applicableSlots
+                        .filter(slot => slot.schedule.exclusiveType !== "none");
+
+                    const hasExclusiveSlots = exclusiveSlots.length > 0;
+
+                    let selectExclusive = false;
+
+                    if (hasExclusiveSlots) {
+                        const hasOptional = exclusiveSlots
+                            .some(slot => slot.schedule.exclusiveType === "optional");
+                        setLockExclusive(!hasOptional);
+
+                        if (!hasOptional) {
+                            const allMandatory = exclusiveSlots.every(slot => slot.schedule.exclusiveType === "mandatory");
+                            setIsExclusiveSelected(allMandatory);
+                        }
+                    } else {
+                        setIsExclusiveSelected(false);
+                    }
+
                     const hasSeatings = seatings && seatings.length > 0;
 
-                    if (hasExclusiveOverlap || hasSeatings) {
+                    if (hasExclusiveSlots || hasSeatings) {
                         setPendingRoomId(roomId);
                         setDialogOpen(true);
                         setSelectedSeating(getDefaultSeating(seatings));
-                        setIsExclusiveSelected(false);
                         return;
                     }
                 }
@@ -289,7 +307,8 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
                     <FormControlLabel
                         control={
                             <Switch
-                                checked={isExclusiveSelected}
+                                checked={isExclusiveSelected === true}
+                                disabled={lockExclusive}
                                 onChange={(e) => setIsExclusiveSelected(e.target.checked)}
                             />
                         }
