@@ -90,8 +90,6 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
 
                     const hasExclusiveSlots = exclusiveSlots.length > 0;
 
-                    let selectExclusive = false;
-
                     if (hasExclusiveSlots) {
                         const hasOptional = exclusiveSlots
                             .some(slot => slot.schedule.exclusiveType === "optional");
