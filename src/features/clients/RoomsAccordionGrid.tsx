@@ -23,6 +23,7 @@ import {
     calculateSeating,
     FormatPrice,
     getApplicableSlots,
+    PricingLabels,
 } from '@/utils/pricingManager';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
@@ -230,9 +231,20 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
             isSingleOperation: true,
         });
 
-        const exclusiveText = exclusivePrice.total > 0
-            ? `+ ${FormatPrice.formatPriceValue(exclusivePrice.total)}`
-            : FormatPrice.translate("free");
+        let exclusiveText = "";
+        if (exclusivePrice.total > 0) {
+            exclusiveText = `+ ${FormatPrice.formatPriceValue(exclusivePrice.total)}`;
+        } else if (exclusivePrice.items) {
+            let sum = 0;
+            exclusivePrice.items
+                .filter(i => i.itemType === "exclusivity" && i.ignore === false)
+                .forEach(i => { sum += i.price });
+            exclusiveText = sum > 0
+                ? `+ ${FormatPrice.formatPriceValue(sum)}`
+                : FormatPrice.translate("free");
+        } else {
+            exclusiveText = FormatPrice.translate("free");
+        }
 
         return (
             <>
@@ -316,7 +328,7 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
                         const isExclusive = isRoomExclusive(room.id) === true;
                         const seating = getSeating(room.id);
 
-                        const calculatedPrice =
+                        const calculatedPriceResult =
                             eventConfiguration?.date &&
                                 eventConfiguration?.endDate &&
                                 eventConfiguration?.persons
@@ -334,8 +346,42 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
                                     context: "booker",
                                     short: true,
                                     isSingleOperation: true,
-                                }).totalFormatted
-                                : "?";
+                                })
+                                : null;
+
+                        const calculatedPrice = calculatedPriceResult?.totalFormatted ?? "?";
+
+                        // Add additional price (currently only exclusivity if calculated on top)
+                        let additionalPriceSummary = "";
+                        const additionalPrices: { priceLabel: string, price: number }[] = [];
+
+                        if (calculatedPriceResult?.items) {
+                            const priceMap = new Map<string, number>();
+
+                            calculatedPriceResult.items
+                                .filter(i => i.ignore === false &&
+                                    i.pricingLabel !== undefined &&
+                                    i.itemType == "exclusivity")
+                                .forEach(i => {
+                                    const currentSum = priceMap.get(i.pricingLabel!) || 0;
+                                    priceMap.set(i.pricingLabel!, currentSum + i.price);
+                                });
+
+                            for (const [priceLabel, price] of priceMap.entries()) {
+                                additionalPrices.push({ priceLabel, price });
+                            }
+
+                            if (additionalPrices.length > 0) {
+                                // Create concatenated string
+                                additionalPriceSummary = " + " +
+                                    additionalPrices
+                                        .map(p =>
+                                            `${FormatPrice.formatPriceValue(p.price)}` +
+                                            `${FormatPrice.translatePricingLabel(p.priceLabel as PricingLabels)}`
+                                        )
+                                        .join(", ");
+                            }
+                        }
 
                         return (
                             <Grid2
@@ -350,7 +396,7 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
                                     selectRequested={(id) => toggleRoom(id)}
                                     title={room.name}
                                     subTitle={
-                                        `${calculatedPrice}` +
+                                        `${calculatedPrice}` + `${additionalPriceSummary}` +
                                         ` | ${room.minPersons} - ${room.maxPersons} Personen | ` +
                                         [
                                             isExclusive ? 'Exklusiv' : null,
