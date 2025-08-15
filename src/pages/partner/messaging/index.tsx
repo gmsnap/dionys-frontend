@@ -361,16 +361,24 @@ const MessagePage: NextPageWithLayout = () => {
       if (markAsRead) conv.unreadMessages = 0;
       updateConversation(conv);
 
+      const attachment:AttachmentFileData = {
+        name: "Angebot " + conv.id,
+        url: process.env.NEXT_PUBLIC_DOCUMENTS_URL + "/" + (conv.proposalData?.document ?? "")
+      }; 
+
       const firstMessage: ChatMessage = {
         id: 0,
         conversationId: conv.id.toString(),
         messageId: "",
-        sender: conv.booker?.email ?? "",
-        receiver: "",
+        sender: "Booking@VillaHirschberg.onmicrosoft.com",
+        receiver: conv.booker?.email ?? "",
+        received: conv.formatedTime,
         subject: conv.location?.title ?? "",
-        content: "Das ist eine Anfrage",
-        received: conv.createdAt ?? "",
-        attachments: [],
+        content: "Hallo Christina,\nDanke für deine Anfrage bei " + conv.location?.title + 
+          ". \nAus Basis deiner ausgewählten Optionen freuen wir uns dir ein indikatives Angebot zu machen.\n" + 
+          "Bitte beachte, dass wir das Angebot noch bestätigen müssen. Weitere Wünsche und Anpassungen können wir gerne im persönlichen Gespräch durchgehen. Wir melden uns dazu zeitnah persönlich bei dir.\n" + 
+          "Sollten in der Zwischenzeit Fragen bestehen, bitte melde dich gerne direkt bei uns: \n" + partnerUser?.email + "\n" + partnerUser?.company?.phoneNumber,
+        attachments: conv.proposalData?.document ? [attachment] : [],
       };
 
       setMessages([firstMessage, ...data]);
@@ -820,8 +828,8 @@ const handleFileDrop = (files : File[]) => {
                         {msg.sender.charAt(0).toUpperCase()}
                       </Avatar>
                       <Box sx={{ maxWidth: '70%', width: '100%' }}>
-                        <Box sx={{ bgcolor: isOwnMessage ? '#edf2f5' : '#e6f5fa', borderRadius: 2, px: 2, py: 1 }}>
-                          <Typography textAlign={isOwnMessage ? 'right' : 'left'} variant="body1">{msg.content}</Typography>
+                        <Box sx={{ bgcolor: isOwnMessage ? '#edf2f5' : '#e6f5fa', borderRadius: 2, px: 2, py: 1, whiteSpace: "pre-line" }}>
+                          <Typography textAlign={isOwnMessage ? 'left' : 'left'} variant="body1">{msg.content}</Typography>
                           {/* Falls Dateianhänge vorhanden sind */}
                           {msg.attachments && msg.attachments.length > 0 && (
                             <Box mt={1}>
