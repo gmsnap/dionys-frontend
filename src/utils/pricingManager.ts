@@ -749,7 +749,7 @@ const calculateSlots = (
                 ? FormatPrice.translate("consumption", props.short)
                 : isMinSales
                     ? FormatPrice.translate("minSales", props.short)
-                    : FormatPrice.translate(
+                    : schedule.customName ?? FormatPrice.translate(
                         "pricing_" + schedule.roomPricingType,
                         props.short);
 
