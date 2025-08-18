@@ -107,6 +107,10 @@ const ProposalSummary = ({
         }
     };
 
+    const showCalculation =
+        eventConfiguration
+        && process.env.NODE_ENV === 'development';
+
     useEffect(() => {
         if (eventConfiguration?.notes) {
             reset(eventConfiguration);
@@ -145,7 +149,7 @@ const ProposalSummary = ({
                     </Typography>
                 </Typography>
 
-                {eventConfiguration && (
+                {showCalculation && (
                     <EventConfigurationDetails model={eventConfiguration} sx={{ mt: 2, ml: 0 }} />
                 )}
 

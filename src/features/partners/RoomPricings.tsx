@@ -18,14 +18,14 @@ import {
     Accordion,
     AccordionSummary,
     AccordionDetails,
-    Tooltip,
 } from "@mui/material"
-import { ChevronDown, Circle, CircleHelp, CirclePlus, Plus, Save, Trash2 } from "lucide-react"
+import { ChevronDown, Circle, CirclePlus, Plus, Save, Trash2 } from "lucide-react"
 import { useEffect, useState } from "react"
 import theme from "@/theme"
 import { useAuthContext } from "@/auth/AuthContext"
 import { AvailablePriceTypes, AvailablePricingLabels, AvailablePricingLabelsBasic, doPricingSlotsOverlap, FormatPrice, PriceTypes } from "@/utils/pricingManager"
 import { WaitIcon } from "@/components/WaitIcon"
+import TooltipInfo from "@/components/TooltipInfo"
 
 // German days of week
 const germanDaysOfWeek = [
@@ -446,28 +446,13 @@ const RoomPricings = ({ roomId }: Props) => {
                                                         flexDirection: 'row',
                                                     }}
                                                 >
-                                                    <Tooltip
-                                                        title={
-                                                            <Typography
-                                                                variant="body1"
-                                                                sx={{ whiteSpace: 'pre-line', fontSize: '13px', }}
-                                                            >
-                                                                {roomPriceTypeInfo}
-                                                            </Typography>
-                                                        }
-                                                        arrow
+                                                    <TooltipInfo 
+                                                        content={roomPriceTypeInfo}
+                                                        label="Typ"
+                                                        iconSize={24}
                                                         enterTouchDelay={0}
                                                         leaveTouchDelay={12000}
-                                                    >
-                                                        <Box sx={{ display: 'flex', flexDirection: 'row', backgroundColor: 'transparent' }}>
-                                                            <Typography sx={{ mr: 1 }}>Typ</Typography>
-                                                            <CircleHelp
-                                                                size="24"
-                                                                stroke="white"
-                                                                fill={theme.palette.customColors.blue.main}
-                                                            />
-                                                        </Box>
-                                                    </Tooltip>
+                                                    />
                                                 </InputLabel>
                                                 <Select
                                                     labelId="room-pricing-type-label"

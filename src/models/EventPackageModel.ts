@@ -8,6 +8,8 @@ export interface EventPackageModel {
     locationId: number;
     title: string;
     description: string;
+    proposalDescription?: string;
+    useProposalDescription: boolean;
     packageCategory: PackageCategories;
     price: number;
     priceType: PriceTypes;
@@ -27,6 +29,7 @@ export const createEmptyEventPackageModel = (
     locationId: locationId,
     title: '',
     description: '',
+    useProposalDescription: false,
     packageCategory: category,
     price: 0,
     priceType: 'person',
@@ -50,6 +53,14 @@ export const EventPackageValidationSchema = yup.object().shape({
         .min(1, 'Bezeichnung muss mindestens 1 Zeichen lang sein'),
     description: yup
         .string(),
+    proposalDescription: yup
+        .string()
+        .nullable()
+        .optional()
+        .max(500, 'Angebotstext darf maximal 500 Zeichen lang sein'),
+    useProposalDescription: yup
+        .boolean()
+        .default(false),
     packageCategory: yup
         .string()
         .required('Paketkategorie ist erforderlich')

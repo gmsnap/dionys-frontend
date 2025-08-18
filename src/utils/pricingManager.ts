@@ -14,6 +14,7 @@ import {
 export interface PriceItem {
     id: number;
     name: string;
+    description?: string;
     itemType: string;
     price: number;
     pricingLabel?: string;
@@ -63,6 +64,7 @@ export interface BookingSeating {
 export interface BookingRoom {
     id: number;
     name: string;
+    description?: string;
     price: number;
     priceType: string;
     pricingLabel: PricingLabels;
@@ -75,6 +77,7 @@ export interface BookingRoom {
 export interface BookingPackage {
     id: number;
     name: string;
+    description?: string;
     packageCategory: string;
     price: number;
     priceType: string;
@@ -415,6 +418,7 @@ export const calculateBooking = (booking: Booking): BookingResult => {
             items.push({
                 id: room.id,
                 name: room.name,
+                description: room.description,
                 itemType: "room",
                 price: roomResult.total,
                 priceFormatted: FormatPrice.formatPriceValue(roomResult.total),
@@ -475,35 +479,39 @@ export const calculateBooking = (booking: Booking): BookingResult => {
     // PACKAGES
 
     if (booking.packages) {
-        booking.packages.forEach(p => {
-            const packagePrice = calculatePriceByPriceType(
-                p.price,
-                p.priceType as PriceTypes,
-                bookingStart,
-                bookingEnd,
-                persons,
-            );
+        booking.packages
+            .slice() // avoid mutating original array
+            .sort((a, b) => a.packageCategory.localeCompare(b.packageCategory))
+            .forEach(p => {
+                const packagePrice = calculatePriceByPriceType(
+                    p.price,
+                    p.priceType as PriceTypes,
+                    bookingStart,
+                    bookingEnd,
+                    persons,
+                );
 
-            if (p.packageCategory === "catering") {
-                bookedConsumption += packagePrice;
-            } else if (p.packageCategory === "equipment") {
-                bookedEquipment += packagePrice;
-            }
+                if (p.packageCategory === "catering") {
+                    bookedConsumption += packagePrice;
+                } else if (p.packageCategory === "equipment") {
+                    bookedEquipment += packagePrice;
+                }
 
-            items.push({
-                id: p.id,
-                name: p.name,
-                itemType: p.packageCategory,
-                price: packagePrice,
-                priceFormatted: FormatPrice.formatPriceValue(packagePrice),
-                quantity: calculateUnitQuantity(p.priceType, persons),
-                unitPrice: p.price,
-                unitPriceFormatted: FormatPrice.formatPriceWithType(
-                    { price: p.price, noneLabelKey: "free" }
-                ),
-                pos: ++pos,
+                items.push({
+                    id: p.id,
+                    name: p.name,
+                    itemType: p.packageCategory,
+                    description: p.description,
+                    price: packagePrice,
+                    priceFormatted: FormatPrice.formatPriceValue(packagePrice),
+                    quantity: calculateUnitQuantity(p.priceType, persons),
+                    unitPrice: p.price,
+                    unitPriceFormatted: FormatPrice.formatPriceWithType(
+                        { price: p.price, noneLabelKey: "free" }
+                    ),
+                    pos: ++pos,
+                });
             });
-        });
     }
 
     console.log("-- calculateBooking");
@@ -741,7 +749,7 @@ const calculateSlots = (
                 ? FormatPrice.translate("consumption", props.short)
                 : isMinSales
                     ? FormatPrice.translate("minSales", props.short)
-                    : FormatPrice.translate(
+                    : schedule.customName ?? FormatPrice.translate(
                         "pricing_" + schedule.roomPricingType,
                         props.short);
 

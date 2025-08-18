@@ -10,7 +10,8 @@ import {
     Select,
     MenuItem,
     SxProps,
-    Theme
+    Theme,
+    Switch
 } from '@mui/material';
 import { createEmptyRoomModel, RoomModel } from '@/models/RoomModel';
 import * as yup from 'yup';
@@ -26,6 +27,7 @@ import RichTextField from '@/components/RichTextField';
 import PricingLabelField from './PricingLabelField';
 import EventCategoriesField2 from './EventCategoriesField2';
 import SaveButton from '@/components/SaveButton';
+import TooltipInfo from '@/components/TooltipInfo';
 
 // Validation schema
 const roomValidationSchema = yup.object().shape({
@@ -39,6 +41,14 @@ const roomValidationSchema = yup.object().shape({
         .min(1, 'Bezeichnung muss mindestens 1 Zeichen lang sein'),
     description: yup
         .string(),
+    proposalDescription: yup
+        .string()
+        .nullable()
+        .optional()
+        .max(500, 'Angebotstext darf maximal 500 Zeichen lang sein'),
+    useProposalDescription: yup
+        .boolean()
+        .default(false),
     size: yup
         .number()
         .nullable()
@@ -384,7 +394,12 @@ const RoomForm = ({
                         <Grid2 size={{ sm: controlWidth }}>
                             <Grid2 container alignItems="top">
                                 <Grid2 size={{ xs: labelWidth }}>
-                                    <Typography variant="label">Beschreibung</Typography>
+                                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                        <TooltipInfo
+                                            content="Diese Beschreibung wird auf deiner Website angezeigt, wenn eine Person mehr Informationen zu einem Raum haben möchte."
+                                            label="Beschreibung (Buchungstool)"
+                                        />
+                                    </Box>
                                 </Grid2>
                                 <Grid2 size={{ xs: 12, sm: 10, md: 6 }}>
                                     <Controller
@@ -402,21 +417,97 @@ const RoomForm = ({
                             </Grid2>
                         </Grid2>
 
+                        <Grid2 size={12} sx={{ mb: 2 }}>
+                            <Grid2 size={12} sx={{ mb: 0 }}>
+                                <Box sx={{ display: "flex", alignItems: "center" }}>
+                                    <Controller
+                                        name="useProposalDescription"
+                                        control={control}
+                                        render={({ field }) => (
+                                            <Switch {...field} checked={field.value || false} sx={{ ml: -1 }} />
+                                        )}
+                                    />
+                                    <Box sx={{ ml: 2 }}>
+                                        <TooltipInfo
+                                            content="Dieser Text wird im Angebot unter dem Namen der Rechnungsposition angezeigt."
+                                            label="Separater Angebotstext"
+                                        />
+                                    </Box>
+                                </Box>
+                            </Grid2>
+
+                            {/* Proposal Description */}
+                            {watch('useProposalDescription') && (
+                                <Grid2 size={{ sm: controlWidth }}>
+                                    <Grid2 container alignItems="top">
+                                        <Grid2 size={{ xs: labelWidth }}>
+                                            <Typography variant="label">Angebotstext</Typography>
+                                        </Grid2>
+                                        <Grid2 size={{ xs: 12, sm: 10, md: 6 }}>
+                                            <Controller
+                                                name="proposalDescription"
+                                                control={control}
+                                                render={({ field }) => {
+                                                    const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+                                                        if (e.key === 'Enter') {
+                                                            const currentValue = field.value || '';
+                                                            const lineCount = currentValue.split('\n').length;
+                                                            if (lineCount >= 6) {
+                                                                e.preventDefault();
+                                                            }
+                                                        }
+                                                    };
+
+                                                    const handlePaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
+                                                        const pastedText = e.clipboardData.getData('text');
+                                                        const currentValue = field.value || '';
+                                                        const currentLineCount = currentValue.split('\n').length;
+                                                        const pastedLineCount = pastedText.split('\n').length;
+                                                        
+                                                        if (currentLineCount + pastedLineCount - 1 > 5) {
+                                                            e.preventDefault();
+                                                            // Optionally, you could truncate the pasted text to fit
+                                                        }
+                                                    };
+
+                                                    return (
+                                                        <TextField
+                                                            {...field}
+                                                            name="proposalDescription"
+                                                            fullWidth
+                                                            variant="outlined"
+                                                            multiline={true}
+                                                            minRows={3}
+                                                            maxRows={6}
+                                                            error={!!errors.proposalDescription}
+                                                            helperText={errors.proposalDescription?.message}
+                                                            onKeyDown={handleKeyDown}
+                                                            onPaste={handlePaste}
+                                                            slotProps={{
+                                                                htmlInput: {
+                                                                    maxLength: 500
+                                                                }
+                                                            }}
+                                                        />
+                                                    );
+                                                }}
+                                            />
+                                        </Grid2>
+                                    </Grid2>
+                                </Grid2>
+                            )}
+                        </Grid2>
+
                         {/* Services */}
                         <Grid2 size={{ sm: controlWidth }}>
                             <Grid2 container alignItems="top">
                                 <Grid2 size={{ xs: labelWidth }}>
-                                    <Typography
-                                        variant="label"
-                                        sx={{
-                                            display: 'inline',
-                                            lineHeight: 1.2,
-                                            mb: 0,
-                                            mt: 0,
-                                        }}
-                                    >
-                                        Inklusivleistungen (optional)
-                                    </Typography>
+                                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                        <TooltipInfo
+                                            content="Inklusivleistungen erscheinen sowohl auf der Website, wenn jemand Details zu einem Raum einsehen möchte, als auch im Angebot unter der entsprechenden Rechnungsposition."
+                                            label="Inklusivleistungen (optional)"
+                                        />
+                                    </Box>
                                 </Grid2>
                                 <Grid2 size={{ xs: 12, sm: 10, md: 6 }}>
                                     <Controller
