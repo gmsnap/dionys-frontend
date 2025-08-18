@@ -56,7 +56,8 @@ export const EventPackageValidationSchema = yup.object().shape({
     proposalDescription: yup
         .string()
         .nullable()
-        .optional(),
+        .optional()
+        .max(500, 'Angebotstext darf maximal 500 Zeichen lang sein'),
     useProposalDescription: yup
         .boolean()
         .default(false),
