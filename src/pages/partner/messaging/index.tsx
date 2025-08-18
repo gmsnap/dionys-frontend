@@ -122,25 +122,30 @@ const MessagePage: NextPageWithLayout = () => {
   useEffect(() => {
   }, [conversations]);
 
+  // when loaded
   useEffect(() => {
     if (!partnerUser || !authUser) {
       return;
     }
 
+    // load conversations (bookings) from server
     const fetchConversationList = async () => {
-      await loadConversationsListFromServer(setIsLoading);
-      //await loadConversationsListFromServer();
+      // we only want the loading icon on first load
+      await loadConversationsListFromServer(setIsLoading, true);
     };
 
+    // start loading first time
     fetchConversationList();
 
+    // start interval for reloading
     const interval = setInterval(async () => {
-      await loadConversationsListFromServer(setIsLoading);
-    }, 5 * 60 * 1000);
+      await loadConversationsListFromServer(setIsLoading, false);
+    }, 1 * 20 * 1000);
 
     return () => clearInterval(interval);
   }, [partnerUser, authUser]);
 
+  // this renders the offer price for a booking
   const formatRooms = (conf: EventConfigurationModel) => {
           const rooms = conf.rooms;
   
@@ -196,19 +201,22 @@ const MessagePage: NextPageWithLayout = () => {
 
   const updateConversation = (conversation: EventConversation) => {
 
-    //console.log("update conversation");
-    if (conversation.unreadMessages > 0) {
+    // if we have unread messages (partner did not click on the conversation button)
+    if (conversation.unreadMessages > 0) 
+    {
 
       const createdDate = new Date(conversation.lastMessage).getTime();
       const currentDate = new Date().getTime();
 
-      if (currentDate - createdDate > 172800000) {
+      // when not answered within 2 days
+      if (currentDate - createdDate > 172800000) // 172.800.000
+      {
         conversation.style = { backgroundColor: 'red', borderWidth: '2px', borderColor: 'red' };
       } else {
         conversation.style = { backgroundColor: 'blue', borderWidth: '2px', borderColor: 'blue' };
       }
     } else {
-      //console.log("everything read");
+      // here we have all messages read
       if (conversation.messages) {
         //console.log("we have messages");
         conversation.style = { backgroundColor: 'white', borderWidth: '2px', borderColor: 'blue' };
@@ -220,7 +228,8 @@ const MessagePage: NextPageWithLayout = () => {
   }
 
   const loadConversationsListFromServer = async (
-    setIsLoading: (loading: boolean) => void
+    setIsLoading: (loading: boolean) => void,
+    firstLoad: boolean
   ) => {
 
     const companyId = partnerUser?.companyId;
@@ -233,7 +242,11 @@ const MessagePage: NextPageWithLayout = () => {
       return;
     }
 
-    setIsLoading(true);
+    if(firstLoad) {
+      setIsLoading(true);
+    } else {
+      console.log("only reload");
+    }
 
     const confs = await fetchEventConfigurationsByCompany(
       companyId,
@@ -274,12 +287,14 @@ const MessagePage: NextPageWithLayout = () => {
       for (const event of eventConfigurations) 
       {
 
+        let defaultExtract = "Hallo " + event.booker?.givenName + ", Danke für eine ";
+        defaultExtract = defaultExtract.length > 15 ? defaultExtract.slice(0, 15) + "…" : defaultExtract;
         // try to convert event to conversation
         const eventConversation: EventConversation = {
           ...event,
           unreadMessages: 0,
           formatedTime: "",
-          extract: "",
+          extract: defaultExtract,
           messages: 0,
           answered: false,
           lastMessage: "",
@@ -299,15 +314,17 @@ const MessagePage: NextPageWithLayout = () => {
             eventConversation.formatedTime = germanDate;
           }
 
-          if (conversation.id === event.id.toString()) {
+          if (conversation.id === event.id.toString()) 
+          {
             eventConversation.unreadMessages = conversation.unread;
 
             eventConversation.messages = conversation.entries;
 
             eventConversation.lastMessage = conversation.received;
 
-            if (conversation.extract) {
-              eventConversation.extract = conversation.extract.length > 20 ? conversation.extract.slice(0, 20) + "…" : conversation.extract; // extract
+            if (conversation.extract) 
+            {
+              eventConversation.extract = conversation.extract.length > 15 ? conversation.extract.slice(0, 15) + "…" : conversation.extract; // extract
             }
 
             updateConversation(eventConversation);
@@ -330,7 +347,8 @@ const MessagePage: NextPageWithLayout = () => {
     conv: EventConversation, 
     markAsRead: boolean,
     setIsConvLoading: (loading: boolean) => void,
-    setFocus: boolean = false
+    setFocus: boolean = false,
+    showReloading: boolean = false
   ) => {
     const companyId = partnerUser?.companyId;
     if (!companyId) {
@@ -342,7 +360,7 @@ const MessagePage: NextPageWithLayout = () => {
       return;
     }
 
-    setIsConvLoading(true);
+    if(showReloading)setIsConvLoading(true);
     if(setFocus) setViewArea(1);
 
     try {
@@ -361,28 +379,37 @@ const MessagePage: NextPageWithLayout = () => {
       if (markAsRead) conv.unreadMessages = 0;
       updateConversation(conv);
 
-      const attachment:AttachmentFileData = {
-        name: "Angebot " + conv.id,
-        url: process.env.NEXT_PUBLIC_DOCUMENTS_URL + "/" + (conv.proposalData?.document ?? "")
-      }; 
+      
 
-      const firstMessage: ChatMessage = {
-        id: 0,
-        conversationId: conv.id.toString(),
-        messageId: "",
-        sender: "Booking@VillaHirschberg.onmicrosoft.com",
-        receiver: conv.booker?.email ?? "",
-        received: conv.formatedTime,
-        subject: conv.location?.title ?? "",
-        content: "Hallo Christina,\nDanke für deine Anfrage bei " + conv.location?.title + 
-          ". \nAus Basis deiner ausgewählten Optionen freuen wir uns dir ein indikatives Angebot zu machen.\n" + 
-          "Bitte beachte, dass wir das Angebot noch bestätigen müssen. Weitere Wünsche und Anpassungen können wir gerne im persönlichen Gespräch durchgehen. Wir melden uns dazu zeitnah persönlich bei dir.\n" + 
-          "Sollten in der Zwischenzeit Fragen bestehen, bitte melde dich gerne direkt bei uns: \n" + partnerUser?.email + "\n" + partnerUser?.company?.phoneNumber,
-        attachments: conv.proposalData?.document ? [attachment] : [],
-      };
+      // only do something, when something new arrived
+      if(data.length + 1 > messages.length || currentConversation?.id !== conv.id) 
+      {
+          const attachment:AttachmentFileData = {
+          name: "Angebot " + conv.id,
+          url: process.env.NEXT_PUBLIC_DOCUMENTS_URL + "/" + (conv.proposalData?.document ?? "")
+        }; 
 
-      setMessages([firstMessage, ...data]);
-      setCurrentConversation({ ...conv });
+        const firstMessage: ChatMessage = {
+          id: 0,
+          conversationId: conv.id.toString(),
+          messageId: "",
+          sender: "Booking@VillaHirschberg.onmicrosoft.com",
+          receiver: conv.booker?.email ?? "",
+          received: conv.formatedTime,
+          subject: conv.location?.title ?? "",
+          content: "Hallo " + conv.booker?.givenName + ",\nDanke für deine Anfrage bei " + conv.location?.title + 
+            ". \nAus Basis deiner ausgewählten Optionen freuen wir uns dir ein indikatives Angebot zu machen.\n" + 
+            "Bitte beachte, dass wir das Angebot noch bestätigen müssen. Weitere Wünsche und Anpassungen können wir gerne im persönlichen Gespräch durchgehen. Wir melden uns dazu zeitnah persönlich bei dir.\n" + 
+            "Sollten in der Zwischenzeit Fragen bestehen, bitte melde dich gerne direkt bei uns: \n" + partnerUser?.email + "\n" + partnerUser?.company?.phoneNumber,
+          attachments: conv.proposalData?.document ? [attachment] : [],
+        };
+
+        setMessages([firstMessage, ...data]);
+        setCurrentConversation({ ...conv });
+      } else {
+        console.log("no new message, so nothing to do");
+      }
+
     } catch (err) {
       console.error('Fehler beim Laden der Konversation:', err);
     } finally{
@@ -516,6 +543,7 @@ const MessagePage: NextPageWithLayout = () => {
     return `${startDate}, ${startTime} - ${endTime} Uhr`;
   }
 
+  //
   const InitReload = (data: EventConversation[]) => {
     const sorted = [...data];
 
@@ -536,11 +564,15 @@ const MessagePage: NextPageWithLayout = () => {
   }
 
   setConversations(prev => {
-    if (currentEventConfiguration) {
+    // if we have a loaded running conversation
+    if (currentEventConfiguration) 
+    {
+      // we get the id of it  
       const updatedConv = sorted.find(conv => conv.id === currentEventConfiguration?.id);
+      // we found it
       if (updatedConv) {
         setCurrentConversation(updatedConv);
-        loadConversation(updatedConv, false, setIsConvLoading, false);
+        loadConversation(updatedConv, false, setIsConvLoading, false,);
       } else {
         setCurrentConversation(null);
       }
@@ -722,7 +754,7 @@ const handleFileDrop = (files : File[]) => {
                   }}
                 >
                   <ListItemButton
-                    onClick={() => loadConversation(conv, true, setIsConvLoading, true)}
+                    onClick={() => loadConversation(conv, true, setIsConvLoading, true, true)}
                     selected={conv.id === currentConversation?.id}
                     sx={{
                       width: '100%',
@@ -763,8 +795,25 @@ const handleFileDrop = (files : File[]) => {
           {/* Mittlere Spalte: Chat */}
           <Box width={isMobile ? "100%" : "50%"} pl={2} display={isMobile && (viewArea != 1) ? "none" : "flex"} flexDirection="column" sx={{
                       overflowY: 'hidden',
-                      overflowX: 'hidden'
-                  }}>
+                      overflowX: 'hidden',
+                      position: 'relative'
+                  }}
+                  onDragOver={(e) => {
+                e.preventDefault();
+                setIsDragging(true);
+              }}
+              onDragLeave={(e) => {
+                e.preventDefault();
+                setIsDragging(false);
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                setIsDragging(false);
+                if (e.dataTransfer.files.length > 0) {
+                  const files = Array.from(e.dataTransfer.files);
+                  handleFileDrop(files);
+                }
+              }}>
             {currentConversation && isMobile && (viewArea == 1) && (
               <Box width="100%" display="flex"
               sx={{
@@ -786,28 +835,32 @@ const handleFileDrop = (files : File[]) => {
             <Typography sx={{ fontSize: '18px', textAlign: 'center' }} variant="h4" gutterBottom>
               {currentConversation ? `${currentConversation.booker?.givenName} ${currentConversation.booker?.familyName} | Anfrage für ${currentConversation.formatedTime} | ${currentConversation.location?.title} | ${currentConversation.location?.title}` : 'Keine Konversation ausgewählt'}
             </Typography>
-            <Paper elevation={3} sx={{ 
-              flex: 1, 
-              overflow: 'auto', 
-              padding: 2,
-              overflowY: 'auto',
-              '&::-webkit-scrollbar': {
-                width: '8px',
-              },
-              '&::-webkit-scrollbar-track': {
-                backgroundColor: '#f0f0f0',
-                borderRadius: '4px',
-              },
-              '&::-webkit-scrollbar-thumb': {
-                backgroundColor: '#888',
-                borderRadius: '4px',
-              },
-              '&::-webkit-scrollbar-thumb:hover': {
-                backgroundColor: '#002a58',
-              },
-              scrollbarWidth: 'auto', // für Firefox
-              scrollbarColor: '#888 #f0f0f0', // für Firefox
-            }}>
+            <Paper 
+              elevation={3} 
+              sx={{ 
+                flex: 1, 
+                overflow: 'auto', 
+                padding: 2,
+                position: "relative",
+                overflowY: 'auto',
+                '&::-webkit-scrollbar': {
+                  width: '8px',
+                },
+                '&::-webkit-scrollbar-track': {
+                  backgroundColor: '#f0f0f0',
+                  borderRadius: '4px',
+                },
+                '&::-webkit-scrollbar-thumb': {
+                  backgroundColor: '#888',
+                  borderRadius: '4px',
+                },
+                '&::-webkit-scrollbar-thumb:hover': {
+                  backgroundColor: '#002a58',
+                },
+                scrollbarWidth: 'auto', // für Firefox
+                scrollbarColor: '#888 #f0f0f0', // für Firefox
+              }}
+            >
             {isConvLoading && currentConversation ?
               (<WaitIcon />) :
               (<List>
@@ -862,34 +915,45 @@ const handleFileDrop = (files : File[]) => {
               </List>
               )
             }
+            
             </Paper>
+            {/* Overlay über dem ganzen Paper */}
+            {isDragging && currentConversation && !isMobile && (
+              <Box
+                position="absolute"
+                top={28}
+                left={0}
+                width="calc(100% - 15px)" // 20px Abstand vom Rand100%"
+                height="calc(100% - 28px)" // 20px Abstand vom Rand%"
+                display="flex"
+                justifyContent="center"
+                alignItems="center"
+                sx={{
+                  backgroundColor: 'rgba(25, 118, 210, 0.3)',
+                  color: '#fff',
+                  fontSize: '1.5rem',
+                  fontWeight: 'bold',
+                  zIndex: 10,
+                  pointerEvents: 'none',
+                  marginLeft: 2,
+                  borderRadius: 1
+                }}
+              >
+                Dateien hier ablegen
+              </Box>
+            )}
 
             {currentConversation && (
               <Box 
                 mt={2}
                 position="relative" // wichtig für Overlay-Positionierung
-                onDragOver={(e) => {
-                  e.preventDefault();
-                  setIsDragging(true);
-                }}
-                onDragLeave={(e) => {
-                  e.preventDefault();
-                  setIsDragging(false);
-                }}
-                onDrop={(e) => {
-                  e.preventDefault();
-                  setIsDragging(false);
-                  if (e.dataTransfer.files.length > 0) {
-                    const files = Array.from(e.dataTransfer.files);
-                    handleFileDrop(files); // Upload sofort starten
-                  }
-                }}
+
                 sx={{
-                  border: isDragging ? '1px dashed' : '1px solid',
-                  borderColor: isDragging ? '#1976d2' : '#fff',
+                  border: '1px solid',
+                  borderColor: '#fff',
                   borderRadius: 0,
                   padding: 0,
-                  backgroundColor: isDragging ? '#e3f2fd' : '#ffffff',
+                  backgroundColor: '#ffffff',
                   //transition: 'all 0.2s ease-in-out',
                   //overflow: 'hidden', // verhindert, dass das Overlay rausläuft
                 }}
@@ -957,32 +1021,10 @@ const handleFileDrop = (files : File[]) => {
                     </List>
                   </Box>
                 )}
-                {/* Overlay bei Dragging */}
-                {isDragging && (
-                  <Box
-                    position="absolute"
-                    top={0}
-                    left={0}
-                    width="100%"
-                    height="100%"
-                    display="flex"
-                    justifyContent="center"
-                    alignItems="center"
-                    sx={{
-                      backgroundColor: 'rgba(25, 118, 210, 0.3)',
-                      color: '#fff',
-                      fontSize: '1.5rem',
-                      fontWeight: 'bold',
-                      zIndex: 10,
-                      pointerEvents: 'none', // Overlay blockiert keine Klicks
-                    }}
-                  >
-                    Dateien hier ablegen
-                  </Box>
-                )}
               </Box>
             )}
           </Box>
+          {/* rechte Spalte */}
           <Box 
             width={isMobile ? "100%" : "30%"}
             minWidth={350}
@@ -1234,7 +1276,7 @@ const handleFileDrop = (files : File[]) => {
                         <Typography gutterBottom>
                           {currentConversation.booker?.bookingCompany?.streetAddress?.trim() 
                             ? currentConversation.booker.bookingCompany.streetAddress 
-                            : "Nicht angegeben sfsdfs sd sf sf fds fs fsd fsf sf sf s fs fsf sf sf sf sfsf sf sdf sdf sdfdsf dsf dsf dsfs fsfsf sf s fs fsfsd fdsf sf sf sf sdf dsf ds f"}
+                            : "Nicht angegeben"}
                             {currentConversation.booker?.bookingCompany?.city?.trim() 
                             ? currentConversation.booker.bookingCompany.city 
                             : ""}
