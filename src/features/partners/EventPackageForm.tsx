@@ -458,17 +458,50 @@ const EventPackageForm = ({
                                             <Controller
                                                 name="proposalDescription"
                                                 control={control}
-                                                render={({ field }) => (
-                                                    <TextField
-                                                        {...field}
-                                                        name="proposalDescription"
-                                                        fullWidth
-                                                        variant="outlined"
-                                                        multiline={true}
-                                                        minRows={3}
-                                                        maxRows={6}
-                                                    />
-                                                )}
+                                                render={({ field }) => {
+                                                    const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+                                                        if (e.key === 'Enter') {
+                                                            const currentValue = field.value || '';
+                                                            const lineCount = currentValue.split('\n').length;
+                                                            if (lineCount >= 6) {
+                                                                e.preventDefault();
+                                                            }
+                                                        }
+                                                    };
+
+                                                    const handlePaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
+                                                        const pastedText = e.clipboardData.getData('text');
+                                                        const currentValue = field.value || '';
+                                                        const currentLineCount = currentValue.split('\n').length;
+                                                        const pastedLineCount = pastedText.split('\n').length;
+                                                        
+                                                        if (currentLineCount + pastedLineCount - 1 > 5) {
+                                                            e.preventDefault();
+                                                            // Optionally, you could truncate the pasted text to fit
+                                                        }
+                                                    };
+
+                                                    return (
+                                                        <TextField
+                                                            {...field}
+                                                            name="proposalDescription"
+                                                            fullWidth
+                                                            variant="outlined"
+                                                            multiline={true}
+                                                            minRows={3}
+                                                            maxRows={6}
+                                                            error={!!errors.proposalDescription}
+                                                            helperText={errors.proposalDescription?.message}
+                                                            onKeyDown={handleKeyDown}
+                                                            onPaste={handlePaste}
+                                                            slotProps={{
+                                                                htmlInput: {
+                                                                    maxLength: 500
+                                                                }
+                                                            }}
+                                                        />
+                                                    );
+                                                }}
                                             />
                                         </Grid2>
                                     </Grid2>
