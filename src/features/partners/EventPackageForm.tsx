@@ -16,6 +16,7 @@ import {
     ListItemText,
     useMediaQuery,
     useTheme,
+    Switch,
 } from "@mui/material"
 import { yupResolver } from "@hookform/resolvers/yup"
 import ImageUploadForm from "@/features/partners/ImageUploadForm"
@@ -39,6 +40,7 @@ import EventCategoriesField2 from "./EventCategoriesField2"
 import { RoomModel } from "@/models/RoomModel"
 import { AvailablePricingLabelsBasic } from "@/utils/pricingManager"
 import SaveButton from "@/components/SaveButton"
+import TooltipInfo from '@/components/TooltipInfo'
 
 const controlWidth = 7
 const labelWidth = 4
@@ -407,9 +409,14 @@ const EventPackageForm = ({
 
                         {/* Description */}
                         <Grid2 container alignItems="top" rowSpacing={0} sx={{ width: "100%" }}>
-                            <Grid2 size={{ xs: labelWidth }}>
-                                <Typography variant="label">Beschreibung</Typography>
-                            </Grid2>
+                        <Grid2 size={{ xs: labelWidth }}>
+                                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                        <TooltipInfo
+                                            content="Diese Beschreibung wird auf deiner Website angezeigt, wenn eine Person mehr Informationen zu einem Paket haben möchte."
+                                            label="Beschreibung (Buchungstool)"
+                                        />
+                                    </Box>
+                                </Grid2>
                             <Grid2 size={{ xs: 12, sm: 10, md: 6 }}>
                                 <Controller
                                     name="description"
@@ -419,6 +426,54 @@ const EventPackageForm = ({
                                     )}
                                 />
                             </Grid2>
+                        </Grid2>
+
+                        <Grid2 size={12} sx={{ mb: 2 }}>
+                            <Grid2 size={12} sx={{ mb: 0 }}>
+                                <Box sx={{ display: "flex", alignItems: "center" }}>
+                                    <Controller
+                                        name="useProposalDescription"
+                                        control={control}
+                                        render={({ field }) => (
+                                            <Switch {...field} checked={field.value || false} sx={{ ml: -1 }} />
+                                        )}
+                                    />
+                                    <Box sx={{ ml: 2 }}>
+                                        <TooltipInfo
+                                            content="Dieser Text wird im Angebot unter dem Namen der Rechnungsposition angezeigt."
+                                            label="Separater Angebotstext"
+                                        />
+                                    </Box>
+                                </Box>
+                            </Grid2>
+
+                            {/* Proposal Description */}
+                            {watch('useProposalDescription') && (
+                                <Grid2 size={{ sm: controlWidth }}>
+                                    <Grid2 container alignItems="top">
+                                        <Grid2 size={{ xs: labelWidth }}>
+                                            <Typography variant="label">Angebotstext</Typography>
+                                        </Grid2>
+                                        <Grid2 size={{ xs: 12, sm: 10, md: 6 }}>
+                                            <Controller
+                                                name="proposalDescription"
+                                                control={control}
+                                                render={({ field }) => (
+                                                    <TextField
+                                                        {...field}
+                                                        name="proposalDescription"
+                                                        fullWidth
+                                                        variant="outlined"
+                                                        multiline={true}
+                                                        minRows={3}
+                                                        maxRows={6}
+                                                    />
+                                                )}
+                                            />
+                                        </Grid2>
+                                    </Grid2>
+                                </Grid2>
+                            )}
                         </Grid2>
 
                         {/* Package Category */}
