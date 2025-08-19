@@ -264,6 +264,84 @@ const calculateUnitQuantity = (
     }
 };
 
+/**
+ * Completes the coverage of a booking period by adding filling slots for any gaps
+ * in the provided applicable slots. This ensures the entire time range from 
+ * bookingStart to bookingEnd is covered.
+ * 
+ * @param applicableSlots - Array of slots from getApplicableSlots()
+ * @param bookingStart - Start of booking period
+ * @param bookingEnd - End of booking period  
+ * @param basePrice - Base price for filling slots
+ * @param basePriceType - Price type for filling slots (e.g., "hour", "day", "once")
+ * @param basePriceLabel - Optional pricing label for filling slots (e.g., "exact", "from")
+ * @returns Combined array of original slots plus filling slots for gaps
+ */
+export const completeSlots = (
+    applicableSlots: { schedule: PricingSlot, segmentStart: Date, segmentEnd: Date }[],
+    bookingStart: Date,
+    bookingEnd: Date,
+    basePrice: number,
+    basePriceType: string,
+    basePriceLabel?: string,
+): { schedule: PricingSlot, segmentStart: Date, segmentEnd: Date }[] => {
+    const completedSlots = [...applicableSlots];
+
+    // Filter only basic room pricing type slots for gap detection
+    const basicSlots = applicableSlots.filter(slot => slot.schedule.roomPricingType === "basic");
+
+    // Sort basic slots by start time
+    const basicRanges = basicSlots.map(slot => ({
+        start: slot.segmentStart,
+        end: slot.segmentEnd
+    })).sort((a, b) => a.start.getTime() - b.start.getTime());
+
+    // Merge overlapping ranges
+    const mergedBasicRanges: { start: Date; end: Date }[] = [];
+    for (const range of basicRanges) {
+        if (mergedBasicRanges.length === 0) {
+            mergedBasicRanges.push(range);
+            continue;
+        }
+
+        const lastRange = mergedBasicRanges[mergedBasicRanges.length - 1];
+
+        if (isBefore(lastRange.end, range.start)) {
+            mergedBasicRanges.push(range);
+        } else if (isBefore(lastRange.end, range.end)) {
+            lastRange.end = range.end;
+        }
+    }
+
+    // Find gaps and create filling slots
+    let unaccountedStart = bookingStart;
+
+    // Check for gaps before and between ranges
+    for (const range of mergedBasicRanges) {
+        if (isBefore(unaccountedStart, range.start)) {
+            // Gap found - create filling slot
+            completedSlots.push({
+                schedule: createDefaultSlot(basePrice, basePriceType, basePriceLabel),
+                segmentStart: unaccountedStart,
+                segmentEnd: range.start,
+            });
+        }
+
+        unaccountedStart = new Date(Math.max(unaccountedStart.getTime(), range.end.getTime()));
+    }
+
+    // Check for remaining time period after all ranges
+    if (isBefore(unaccountedStart, bookingEnd)) {
+        completedSlots.push({
+            schedule: createDefaultSlot(basePrice, basePriceType, basePriceLabel),
+            segmentStart: unaccountedStart,
+            segmentEnd: bookingEnd,
+        });
+    }
+
+    return completedSlots;
+};
+
 export const getApplicableSlots = (
     bookingStart: Date,
     bookingEnd: Date,
@@ -995,19 +1073,28 @@ export const calculateBookingPrice = ({
     const additionalItems: PriceItem[] = [];
     const appliedSlots: PricingSlot[] = [];
 
-    const basicRanges: { start: Date; end: Date }[] = [];
-
     let maxMinConsumption = 0;
     let maxMinSales = 0;
 
-    const applicableSlots = getApplicableSlots(bookingStart, bookingEnd, schedules);
+    const slotsFromSchedules = getApplicableSlots(bookingStart, bookingEnd, schedules);
+
+    // Get complete coverage of the booking period
+    const completedSlots = completeSlots(
+        slotsFromSchedules,
+        bookingStart,
+        bookingEnd,
+        basePrice,
+        basePriceType,
+        basePriceLabel
+    );
 
     let totalFormatted: string | null | undefined = undefined;
 
-    //console.log("applicableSlots", basePrice, applicableSlots);
+    console.log("applicableSlots: ", basePrice, slotsFromSchedules);
+    console.log("completedSlots: ", basePrice, completedSlots);
 
     const slotsResult = calculateSlots(
-        applicableSlots,
+        completedSlots,
         {
             bookingStart,
             bookingEnd,
@@ -1022,136 +1109,12 @@ export const calculateBookingPrice = ({
         }
     );
 
-    applicableSlots.forEach(slot => {
-        if (slot.schedule.roomPricingType === "basic") {
-            basicRanges.push({ start: slot.segmentStart, end: slot.segmentEnd });
-        }
-    });
-
     totalPrice += slotsResult.total;
     items.push(...slotsResult.items);
     additionalItems.push(...slotsResult.additionalItems);
     totalFormatted = slotsResult.totalFormatted;
     maxMinConsumption = Math.max(maxMinConsumption, slotsResult.maxMinConsumption);
     maxMinSales = Math.max(maxMinSales, slotsResult.maxMinSales);
-
-    // No ranges from schedules -> return base prices
-    if (basicRanges.length === 0) {
-        if (excludeRoomPrice === true) return {
-            total: 0,
-            totalFormatted: FormatPrice.formatPriceValue(0),
-            maxMinConsumption,
-            maxMinSales,
-            items,
-            additionalItems,
-            appliedSlots
-        };
-
-        const baseResult = calculateDefaultSlot({
-            bookingStart,
-            bookingEnd,
-            persons,
-            basePrice,
-            basePriceType,
-            basePriceLabel,
-            excludeRoomPrice,
-            excludeExclusive,
-            seating,
-            seatings,
-            context,
-            short,
-            isSingleOperation
-        });
-
-        maxMinConsumption = Math.max(maxMinConsumption, baseResult.maxMinConsumption);
-        maxMinSales = Math.max(maxMinSales, baseResult.maxMinSales);
-
-        return {
-            total: baseResult.total,
-            totalFormatted: baseResult.totalFormatted,
-            maxMinConsumption,
-            maxMinSales,
-            items: baseResult.items,
-            additionalItems: slotsResult.additionalItems,
-            appliedSlots
-        };
-    }
-
-    // Sort and merge only basic ranges
-    basicRanges.sort((a, b) => a.start.getTime() - b.start.getTime());
-
-    const mergedBasicRanges: { start: Date; end: Date }[] = [];
-
-    for (const range of basicRanges) {
-        if (mergedBasicRanges.length === 0) {
-            mergedBasicRanges.push(range);
-            continue;
-        }
-
-        const lastRange = mergedBasicRanges[mergedBasicRanges.length - 1];
-
-        if (isBefore(lastRange.end, range.start)) {
-            mergedBasicRanges.push(range);
-        } else if (isBefore(lastRange.end, range.end)) {
-            lastRange.end = range.end;
-        }
-    }
-
-    if (excludeRoomPrice !== true) {
-        let unaccountedStart = bookingStart;
-
-        const uncoveredSlots = [];
-
-        // Uncovered time periods before and between ranges
-        for (const range of mergedBasicRanges) {
-            if (isBefore(unaccountedStart, range.start)) {
-                console.log("UNCOVERED RANGES BEFORE!!!", basePrice);
-
-                uncoveredSlots.push({
-                    schedule: createDefaultSlot(basePrice, basePriceType, basePriceLabel),
-                    segmentStart: unaccountedStart,
-                    segmentEnd: range.start,
-                });
-            }
-
-            unaccountedStart = new Date(Math.max(unaccountedStart.getTime(), range.end.getTime()));
-        }
-
-        // Remaining time period, not covered by ranges
-        if (isBefore(unaccountedStart, bookingEnd)) {
-            console.log("UNCOVERED RANGES AFTER!!!");
-
-            uncoveredSlots.push({
-                schedule: createDefaultSlot(basePrice, basePriceType, basePriceLabel),
-                segmentStart: unaccountedStart,
-                segmentEnd: bookingEnd,
-            });
-        }
-
-        if (uncoveredSlots.length > 0) {
-            const uncoveredResult = calculateSlots(
-                uncoveredSlots,
-                {
-                    bookingStart,
-                    bookingEnd,
-                    persons,
-                    excludeRoomPrice,
-                    excludeExclusive,
-                    seating,
-                    seatings,
-                    context,
-                    short,
-                    isSingleOperation,
-                }
-            );
-
-            totalPrice += uncoveredResult.total;
-            items.push(...uncoveredResult.items);
-            totalFormatted = uncoveredResult.totalFormatted;
-            maxMinConsumption = Math.max(maxMinConsumption, uncoveredResult.maxMinConsumption);
-            maxMinSales = Math.max(maxMinSales, uncoveredResult.maxMinSales);
-        }
-    }
 
     return {
         total: totalPrice,
