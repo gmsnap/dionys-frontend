@@ -75,7 +75,10 @@ const EventConfigurationDetails = ({
                                     <Box sx={{ flex: "0 0 47%", fontSize: { xs: 12, sm: 14 } }}>
                                         <Typography variant="body2" sx={{ fontSize: { xs: 12, sm: 14 } }}><strong>{item.name}</strong></Typography>
                                         <Typography variant="body2" sx={{ fontSize: { xs: 12, sm: 14 } }}>
-                                            {item.items?.filter((subItem) => subItem.ignore === undefined).map((subItem) => subItem.name).join(", ") || ""}
+                                            {item.items?.filter((subItem) => subItem.ignore === undefined)
+                                                .map((subItem) => subItem.name)
+                                                .filter((name, index, arr) => arr.indexOf(name) === index) // keep unique names
+                                                .join(", ") || ""}
                                         </Typography>
                                     </Box>
 
@@ -104,7 +107,10 @@ const EventConfigurationDetails = ({
                                             <Box sx={{ flex: "0 0 47%", fontSize: { xs: 12, sm: 14 } }}>
                                                 <Typography variant="body2" sx={{ fontSize: { xs: 12, sm: 14 } }}>{subItem.name}</Typography>
                                                 <Typography variant="body2" sx={{ fontSize: { xs: 12, sm: 14 } }}>
-                                                    {subItem.items?.filter((subItem) => subItem.ignore !== true).map((subItem) => subItem.name).join(", ") || ""}
+                                                    {subItem.items?.filter((subItem) => subItem.ignore !== true)
+                                                        .map((subItem) => subItem.name)
+                                                        .filter((name, index, arr) => arr.indexOf(name) === index) // keep unique names
+                                                        .join(", ") || ""}
                                                 </Typography>
                                             </Box>
 

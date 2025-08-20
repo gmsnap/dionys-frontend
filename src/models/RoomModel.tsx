@@ -7,6 +7,8 @@ export interface RoomModel {
     locationId: number;
     name: string;
     description: string;
+    proposalDescription?: string;
+    useProposalDescription: boolean;
     size: number;
     price: number;
     priceType: PriceTypes;
@@ -29,6 +31,7 @@ export const createEmptyRoomModel = (locationId: number): RoomModel => ({
     locationId: locationId,
     name: '',
     description: '',
+    useProposalDescription: false,
     size: 0,
     price: 0,
     priceType: 'day',
