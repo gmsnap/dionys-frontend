@@ -75,10 +75,7 @@ const EventConfigurationDetails = ({
                                     <Box sx={{ flex: "0 0 47%", fontSize: { xs: 12, sm: 14 } }}>
                                         <Typography variant="body2" sx={{ fontSize: { xs: 12, sm: 14 } }}><strong>{item.name}</strong></Typography>
                                         <Typography variant="body2" sx={{ fontSize: { xs: 12, sm: 14 } }}>
-                                            {item.items?.filter((subItem) => subItem.ignore === undefined)
-                                                .map((subItem) => subItem.name)
-                                                .filter((name, index, arr) => arr.indexOf(name) === index) // keep unique names
-                                                .join(", ") || ""}
+                                            {FormatPrice.makePriceItemNameString(item.items)}
                                         </Typography>
                                     </Box>
 

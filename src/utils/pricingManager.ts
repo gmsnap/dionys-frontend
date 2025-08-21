@@ -802,9 +802,14 @@ const calculateSlots = (
                 }
             }
 
+            const exclusivityName = FormatPrice.addPriceLabel("Exklusivität",
+                isExclusiveMinConsumption,
+                isExclusiveMinSales,
+                props.short);
+
             items.push({
                 id: schedule.id,
-                name: "Exklusivität",
+                name: exclusivityName,
                 itemType: "exclusivity",
                 price: exclusivePrice,
                 quantity: 1,
@@ -822,14 +827,16 @@ const calculateSlots = (
             });
         }
 
-        const itemName =
-            isMinConsumption
-                ? FormatPrice.translate("consumption", props.short)
-                : isMinSales
-                    ? FormatPrice.translate("minSales", props.short)
-                    : schedule.customName ?? FormatPrice.translate(
-                        "pricing_" + schedule.roomPricingType,
-                        props.short);
+        // Create item display name
+        let itemName = schedule.customName ?? (
+            schedule.roomPricingType == "basic"
+                ? ""
+                : FormatPrice.translate(
+                    "pricing_" + schedule.roomPricingType,
+                    props.short)
+        );
+
+        itemName = FormatPrice.addPriceLabel(itemName, isMinConsumption, isMinSales, props.short);
 
         // Add base price item
         items.push({
@@ -1541,5 +1548,41 @@ export class FormatPrice {
         return FormatPrice
             .staticTranslations[key as keyof typeof FormatPrice.staticTranslations]
             ?? key;
+    }
+
+    static makePriceItemNameString = (items?: PriceItem[]): string => {
+        if (!items) {
+            return "";
+        }
+
+        return items?.filter((subItem) => subItem.ignore === undefined && subItem.name)
+            .map((subItem) => subItem.name)
+            .filter((name, index, arr) => arr.indexOf(name) === index) // keep unique names
+            .join(", ") || "";
+    }
+
+    static addPriceLabel = (
+        itemName: string,
+        isMinConsumption: boolean,
+        isMinSales: boolean,
+        short: boolean = false
+    ): string => {
+        let itemPriceLabel: string | null = null;
+
+        if (isMinConsumption) {
+            itemPriceLabel = FormatPrice.translate("consumption", short);
+        } else if (isMinSales) {
+            itemPriceLabel = FormatPrice.translate("minSales", short);
+        }
+
+        if (itemPriceLabel) {
+            if (itemName) {
+                return itemName + ` (${itemPriceLabel})`;
+            } else {
+                return itemPriceLabel;
+            }
+        }
+
+        return itemName;
     }
 }
