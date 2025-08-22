@@ -6,6 +6,7 @@ import {
 } from "@mui/material";
 import { Upload } from "lucide-react";
 import DeleteButton from "@/components/DeleteButton";
+import { compressImage } from "@/utils/fileUtil";
 
 // Define a type for the model
 
@@ -32,9 +33,10 @@ const SingleImageUploadForm: React.FC<Props> = ({
     const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.files?.[0]) {
             setUploading(true);
-            const file = event.target.files[0];
 
             try {
+                const file: File = await compressImage(event.target.files[0]);
+
                 // Call API to get presigned URL and upload the file
                 const response = await fetch(generateUploadUrlEndpoint, {
                     method: "POST",

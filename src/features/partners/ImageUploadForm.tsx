@@ -2,14 +2,13 @@ import React, { useEffect, useState } from "react";
 import {
     Grid2,
     Box,
-    IconButton,
     Typography,
-    Button,
     CircularProgress,
 } from "@mui/material";
-import { Delete, Upload, X } from "lucide-react";
+import { Upload } from "lucide-react";
 import theme from "@/theme";
 import DeleteButton from "@/components/DeleteButton";
+import { compressImage } from "@/utils/fileUtil";
 
 // Define a type for the model
 type Model = {
@@ -47,22 +46,35 @@ const ImageUploadForm: React.FC<ImageUploadFormProps> = ({
     const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.files?.[0]) {
             setUploading(true);
-            const file = event.target.files[0];
 
             try {
-                // Call API to get presigned URL and upload the file
+                const fileToUpload: File = await compressImage(event.target.files[0]);
+
+                // Call API to get presigned URL
                 const response = await fetch(generateUploadUrlEndpoint, {
                     method: "POST",
-                    body: JSON.stringify({ image: file.name }),
+                    body: JSON.stringify({ image: fileToUpload.name }),
                     headers: { "Content-Type": "application/json" },
                 });
+
+                if (!response.ok) {
+                    throw new Error("Failed to get upload URL.");
+                }
+
                 const { uploadUrl, imageUrl } = await response.json();
 
-                // Upload to S3 or server
-                await fetch(uploadUrl, {
+                // Upload the (compressed) image
+                const uploadResponse = await fetch(uploadUrl, {
                     method: "PUT",
-                    body: file,
+                    body: fileToUpload,
+                    headers: {
+                        "Content-Type": fileToUpload.type,
+                    },
                 });
+
+                if (!uploadResponse.ok) {
+                    throw new Error("Failed to upload the image.");
+                }
 
                 // Notify parent about the new image URL
                 onImageUpload(imageUrl);
