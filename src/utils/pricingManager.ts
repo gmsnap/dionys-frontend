@@ -264,6 +264,30 @@ const calculateUnitQuantity = (
     }
 };
 
+const calculateUnitPrice = (
+    price: number,
+    priceType: string,
+) => {
+    // Normalize price to number in case API provided a string
+    const numericPrice: number = Number(price as unknown as number);
+
+    if (!Number.isFinite(numericPrice)) {
+        return 0;
+    }
+
+    switch (priceType) {
+        case "hour":
+        case "person":
+        case "personHour":
+        case "day":
+        case "once":
+            return numericPrice;
+        case "none":
+        default:
+            return 0;
+    }
+};
+
 /**
  * Completes the coverage of a booking period by adding filling slots for any gaps
  * in the provided applicable slots. This ensures the entire time range from 
@@ -575,30 +599,37 @@ export const calculateBooking = (booking: Booking): BookingResult => {
                     bookedEquipment += packagePrice;
                 }
 
+                const unitPrice = calculateUnitPrice(p.price, p.priceType);
+
                 items.push({
                     id: p.id,
                     name: p.name,
                     itemType: p.packageCategory,
                     description: p.description,
                     price: packagePrice,
-                    priceFormatted: FormatPrice.formatPriceValue(packagePrice),
+                    priceFormatted: FormatPrice.formatPriceWithType({
+                        price: packagePrice,
+                        noneLabelKey: "none",
+                    }),
                     quantity: calculateUnitQuantity(p.priceType, persons),
-                    unitPrice: p.price,
+                    unitPrice,
                     unitPriceFormatted: FormatPrice.formatPriceWithType(
-                        { price: p.price, noneLabelKey: "free" }
+                        { price: unitPrice, noneLabelKey: "none" }
                     ),
                     pos: ++pos,
                 });
+
+                console.log("package ", p.name, p.price, packagePrice, p.priceType);
             });
     }
 
-    console.log("-- calculateBooking");
-    console.log("roomsPriceOtherTotal", roomsPriceOtherTotal);
-    console.log("required consumption", maxMinConsumption);
-    console.log("bookedConsumption", bookedConsumption);
-    console.log("bookedEquipment", bookedEquipment);
-    console.log("items", items);
-    console.log("calculateBooking --");
+    //console.log("-- calculateBooking");
+    //console.log("roomsPriceOtherTotal", roomsPriceOtherTotal);
+    //console.log("required consumption", maxMinConsumption);
+    //console.log("bookedConsumption", bookedConsumption);
+    //console.log("bookedEquipment", bookedEquipment);
+    //console.log("items", items);
+    //console.log("calculateBooking --");
 
     // Apply min spendings (if any)
     if (maxMinConsumption > 0 || maxMinSales > 0) {
@@ -807,19 +838,24 @@ const calculateSlots = (
                 isExclusiveMinSales,
                 props.short);
 
+            const exclusivityUnitPrice = calculateUnitPrice(
+                schedule.exclusivePrice,
+                schedule.exclusivePriceType
+            );
+
             items.push({
                 id: schedule.id,
                 name: exclusivityName,
                 itemType: "exclusivity",
                 price: exclusivePrice,
                 quantity: 1,
-                unitPrice: schedule.exclusivePrice,
+                unitPrice: exclusivityUnitPrice,
                 pricingLabel: schedule.exclusivePricingLabel,
                 priceFormatted: FormatPrice.formatPriceWithType(
                     { price: exclusivePrice, noneLabelKey: "none" }
                 ),
                 unitPriceFormatted: FormatPrice.formatPriceWithType(
-                    { price: exclusivePrice, noneLabelKey: "none" }
+                    { price: exclusivityUnitPrice, noneLabelKey: "none" }
                 ),
                 ignore: useExlusivityItem ? false : undefined,
                 minConsumptionPrice: isExclusiveMinConsumption ? exclusivePrice : undefined,
@@ -974,7 +1010,7 @@ const calculateSlots = (
             //pricingLabel: pricingLabel as PricingLabels,
             context: props.context,
             short: props.short === true,
-            noneLabelKey: "free"
+            noneLabelKey: "none"
         }),
         items,
         maxMinConsumption: 0,
@@ -1097,8 +1133,8 @@ export const calculateBookingPrice = ({
 
     let totalFormatted: string | null | undefined = undefined;
 
-    console.log("applicableSlots: ", basePrice, slotsFromSchedules);
-    console.log("completedSlots: ", basePrice, completedSlots);
+    //console.log("applicableSlots: ", basePrice, slotsFromSchedules);
+    //console.log("completedSlots: ", basePrice, completedSlots);
 
     const slotsResult = calculateSlots(
         completedSlots,
@@ -1125,7 +1161,10 @@ export const calculateBookingPrice = ({
 
     return {
         total: totalPrice,
-        totalFormatted: totalFormatted ?? FormatPrice.formatPriceValue(totalPrice),
+        totalFormatted: totalFormatted ?? FormatPrice.formatPriceWithType({
+            price: totalPrice,
+            noneLabelKey: "none",
+        }),
         maxMinConsumption,
         maxMinSales,
         items,
@@ -1190,11 +1229,11 @@ export const calculateSeating = ({
                     unitPrice: seatingPrice,
                     priceFormatted: FormatPrice.formatPriceWithType({
                         price: seatingTotal,
-                        noneLabelKey: "free",
+                        noneLabelKey: "none",
                     }),
                     unitPriceFormatted: FormatPrice.formatPriceWithType({
                         price: seatingTotal,
-                        noneLabelKey: "free",
+                        noneLabelKey: "none",
                     }),
                 }]
             };
@@ -1213,11 +1252,11 @@ export const calculateSeating = ({
                 unitPrice: seatingPrice,
                 priceFormatted: FormatPrice.formatPriceWithType({
                     price: seatingPrice,
-                    noneLabelKey: "free",
+                    noneLabelKey: "none",
                 }),
                 unitPriceFormatted: FormatPrice.formatPriceWithType({
                     price: seatingPrice,
-                    noneLabelKey: "free",
+                    noneLabelKey: "none",
                 }),
             }]
         };
