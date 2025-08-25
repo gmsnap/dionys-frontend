@@ -214,6 +214,36 @@ const RoomForm = ({
         }
     };
 
+    const handleImagesReorder = async (newImages: string[]) => {
+        if (!roomId) {
+            console.error("Room ID is not defined");
+            return;
+        }
+
+        try {
+            const response = await fetch(
+                `${roomsBaseUrl}/${roomId}/images/reorder`,
+                {
+                    method: "PUT",
+                    body: JSON.stringify({ images: newImages }),
+                    headers: {
+                        Authorization: `Bearer ${authUser?.idToken}`,
+                        "Content-Type": "application/json"
+                    },
+                }
+            );
+
+            if (response.ok) {
+                // Update local state with reordered images
+                setImages(newImages);
+                setValue('images', newImages); // Update form model
+                roomUpdated?.(roomId);
+            }
+        } catch (error) {
+            console.error("Image reorder failed", error);
+        }
+    };
+
     useEffect(() => {
         // Fetch all locations
         const loadLocations = async () => {
@@ -463,7 +493,7 @@ const RoomForm = ({
                                                         const currentValue = field.value || '';
                                                         const currentLineCount = currentValue.split('\n').length;
                                                         const pastedLineCount = pastedText.split('\n').length;
-                                                        
+
                                                         if (currentLineCount + pastedLineCount - 1 > 5) {
                                                             e.preventDefault();
                                                             // Optionally, you could truncate the pasted text to fit
@@ -782,9 +812,10 @@ const RoomForm = ({
                             Bilder
                         </Typography>
                         <ImageUploadForm
+                            model={watchedModel}
                             onImageUpload={handleImageUpload}
                             onImageDelete={handleImageDelete}
-                            model={watchedModel} />
+                            onImagesReorder={handleImagesReorder} />
                     </>}
             </Box>
         </Box >
