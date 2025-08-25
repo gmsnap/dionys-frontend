@@ -103,7 +103,7 @@ const MessagePage: NextPageWithLayout = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   
 
-  const sender = "Booking@VillaHirschberg.onmicrosoft.com"; // from db
+  const sender = "events@dionys.ai"; // from db
 
   const [sortOption, setSortOption] = useState<SortOption>(SortOption.None);
 
@@ -393,7 +393,7 @@ const MessagePage: NextPageWithLayout = () => {
           id: 0,
           conversationId: conv.id.toString(),
           messageId: "",
-          sender: "Booking@VillaHirschberg.onmicrosoft.com",
+          sender: sender,
           receiver: conv.booker?.email ?? "",
           received: conv.formatedTime,
           subject: conv.location?.title ?? "",
