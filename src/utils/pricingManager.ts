@@ -523,7 +523,7 @@ export const calculateBooking = (booking: Booking): BookingResult => {
                 description: room.description,
                 itemType: "room",
                 price: roomResult.total,
-                priceFormatted: FormatPrice.formatPriceValue(roomResult.total),
+                priceFormatted: roomResult.totalFormatted,
                 quantity: 1,
                 unitPrice: 0,
                 unitPriceFormatted: roomResult.totalFormatted,
@@ -756,7 +756,7 @@ const calculateSlots = (
 
         // calculate segment
 
-        let price: number = props.excludeRoomPrice === true
+        let slotPrice: number = props.excludeRoomPrice === true
             ? 0
             : calculatePriceByPriceType(
                 schedule.price,
@@ -769,7 +769,7 @@ const calculateSlots = (
         let isMinConsumption = pricingLabel === PricingLabel.consumption;
         let isMinSales = pricingLabel === PricingLabel.minSales;
 
-        let otherPrice = (!isMinConsumption && !isMinSales) ? price : 0;
+        let otherPrice = (!isMinConsumption && !isMinSales) ? slotPrice : 0;
 
         // Handle exclusivity
         if (
@@ -790,7 +790,7 @@ const calculateSlots = (
                 props.persons,
             );
 
-            let useExlusivityItem = false;
+            const useExlusivityItem = true;
 
             if (isExclusiveFixPrice) {
                 otherPrice += exclusivePrice;
@@ -800,13 +800,16 @@ const calculateSlots = (
                 if (isExclusiveMinConsumption) {
                     if (isMinConsumption) {
                         // Both is min consumption -> use higher price
-                        price = Math.max(price, exclusivePrice);
+                        //slotPrice = Math.max(slotPrice, exclusivePrice);
+                        if (exclusivePrice > slotPrice) {
+                            slotPrice = 0;
+                        }
                     } else if (isMinSales) {
                         // Exclusive is min consumption
                         // but basic is min sales
                         // -> only use exclusive price when greater
-                        if (exclusivePrice > price) {
-                            price = exclusivePrice;
+                        if (exclusivePrice > slotPrice) {
+                            slotPrice = exclusivePrice;
                             isMinConsumption = true;
                             isMinSales = false;
                         }
@@ -814,19 +817,20 @@ const calculateSlots = (
                         // Basic price is fix price
                         // -> use basic price 
                         // -> exclusive min consumption must be calculated from subitem later
-                        useExlusivityItem = true;
                     }
                 } else if (isExclusiveMinSales) {
                     if (isMinConsumption) {
-                        if (exclusivePrice > price) {
-                            price = exclusivePrice;
+                        if (exclusivePrice > slotPrice) {
+                            slotPrice = exclusivePrice;
                             isMinConsumption = false;
                             isMinSales = true;
                         }
                     } else if (isMinSales) {
-                        price = Math.max(price, exclusivePrice);
+                        if (exclusivePrice > slotPrice) {
+                            slotPrice = 0;
+                        }
                     } else {
-                        price = exclusivePrice;
+                        slotPrice = exclusivePrice;
                         isMinConsumption = false;
                         isMinSales = true;
                     }
@@ -879,19 +883,25 @@ const calculateSlots = (
             id: schedule.id,
             name: itemName,
             itemType: schedule.roomPricingType,
-            price: price,
+            price: slotPrice,
             pricingLabel,
             quantity: 1,
-            unitPrice: price,
-            priceFormatted: FormatPrice.formatPriceValue(price),
-            unitPriceFormatted: FormatPrice.formatPriceValue(price),
+            unitPrice: slotPrice,
+            priceFormatted: FormatPrice.formatPriceWithType({
+                price: slotPrice,
+                noneLabelKey: "none",
+            }),
+            unitPriceFormatted: FormatPrice.formatPriceWithType({
+                price: slotPrice,
+                noneLabelKey: "none",
+            }),
         });
 
         if ((isMinConsumption || isMinSales) &&
-            (mostExpensiveConsumableSlot.slotId === null || price > mostExpensiveConsumableSlot.price)) {
+            (mostExpensiveConsumableSlot.slotId === null || slotPrice > mostExpensiveConsumableSlot.price)) {
             mostExpensiveConsumableSlot.slotId = schedule.id;
             mostExpensiveConsumableSlot.pricingLabel = isMinConsumption ? "consumption" : "minSales";
-            mostExpensiveConsumableSlot.price = price;
+            mostExpensiveConsumableSlot.price = slotPrice;
         }
 
         totalOtherPrice += otherPrice;
@@ -973,7 +983,10 @@ const calculateSlots = (
                             : FormatPrice.translate("consumption"),
                         true
                     )
-                    : FormatPrice.formatPriceValue(totalRoomPrice),
+                    : FormatPrice.formatPriceWithType({
+                        price: totalRoomPrice,
+                        noneLabelKey: "none"
+                    }),
                 items,
                 maxMinConsumption: consumablePriceAdjusted,
                 maxMinSales: 0,
@@ -991,7 +1004,10 @@ const calculateSlots = (
                     consumablePriceAdjusted,
                     FormatPrice.translate("minSales")
                 )
-                : FormatPrice.formatPriceValue(consumablePriceAdjusted),
+                : FormatPrice.formatPriceWithType({
+                    price: consumablePriceAdjusted,
+                    noneLabelKey: "none"
+                }),
             items,
             maxMinConsumption: 0,
             maxMinSales: consumablePriceAdjusted,
