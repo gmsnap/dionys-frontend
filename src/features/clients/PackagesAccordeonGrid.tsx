@@ -1,4 +1,4 @@
-import React, { } from 'react';
+import React from 'react';
 import { Grid2, SxProps, Theme, Typography } from '@mui/material';
 import AccordionGridItem from '@/components/AccordionGridItem';
 import useStore from '@/stores/eventStore';
@@ -16,18 +16,36 @@ interface Props {
 const PackagesAccordeonGrid = ({ packageCategory, sx }: Props) => {
     const { eventConfiguration, location, setEventConfiguration } = useStore();
 
-    const togglePackage = (packageId: number) => {
+    const togglePackage = (packageId: number, quantity?: number) => {
         if (eventConfiguration) {
             const currentPackageIds = eventConfiguration.packageIds || [];
-            const updatedPackageIds = currentPackageIds.includes(packageId)
-                ? currentPackageIds.filter(id => id !== packageId) // Remove if already selected
-                : [...currentPackageIds, packageId]; // Add if not selected
-            const packageIdSet = new Set(updatedPackageIds);
-            const packages = location?.eventPackages?.filter(room => packageIdSet.has(room.id));
+            const existingPackage = currentPackageIds.find(p => p.id === packageId);
+            let updatedPackageIds;
+
+            if (existingPackage) {
+                if (quantity === existingPackage.quantity) {
+                    // Remove if already selected with the same quantity
+                    updatedPackageIds = currentPackageIds.filter(p => p.id !== packageId);
+                } else {
+                    // Update quantity, ensuring it's defined
+                    updatedPackageIds = currentPackageIds.map(p => {
+                        if (p.id === packageId) {
+                            return { ...p, quantity: quantity ?? 1 }; // Use provided quantity or default to 1
+                        }
+                        return p;
+                    });
+                }
+            } else {
+                // Add with quantity (default to 1 if not provided)
+                updatedPackageIds = [...currentPackageIds, { id: packageId, quantity: quantity ?? 1 }];
+            }
+
+            const packageIdSet = new Set(updatedPackageIds.map(p => p.id));
+            const packages = location?.eventPackages?.filter(pkg => packageIdSet.has(pkg.id));
 
             setEventConfiguration({
                 ...eventConfiguration,
-                packageIds: updatedPackageIds,
+                packageIds: updatedPackageIds.length > 0 ? updatedPackageIds : null,
                 packages: packages || null,
             });
         }
@@ -38,7 +56,7 @@ const PackagesAccordeonGrid = ({ packageCategory, sx }: Props) => {
     if (!(location?.eventPackages) ||
         location.eventPackages
             .filter((p) => !packageCategory || p.packageCategory === packageCategory)
-            .length == 0) {
+            .length === 0) {
         return (
             <Typography sx={{ textAlign: 'center' }}>
                 Keine Event-Pakete verfügbar
@@ -56,8 +74,6 @@ const PackagesAccordeonGrid = ({ packageCategory, sx }: Props) => {
                     eventConfiguration.rooms.some((room) => p.roomIds!.includes(room.id)))
             )
     );
-
-
 
     return (
         <Grid2 container spacing={1} sx={{ ...sx }}>
@@ -78,8 +94,8 @@ const PackagesAccordeonGrid = ({ packageCategory, sx }: Props) => {
                         images={p.images.length > 0
                             ? p.images
                             : [`/p-category-${p.packageCategory}.jpg`]}
-                        isSelected={eventConfiguration?.packageIds?.includes(p.id)}
-                        selectRequested={(id) => togglePackage(id)}
+                        isSelected={eventConfiguration?.packageIds?.some(pkg => pkg.id === p.id)}
+                        selectRequested={(id, quantity) => togglePackage(id, quantity)}
                         title={p.title}
                         subTitle={
                             FormatPrice.formatPriceWithType({
@@ -108,6 +124,7 @@ const PackagesAccordeonGrid = ({ packageCategory, sx }: Props) => {
                                 }),
                             },
                         ]}
+                        maxQuantity={p.maxQuantity || undefined}
                     />
                 </Grid2>
             ))}

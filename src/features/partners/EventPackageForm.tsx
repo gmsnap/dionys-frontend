@@ -261,16 +261,18 @@ const EventPackageForm = ({
     }, [packageId])
 
     useEffect(() => {
-        // Clear minPersons and maxPersons when packageId changes
+        // Clear minPersons, maxPersons, and maxQuantity when packageId changes
         setValue("minPersons", null)
         setValue("maxPersons", null)
+        setValue("maxQuantity", null)
     }, [setValue])
 
     useEffect(() => {
-        // Clear minPersons and maxPersons when packageId changes
+        // Clear minPersons, maxPersons, and maxQuantity when packageId changes
         if (packageId === 0 || packageId === null) {
             setValue("minPersons", null)
             setValue("maxPersons", null)
+            setValue("maxQuantity", null)
         }
     }, [packageId, setValue])
 
@@ -761,6 +763,34 @@ const EventPackageForm = ({
                                             </Select>
                                             <FormHelperText>{errors.roomIds?.message}</FormHelperText>
                                         </FormControl>
+                                    )}
+                                />
+                            </Grid2>
+                        </Grid2>
+
+                        {/* Max Quantity */}
+                        <Grid2 container size={{ xs: 12, sm: 10 }} spacing={0} alignItems="top">
+                            <Grid2 size={{ xs: 12, md: labelWidth }}>
+                                <Typography variant="label">Maximale Menge</Typography>
+                            </Grid2>
+                            <Grid2 size={{ xs: 12, sm: 10, md: 6 }}>
+                                <Controller
+                                    name="maxQuantity"
+                                    control={control}
+                                    render={({ field }) => (
+                                        <TextField
+                                            {...field}
+                                            value={field.value ?? ""}
+                                            onChange={(e) => {
+                                                const value = e.target.value === "" ? null : Number(e.target.value)
+                                                field.onChange(value)
+                                            }}
+                                            variant="outlined"
+                                            placeholder="unbegrenzt"
+                                            type="number"
+                                            error={!!errors.maxQuantity}
+                                            helperText={errors.maxQuantity?.message}
+                                        />
                                     )}
                                 />
                             </Grid2>
