@@ -1212,7 +1212,7 @@ const handleFileDrop = (files : File[]) => {
                         </Typography>
                         {currentConversation.packages?.map((extra, index) => (
                           <Typography key={index}>
-                            {extra.title}
+                            {extra.package.title}
                           </Typography>
                         ))}
                       </Box>
