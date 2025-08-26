@@ -18,6 +18,7 @@ export interface EventPackageModel {
     maxPersons: number | null;
     images: string[];
     eventCategories: string[];
+    maxQuantity: number | null;
     roomIds?: number[];
 }
 
@@ -38,6 +39,7 @@ export const createEmptyEventPackageModel = (
     maxPersons: null,
     images: [],
     eventCategories: [...AvailableEventCategories],
+    maxQuantity: null,
     roomIds: [],
 });
 
@@ -114,6 +116,9 @@ export const EventPackageValidationSchema = yup.object().shape({
             'Mindestens eine Kategorie notwendig',
             (value) => value != null && value.length > 0
         ),
+    maxQuantity: yup
+        .number()
+        .nullable(),
     roomIds: yup.array()
         .of(yup.number())
         .optional(),

@@ -12,7 +12,7 @@ export interface EventConfigurationModel {
     id: number;
     locationId: number;
     roomExtras: RoomExtra[] | null;
-    packageIds: number[] | null;
+    packageIds: { id: number; quantity: number }[] | null;
     eventCategory: EventCategories | null;
     persons: number | null;
     date: number | null;
