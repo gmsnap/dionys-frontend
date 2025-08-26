@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { Box, Button, Typography, TextField, IconButton, InputAdornment } from '@mui/material';
-import AddIcon from '@mui/icons-material/Add';
-import RemoveIcon from '@mui/icons-material/Remove';
 import ImageSlideshow from '@/features/clients/ImageSlideShow';
+import { Minus, Plus } from 'lucide-react';
 
 interface InfoItem {
     icon: React.ReactNode;
@@ -192,7 +191,7 @@ const GridItem: React.FC<GridItemProps> = ({
                                                 disabled={quantity <= 1}
                                                 sx={{ padding: '0px' }}
                                             >
-                                                <RemoveIcon />
+                                                <Minus />
                                             </IconButton>
                                         </InputAdornment>
                                     ),
@@ -203,7 +202,7 @@ const GridItem: React.FC<GridItemProps> = ({
                                                 disabled={quantity >= (maxQuantity || Infinity)}
                                                 sx={{ padding: '0px' }}
                                             >
-                                                <AddIcon />
+                                                <Plus />
                                             </IconButton>
                                         </InputAdornment>
                                     ),
