@@ -264,6 +264,30 @@ const calculateUnitQuantity = (
     }
 };
 
+const calculateUnitPrice = (
+    price: number,
+    priceType: string,
+) => {
+    // Normalize price to number in case API provided a string
+    const numericPrice: number = Number(price as unknown as number);
+
+    if (!Number.isFinite(numericPrice)) {
+        return 0;
+    }
+
+    switch (priceType) {
+        case "hour":
+        case "person":
+        case "personHour":
+        case "day":
+        case "once":
+            return numericPrice;
+        case "none":
+        default:
+            return 0;
+    }
+};
+
 /**
  * Completes the coverage of a booking period by adding filling slots for any gaps
  * in the provided applicable slots. This ensures the entire time range from 
@@ -499,7 +523,7 @@ export const calculateBooking = (booking: Booking): BookingResult => {
                 description: room.description,
                 itemType: "room",
                 price: roomResult.total,
-                priceFormatted: FormatPrice.formatPriceValue(roomResult.total),
+                priceFormatted: roomResult.totalFormatted,
                 quantity: 1,
                 unitPrice: 0,
                 unitPriceFormatted: roomResult.totalFormatted,
@@ -575,30 +599,37 @@ export const calculateBooking = (booking: Booking): BookingResult => {
                     bookedEquipment += packagePrice;
                 }
 
+                const unitPrice = calculateUnitPrice(p.price, p.priceType);
+
                 items.push({
                     id: p.id,
                     name: p.name,
                     itemType: p.packageCategory,
                     description: p.description,
                     price: packagePrice,
-                    priceFormatted: FormatPrice.formatPriceValue(packagePrice),
+                    priceFormatted: FormatPrice.formatPriceWithType({
+                        price: packagePrice,
+                        noneLabelKey: "none",
+                    }),
                     quantity: calculateUnitQuantity(p.priceType, persons),
-                    unitPrice: p.price,
+                    unitPrice,
                     unitPriceFormatted: FormatPrice.formatPriceWithType(
-                        { price: p.price, noneLabelKey: "free" }
+                        { price: unitPrice, noneLabelKey: "none" }
                     ),
                     pos: ++pos,
                 });
+
+                console.log("package ", p.name, p.price, packagePrice, p.priceType);
             });
     }
 
-    console.log("-- calculateBooking");
-    console.log("roomsPriceOtherTotal", roomsPriceOtherTotal);
-    console.log("required consumption", maxMinConsumption);
-    console.log("bookedConsumption", bookedConsumption);
-    console.log("bookedEquipment", bookedEquipment);
-    console.log("items", items);
-    console.log("calculateBooking --");
+    //console.log("-- calculateBooking");
+    //console.log("roomsPriceOtherTotal", roomsPriceOtherTotal);
+    //console.log("required consumption", maxMinConsumption);
+    //console.log("bookedConsumption", bookedConsumption);
+    //console.log("bookedEquipment", bookedEquipment);
+    //console.log("items", items);
+    //console.log("calculateBooking --");
 
     // Apply min spendings (if any)
     if (maxMinConsumption > 0 || maxMinSales > 0) {
@@ -725,7 +756,7 @@ const calculateSlots = (
 
         // calculate segment
 
-        let price: number = props.excludeRoomPrice === true
+        let slotPrice: number = props.excludeRoomPrice === true
             ? 0
             : calculatePriceByPriceType(
                 schedule.price,
@@ -738,7 +769,7 @@ const calculateSlots = (
         let isMinConsumption = pricingLabel === PricingLabel.consumption;
         let isMinSales = pricingLabel === PricingLabel.minSales;
 
-        let otherPrice = (!isMinConsumption && !isMinSales) ? price : 0;
+        let otherPrice = (!isMinConsumption && !isMinSales) ? slotPrice : 0;
 
         // Handle exclusivity
         if (
@@ -759,7 +790,7 @@ const calculateSlots = (
                 props.persons,
             );
 
-            let useExlusivityItem = false;
+            const useExlusivityItem = true;
 
             if (isExclusiveFixPrice) {
                 otherPrice += exclusivePrice;
@@ -769,13 +800,16 @@ const calculateSlots = (
                 if (isExclusiveMinConsumption) {
                     if (isMinConsumption) {
                         // Both is min consumption -> use higher price
-                        price = Math.max(price, exclusivePrice);
+                        //slotPrice = Math.max(slotPrice, exclusivePrice);
+                        if (exclusivePrice > slotPrice) {
+                            slotPrice = 0;
+                        }
                     } else if (isMinSales) {
                         // Exclusive is min consumption
                         // but basic is min sales
                         // -> only use exclusive price when greater
-                        if (exclusivePrice > price) {
-                            price = exclusivePrice;
+                        if (exclusivePrice > slotPrice) {
+                            slotPrice = exclusivePrice;
                             isMinConsumption = true;
                             isMinSales = false;
                         }
@@ -783,38 +817,49 @@ const calculateSlots = (
                         // Basic price is fix price
                         // -> use basic price 
                         // -> exclusive min consumption must be calculated from subitem later
-                        useExlusivityItem = true;
                     }
                 } else if (isExclusiveMinSales) {
                     if (isMinConsumption) {
-                        if (exclusivePrice > price) {
-                            price = exclusivePrice;
+                        if (exclusivePrice > slotPrice) {
+                            slotPrice = exclusivePrice;
                             isMinConsumption = false;
                             isMinSales = true;
                         }
                     } else if (isMinSales) {
-                        price = Math.max(price, exclusivePrice);
+                        if (exclusivePrice > slotPrice) {
+                            slotPrice = 0;
+                        }
                     } else {
-                        price = exclusivePrice;
+                        slotPrice = exclusivePrice;
                         isMinConsumption = false;
                         isMinSales = true;
                     }
                 }
             }
 
+            const exclusivityName = FormatPrice.addPriceLabel("Exklusivität",
+                isExclusiveMinConsumption,
+                isExclusiveMinSales,
+                props.short);
+
+            const exclusivityUnitPrice = calculateUnitPrice(
+                schedule.exclusivePrice,
+                schedule.exclusivePriceType
+            );
+
             items.push({
                 id: schedule.id,
-                name: "Exklusivität",
+                name: exclusivityName,
                 itemType: "exclusivity",
                 price: exclusivePrice,
                 quantity: 1,
-                unitPrice: schedule.exclusivePrice,
+                unitPrice: exclusivityUnitPrice,
                 pricingLabel: schedule.exclusivePricingLabel,
                 priceFormatted: FormatPrice.formatPriceWithType(
                     { price: exclusivePrice, noneLabelKey: "none" }
                 ),
                 unitPriceFormatted: FormatPrice.formatPriceWithType(
-                    { price: exclusivePrice, noneLabelKey: "none" }
+                    { price: exclusivityUnitPrice, noneLabelKey: "none" }
                 ),
                 ignore: useExlusivityItem ? false : undefined,
                 minConsumptionPrice: isExclusiveMinConsumption ? exclusivePrice : undefined,
@@ -822,33 +867,41 @@ const calculateSlots = (
             });
         }
 
-        const itemName =
-            isMinConsumption
-                ? FormatPrice.translate("consumption", props.short)
-                : isMinSales
-                    ? FormatPrice.translate("minSales", props.short)
-                    : schedule.customName ?? FormatPrice.translate(
-                        "pricing_" + schedule.roomPricingType,
-                        props.short);
+        // Create item display name
+        let itemName = schedule.customName ?? (
+            schedule.roomPricingType == "basic"
+                ? ""
+                : FormatPrice.translate(
+                    "pricing_" + schedule.roomPricingType,
+                    props.short)
+        );
+
+        itemName = FormatPrice.addPriceLabel(itemName, isMinConsumption, isMinSales, props.short);
 
         // Add base price item
         items.push({
             id: schedule.id,
             name: itemName,
             itemType: schedule.roomPricingType,
-            price: price,
+            price: slotPrice,
             pricingLabel,
             quantity: 1,
-            unitPrice: price,
-            priceFormatted: FormatPrice.formatPriceValue(price),
-            unitPriceFormatted: FormatPrice.formatPriceValue(price),
+            unitPrice: slotPrice,
+            priceFormatted: FormatPrice.formatPriceWithType({
+                price: slotPrice,
+                noneLabelKey: "none",
+            }),
+            unitPriceFormatted: FormatPrice.formatPriceWithType({
+                price: slotPrice,
+                noneLabelKey: "none",
+            }),
         });
 
         if ((isMinConsumption || isMinSales) &&
-            (mostExpensiveConsumableSlot.slotId === null || price > mostExpensiveConsumableSlot.price)) {
+            (mostExpensiveConsumableSlot.slotId === null || slotPrice > mostExpensiveConsumableSlot.price)) {
             mostExpensiveConsumableSlot.slotId = schedule.id;
             mostExpensiveConsumableSlot.pricingLabel = isMinConsumption ? "consumption" : "minSales";
-            mostExpensiveConsumableSlot.price = price;
+            mostExpensiveConsumableSlot.price = slotPrice;
         }
 
         totalOtherPrice += otherPrice;
@@ -930,7 +983,10 @@ const calculateSlots = (
                             : FormatPrice.translate("consumption"),
                         true
                     )
-                    : FormatPrice.formatPriceValue(totalRoomPrice),
+                    : FormatPrice.formatPriceWithType({
+                        price: totalRoomPrice,
+                        noneLabelKey: "none"
+                    }),
                 items,
                 maxMinConsumption: consumablePriceAdjusted,
                 maxMinSales: 0,
@@ -948,7 +1004,10 @@ const calculateSlots = (
                     consumablePriceAdjusted,
                     FormatPrice.translate("minSales")
                 )
-                : FormatPrice.formatPriceValue(consumablePriceAdjusted),
+                : FormatPrice.formatPriceWithType({
+                    price: consumablePriceAdjusted,
+                    noneLabelKey: "none"
+                }),
             items,
             maxMinConsumption: 0,
             maxMinSales: consumablePriceAdjusted,
@@ -967,7 +1026,7 @@ const calculateSlots = (
             //pricingLabel: pricingLabel as PricingLabels,
             context: props.context,
             short: props.short === true,
-            noneLabelKey: "free"
+            noneLabelKey: "none"
         }),
         items,
         maxMinConsumption: 0,
@@ -1090,8 +1149,8 @@ export const calculateBookingPrice = ({
 
     let totalFormatted: string | null | undefined = undefined;
 
-    console.log("applicableSlots: ", basePrice, slotsFromSchedules);
-    console.log("completedSlots: ", basePrice, completedSlots);
+    //console.log("applicableSlots: ", basePrice, slotsFromSchedules);
+    //console.log("completedSlots: ", basePrice, completedSlots);
 
     const slotsResult = calculateSlots(
         completedSlots,
@@ -1118,7 +1177,10 @@ export const calculateBookingPrice = ({
 
     return {
         total: totalPrice,
-        totalFormatted: totalFormatted ?? FormatPrice.formatPriceValue(totalPrice),
+        totalFormatted: totalFormatted ?? FormatPrice.formatPriceWithType({
+            price: totalPrice,
+            noneLabelKey: "none",
+        }),
         maxMinConsumption,
         maxMinSales,
         items,
@@ -1183,11 +1245,11 @@ export const calculateSeating = ({
                     unitPrice: seatingPrice,
                     priceFormatted: FormatPrice.formatPriceWithType({
                         price: seatingTotal,
-                        noneLabelKey: "free",
+                        noneLabelKey: "none",
                     }),
                     unitPriceFormatted: FormatPrice.formatPriceWithType({
                         price: seatingTotal,
-                        noneLabelKey: "free",
+                        noneLabelKey: "none",
                     }),
                 }]
             };
@@ -1206,11 +1268,11 @@ export const calculateSeating = ({
                 unitPrice: seatingPrice,
                 priceFormatted: FormatPrice.formatPriceWithType({
                     price: seatingPrice,
-                    noneLabelKey: "free",
+                    noneLabelKey: "none",
                 }),
                 unitPriceFormatted: FormatPrice.formatPriceWithType({
                     price: seatingPrice,
-                    noneLabelKey: "free",
+                    noneLabelKey: "none",
                 }),
             }]
         };
@@ -1541,5 +1603,41 @@ export class FormatPrice {
         return FormatPrice
             .staticTranslations[key as keyof typeof FormatPrice.staticTranslations]
             ?? key;
+    }
+
+    static makePriceItemNameString = (items?: PriceItem[]): string => {
+        if (!items) {
+            return "";
+        }
+
+        return items?.filter((subItem) => subItem.ignore === undefined && subItem.name)
+            .map((subItem) => subItem.name)
+            .filter((name, index, arr) => arr.indexOf(name) === index) // keep unique names
+            .join(", ") || "";
+    }
+
+    static addPriceLabel = (
+        itemName: string,
+        isMinConsumption: boolean,
+        isMinSales: boolean,
+        short: boolean = false
+    ): string => {
+        let itemPriceLabel: string | null = null;
+
+        if (isMinConsumption) {
+            itemPriceLabel = FormatPrice.translate("consumption", short);
+        } else if (isMinSales) {
+            itemPriceLabel = FormatPrice.translate("minSales", short);
+        }
+
+        if (itemPriceLabel) {
+            if (itemName) {
+                return itemName + ` (${itemPriceLabel})`;
+            } else {
+                return itemPriceLabel;
+            }
+        }
+
+        return itemName;
     }
 }

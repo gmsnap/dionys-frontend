@@ -142,21 +142,16 @@ const ProposalSummary = ({
             >
                 <Typography variant='body1'>
                     <Typography>
-                        Hallo {`${eventConfiguration?.booker?.givenName} ${eventConfiguration?.booker?.familyName}`},
-                    </Typography>
-                    <Typography>
-                        vielen Dank für deine Anfrage. <br />Du hast aktuell folgende Optionen gewählt:
+                        Vielen Dank für deine Anfrage.<br /><br />
+                        Wir schicken dir gleich gerne ein erstes, unverbindliches Angebot zu und melden uns zeitnah persönlich bei dir.<br />
+                        <br />
+                        Wünsche und Fragen kannst du uns gerne als Kommentar mitgeben:
                     </Typography>
                 </Typography>
 
                 {showCalculation && (
                     <EventConfigurationDetails model={eventConfiguration} sx={{ mt: 2, ml: 0 }} />
                 )}
-
-                <Typography variant='body1' sx={{ mt: 2 }}>
-                    Bitte überprüfe deine gewählten Optionen noch einmal und hinterlasse uns weitere Wünsche gerne als Kommentar.<br />
-                    Wir schicken dir gleich ein erstes, unverbindliches Angebot zu und melden uns zeitnah persönlich bei dir.
-                </Typography>
 
                 {/* Notes */}
                 <Grid2 container alignItems="top" rowSpacing={0} sx={{ width: '100%', mt: 2, mb: 1 }}>

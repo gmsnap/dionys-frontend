@@ -161,6 +161,33 @@ const EventPackageForm = ({
         }
     }
 
+    const handleImagesReorder = async (newImages: string[]) => {
+        if (!packageId) {
+            console.error("Event Package ID is not defined")
+            return
+        }
+
+        try {
+            const response = await fetch(`${partnerPackagesBaseUrl}/${packageId}/images/reorder`, {
+                method: "PUT",
+                body: JSON.stringify({ images: newImages }),
+                headers: {
+                    Authorization: `Bearer ${authUser?.idToken}`,
+                    "Content-Type": "application/json",
+                },
+            })
+
+            if (response.ok) {
+                // Update local state with reordered images
+                setImages(newImages)
+                setValue("images", newImages) // Update form model
+                updated?.(packageId)
+            }
+        } catch (error) {
+            console.error("Image reorder failed", error)
+        }
+    }
+
     useEffect(() => {
         // Fetch all locations
         const loadLocations = async () => {
@@ -409,14 +436,14 @@ const EventPackageForm = ({
 
                         {/* Description */}
                         <Grid2 container alignItems="top" rowSpacing={0} sx={{ width: "100%" }}>
-                        <Grid2 size={{ xs: labelWidth }}>
-                                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                        <TooltipInfo
-                                            content="Diese Beschreibung wird auf deiner Website angezeigt, wenn eine Person mehr Informationen zu einem Paket haben möchte."
-                                            label="Beschreibung (Buchungstool)"
-                                        />
-                                    </Box>
-                                </Grid2>
+                            <Grid2 size={{ xs: labelWidth }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                    <TooltipInfo
+                                        content="Diese Beschreibung wird auf deiner Website angezeigt, wenn eine Person mehr Informationen zu einem Paket haben möchte."
+                                        label="Beschreibung (Buchungstool)"
+                                    />
+                                </Box>
+                            </Grid2>
                             <Grid2 size={{ xs: 12, sm: 10, md: 6 }}>
                                 <Controller
                                     name="description"
@@ -474,7 +501,7 @@ const EventPackageForm = ({
                                                         const currentValue = field.value || '';
                                                         const currentLineCount = currentValue.split('\n').length;
                                                         const pastedLineCount = pastedText.split('\n').length;
-                                                        
+
                                                         if (currentLineCount + pastedLineCount - 1 > 5) {
                                                             e.preventDefault();
                                                             // Optionally, you could truncate the pasted text to fit
@@ -785,7 +812,12 @@ const EventPackageForm = ({
                         <Typography variant="h5" sx={{ mt: 5, mb: 2, color: "primary.main" }}>
                             Bilder
                         </Typography>
-                        <ImageUploadForm onImageUpload={handleImageUpload} onImageDelete={handleImageDelete} model={watchedModel} />
+                        <ImageUploadForm
+                            model={watchedModel}
+                            onImageUpload={handleImageUpload}
+                            onImageDelete={handleImageDelete}
+                            onImagesReorder={handleImagesReorder}
+                        />
                     </>
                 )}
             </Box>
