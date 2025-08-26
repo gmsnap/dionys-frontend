@@ -38,7 +38,7 @@ const GridItem: React.FC<GridItemProps> = ({
     initialQuantity,
 }) => {
     const [showInformation, setShowInformation] = useState(false);
-    const [quantity, setQuantity] = useState(initialQuantity);
+    const [quantity, setQuantity] = useState(initialQuantity || 1);
 
     const handleQuantityChange = (newValue: number) => {
         const newQuantity = Math.max(1, Math.min(newValue, maxQuantity || Infinity));
