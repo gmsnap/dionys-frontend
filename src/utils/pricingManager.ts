@@ -83,6 +83,7 @@ export interface BookingPackage {
     priceType: string;
     minPersons: number;
     maxPersons: number;
+    quantity: number;
 };
 
 export interface BookingRoomExtra {
@@ -591,7 +592,7 @@ export const calculateBooking = (booking: Booking): BookingResult => {
                     bookingStart,
                     bookingEnd,
                     persons,
-                );
+                ) * p.quantity;
 
                 if (p.packageCategory === "catering") {
                     bookedConsumption += packagePrice;
@@ -611,7 +612,7 @@ export const calculateBooking = (booking: Booking): BookingResult => {
                         price: packagePrice,
                         noneLabelKey: "none",
                     }),
-                    quantity: calculateUnitQuantity(p.priceType, persons),
+                    quantity: p.quantity, //calculateUnitQuantity(p.priceType, persons),
                     unitPrice,
                     unitPriceFormatted: FormatPrice.formatPriceWithType(
                         { price: unitPrice, noneLabelKey: "none" }
@@ -619,7 +620,14 @@ export const calculateBooking = (booking: Booking): BookingResult => {
                     pos: ++pos,
                 });
 
-                console.log("package ", p.name, p.price, packagePrice, p.priceType);
+                console.log("package ",
+                    p.name,
+                    p.price,
+                    packagePrice,
+                    p.priceType,
+                    p.quantity,
+                    packagePrice
+                );
             });
     }
 

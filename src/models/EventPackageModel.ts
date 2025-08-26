@@ -124,7 +124,10 @@ export const EventPackageValidationSchema = yup.object().shape({
         .optional(),
 });
 
-export const toBookingPackage = (model: EventPackageModel): BookingPackage => ({
+export const toBookingPackage = (
+    model: EventPackageModel,
+    quantity: number
+): BookingPackage => ({
     id: model.id,
     name: model.title,
     packageCategory: model.packageCategory,
@@ -132,4 +135,5 @@ export const toBookingPackage = (model: EventPackageModel): BookingPackage => ({
     priceType: model.priceType as string,
     minPersons: model.minPersons ?? 1,
     maxPersons: model.maxPersons ?? Infinity,
+    quantity: quantity,
 });
