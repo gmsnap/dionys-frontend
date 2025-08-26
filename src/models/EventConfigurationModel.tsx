@@ -22,7 +22,7 @@ export interface EventConfigurationModel {
     bookerId: number | null;
     location: LocationModel | null;
     rooms: RoomModel[] | null;
-    packages: EventPackageModel[] | null;
+    packages: { package: EventPackageModel; quantity: number }[] | null;
     booker: BookingUserModel | null;
     notes: string | null;
     createdAt?: string;
@@ -96,7 +96,9 @@ export const toBooking = (model: EventConfigurationModel): Booking | null => {
         persons: model.persons ?? 1,
         date: new Date(model.date),
         endDate: new Date(model.endDate),
-        packages: model.packages ? model.packages.map(toBookingPackage) : undefined,
+        packages: model.packages
+            ? model.packages.map(p => toBookingPackage(p.package, p.quantity))
+            : undefined,
         rooms: model.rooms ?? undefined,
         roomExtras: model.roomExtras ?? undefined,
     };

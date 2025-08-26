@@ -157,13 +157,13 @@ const EventConfigurationDetails = ({ model, onDeleted, sx }: Props) => {
             <Typography>{formatRooms(model)}</Typography>
 
             <Typography variant="h5" sx={{ mt: 2 }}>Pakete</Typography>
-            {model.packages && model.packages.map((item, index) => (
+            {model.packages && model.packages.map((p, index) => (
                 <Box key={index} sx={{}}>
                     <Typography>
-                        {item.title} ({FormatPrice.formatPriceWithType({
-                            price: item.price,
-                            priceType: item.priceType,
-                            pricingLabel: item.pricingLabel
+                        {p.package.title} ({FormatPrice.formatPriceWithType({
+                            price: p.package.price,
+                            priceType: p.package.priceType,
+                            pricingLabel: p.package.pricingLabel
                         })})
                     </Typography>
                 </Box>

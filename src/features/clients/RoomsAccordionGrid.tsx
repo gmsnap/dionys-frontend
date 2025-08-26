@@ -429,6 +429,7 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
                                             label: calculatedPrice,
                                         },
                                     ]}
+                                    maxQuantity={1}
                                 />
                             </Grid2>
                         );

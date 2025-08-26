@@ -41,7 +41,12 @@ const PackagesAccordeonGrid = ({ packageCategory, sx }: Props) => {
             }
 
             const packageIdSet = new Set(updatedPackageIds.map(p => p.id));
-            const packages = location?.eventPackages?.filter(pkg => packageIdSet.has(pkg.id));
+            const packages = location?.eventPackages
+                ?.filter(pkg => packageIdSet.has(pkg.id))
+                ?.map(pkg => ({
+                    package: pkg,
+                    quantity: updatedPackageIds.find(p => p.id === pkg.id)?.quantity || 1,
+                }));
 
             setEventConfiguration({
                 ...eventConfiguration,
@@ -125,6 +130,9 @@ const PackagesAccordeonGrid = ({ packageCategory, sx }: Props) => {
                             },
                         ]}
                         maxQuantity={p.maxQuantity || undefined}
+                        initialQuantity={eventConfiguration
+                            ?.packageIds
+                            ?.find(pkg => pkg.id === p.id)?.quantity || 1}
                     />
                 </Grid2>
             ))}

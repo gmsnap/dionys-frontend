@@ -20,6 +20,7 @@ interface GridItemProps {
     infoItems?: InfoItem[];
     maxQuantity?: number;
     isActive?: boolean;
+    initialQuantity?: number;
 }
 
 const GridItem: React.FC<GridItemProps> = ({
@@ -34,9 +35,10 @@ const GridItem: React.FC<GridItemProps> = ({
     infoItems,
     maxQuantity,
     isActive,
+    initialQuantity,
 }) => {
     const [showInformation, setShowInformation] = useState(false);
-    const [quantity, setQuantity] = useState(1);
+    const [quantity, setQuantity] = useState(initialQuantity || 1);
 
     const handleQuantityChange = (newValue: number) => {
         const newQuantity = Math.max(1, Math.min(newValue, maxQuantity || Infinity));
