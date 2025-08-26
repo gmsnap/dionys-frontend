@@ -69,6 +69,7 @@ interface Conversation {
   extract: string;
   received: string;
   unread: number;
+  answered: boolean;
 }
 
 interface AttachmentFileData {
@@ -137,45 +138,47 @@ const MessagePage: NextPageWithLayout = () => {
     // start loading first time
     fetchConversationList();
 
-    // start interval for reloading
+    // start interval for reloading, all 3 minutes
     const interval = setInterval(async () => {
       await loadConversationsListFromServer(setIsLoading, false);
-    }, 1 * 20 * 1000);
+    }, 3 * 60 * 1000);
 
     return () => clearInterval(interval);
   }, [partnerUser, authUser]);
 
   // this renders the offer price for a booking
   const formatRooms = (conf: EventConfigurationModel) => {
-          const rooms = conf.rooms;
-  
-          if (!(rooms && conf && conf.date && conf.endDate && conf.persons)) {
-              return <Typography>?</Typography>;
-          }
-  
-          return rooms.map((room) => {
-              const pricings = roomPricings?.filter((p) => p.roomId === room.id);
-              const name = room.name ?? "?";
-              const price = FormatPrice.formatPriceWithType({
-                  price: calculateBookingPrice({
-                      bookingStart: new Date(conf.date!),
-                      bookingEnd: new Date(conf.endDate!),
-                      persons: conf.persons!,
-                      basePrice: room.price,
-                      basePriceType: room.priceType,
-                      excludeExclusive: conf.roomExtras?.some(r => r.roomId === room.id) !== true,
-                      schedules: pricings ?? undefined,
-                      isSingleOperation: true,
-                  }).total,
-              });
-              const isExclusive = room.RoomsEventConfigurations?.isExclusive === true;
-              return (
-                  <Typography key={name}>
-                      {price}
-                  </Typography>
-              );
-          });
-      };
+    const rooms = conf.rooms;
+
+    if (!(rooms && conf && conf.date && conf.endDate && conf.persons)) {
+      return <Typography>?</Typography>;
+    }
+
+    return rooms.map((room) => {
+      const pricings = roomPricings?.filter((p) => p.roomId === room.id);
+      const name = room.name ?? "?";
+      const price = FormatPrice.formatPriceWithType({
+        price: calculateBookingPrice({
+          bookingStart: new Date(conf.date!),
+          bookingEnd: new Date(conf.endDate!),
+          persons: conf.persons!,
+          basePrice: room.price,
+          basePriceType: room.priceType,
+          excludeExclusive: conf.roomExtras?.some(r => r.roomId === room.id) !== true,
+          schedules: pricings ?? undefined,
+          isSingleOperation: true,
+        }).total,
+      });
+
+      const isExclusive = room.RoomsEventConfigurations?.isExclusive === true;
+      
+      return (
+        <Typography key={name}>
+          {price}
+        </Typography>
+      );
+    });
+  };
 
 
   const sortConversations = (convs: EventConversation[], option: SortOption): EventConversation[] => {
@@ -204,7 +207,6 @@ const MessagePage: NextPageWithLayout = () => {
     // if we have unread messages (partner did not click on the conversation button)
     if (conversation.unreadMessages > 0) 
     {
-
       const createdDate = new Date(conversation.lastMessage).getTime();
       const currentDate = new Date().getTime();
 
@@ -301,10 +303,11 @@ const MessagePage: NextPageWithLayout = () => {
           style: {}
         };
 
-        // now loop all conversations
+        // now loop all conversations loaded from the DB
         for (const conversation of data) 
         {
 
+          // if date is set, convert it
           if (eventConversation.date) {
             const date = new Date(eventConversation.date);
             const germanDate = new Intl.DateTimeFormat('de-DE', {
@@ -314,6 +317,7 @@ const MessagePage: NextPageWithLayout = () => {
             eventConversation.formatedTime = germanDate;
           }
 
+          // conversation fits the booked event
           if (conversation.id === event.id.toString()) 
           {
             eventConversation.unreadMessages = conversation.unread;
@@ -321,6 +325,8 @@ const MessagePage: NextPageWithLayout = () => {
             eventConversation.messages = conversation.entries;
 
             eventConversation.lastMessage = conversation.received;
+
+            eventConversation.answered = conversation.answered;
 
             if (conversation.extract) 
             {
@@ -389,13 +395,15 @@ const MessagePage: NextPageWithLayout = () => {
           url: process.env.NEXT_PUBLIC_DOCUMENTS_URL + "/" + (conv.proposalData?.document ?? "")
         }; 
 
+        const bookingDate = conv.createdAt ? new Date(conv.createdAt).toLocaleDateString('de-DE', { hour: "2-digit",  minute: "2-digit",  second: "2-digit", }) : '';
+
         const firstMessage: ChatMessage = {
           id: 0,
           conversationId: conv.id.toString(),
           messageId: "",
           sender: sender,
           receiver: conv.booker?.email ?? "",
-          received: conv.formatedTime,
+          received: bookingDate,
           subject: conv.location?.title ?? "",
           content: "Hallo " + conv.booker?.givenName + ",\nDanke für deine Anfrage bei " + conv.location?.title + 
             ". \nAus Basis deiner ausgewählten Optionen freuen wir uns dir ein indikatives Angebot zu machen.\n" + 
@@ -547,12 +555,16 @@ const MessagePage: NextPageWithLayout = () => {
   const InitReload = (data: EventConversation[]) => {
     const sorted = [...data];
 
+    sorted.sort((a, b) => new Date(b.lastMessage).getTime() - new Date(a.lastMessage).getTime());
+
+    /*
+
     switch (sortOption) {
       case SortOption.Unread:
         sorted.sort((a, b) => b.unreadMessages - a.unreadMessages);
         break;
       case SortOption.Unanswered:
-        sorted.sort((a, b) => Number(!a.answered) - Number(!b.answered));
+        sorted.sort((a, b) => Number(a.answered) - Number(b.answered));
         break;
       case SortOption.Done:
         sorted.sort((a, b) => Number(a.answered) - Number(b.answered));
@@ -562,6 +574,7 @@ const MessagePage: NextPageWithLayout = () => {
         sorted.sort((a, b) => new Date(b.lastMessage).getTime() - new Date(a.lastMessage).getTime());
         break;
   }
+        */
 
   setConversations(prev => {
     // if we have a loaded running conversation
@@ -647,6 +660,7 @@ const handleFileDrop = (files : File[]) => {
 
 
     if (res.ok) {
+      currentConversation.answered = true;
       const responseData = await res.json();
       setMessages((prev) => [...prev, responseData]);
       setNewMessage('');
@@ -663,13 +677,13 @@ const handleFileDrop = (files : File[]) => {
 
   return (
     <Box
-      sx={{ overflowY: 'hidden', overflowX: 'hidden', height: '100%' }}
+      sx={{ overflowY: 'hidden', overflowX: 'hidden', height: '100%'}}
     >
       
       <Container 
-        sx={{ overflowY: 'hidden', overflowX: 'hidden', height: '100%' }}
+        sx={{ overflowY: 'hidden', overflowX: 'hidden', height: '100%'}} 
       >
-        <Box display="flex" height="calc(100vh - 200px)" mt={4}
+        <Box display="flex" height="calc(100vh - 200px)" mt={0}
           sx={{ overflowY: 'auto', overflowX: 'hidden'}}
         >
           {/* Linke Spalte: Konversationen */}
@@ -833,7 +847,7 @@ const handleFileDrop = (files : File[]) => {
             )
             }
             <Typography sx={{ fontSize: '18px', textAlign: 'center' }} variant="h4" gutterBottom>
-              {currentConversation ? `${currentConversation.booker?.givenName} ${currentConversation.booker?.familyName} | Anfrage für ${currentConversation.formatedTime} | ${currentConversation.location?.title} | ${currentConversation.location?.title}` : 'Keine Konversation ausgewählt'}
+              {currentConversation ? `${currentConversation.booker?.givenName} ${currentConversation.booker?.familyName} | Anfrage für ${currentConversation.formatedTime} | ${currentConversation.location?.title}` : 'Keine Konversation ausgewählt'}
             </Typography>
             <Paper 
               elevation={3} 
@@ -1015,7 +1029,18 @@ const handleFileDrop = (files : File[]) => {
                             </IconButton>
                           }
                         >
-                          <ListItemText primary={file.name} />
+                          <ListItemText
+                            primary={
+                              <a
+                                href={uploadedFileUrls[index].url}   // Hier die URL des Dokuments
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{ textDecoration: "none", color: "inherit" }}
+                              >
+                                {file.name}
+                              </a>
+                            }
+                          />
                         </ListItem>
                       ))}
                     </List>
