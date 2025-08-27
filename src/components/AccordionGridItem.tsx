@@ -163,7 +163,7 @@ const GridItem: React.FC<GridItemProps> = ({
                             {isSelected ? 'Ausgewählt' : 'Wählen'}
                         </Button>
                     )}
-                    {isSelected && (maxQuantity === undefined || maxQuantity > 1) && (
+                    {isSelected && (maxQuantity !== undefined && maxQuantity > 1) && (
                         <TextField
                             type="number"
                             value={quantity}
