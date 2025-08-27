@@ -109,9 +109,7 @@ const EventPackageForm = ({
             console.error("Event Package ID is not defined")
             return
         }
-        // Add the new image to the model
         try {
-            // Call API to get presigned URL and upload the file
             const response = await fetch(`${partnerPackagesBaseUrl}/${packageId}/images`, {
                 method: "POST",
                 body: JSON.stringify({ image }),
@@ -121,9 +119,8 @@ const EventPackageForm = ({
                 },
             })
             if (response.ok) {
-                // Update local state with the new image
                 setImages((prevImages) => [...prevImages, image])
-                setValue("images", [...images, image]) // Update form model
+                setValue("images", [...images, image])
                 updated?.(packageId)
             }
         } catch (error) {
@@ -136,9 +133,7 @@ const EventPackageForm = ({
             console.error("Event Package ID is not defined")
             return
         }
-
         try {
-            // Call API to get presigned URL and upload the file
             const response = await fetch(`${partnerPackagesBaseUrl}/${packageId}/images`, {
                 method: "DELETE",
                 body: JSON.stringify({ image }),
@@ -148,12 +143,8 @@ const EventPackageForm = ({
                 },
             })
             if (response.ok) {
-                // Update local state to remove the deleted image
                 setImages((prevImages) => prevImages.filter((img) => img !== image))
-                setValue(
-                    "images",
-                    images.filter((img) => img !== image),
-                ) // Update form model
+                setValue("images", images.filter((img) => img !== image))
                 updated?.(packageId)
             }
         } catch (error) {
@@ -166,7 +157,6 @@ const EventPackageForm = ({
             console.error("Event Package ID is not defined")
             return
         }
-
         try {
             const response = await fetch(`${partnerPackagesBaseUrl}/${packageId}/images/reorder`, {
                 method: "PUT",
@@ -176,11 +166,9 @@ const EventPackageForm = ({
                     "Content-Type": "application/json",
                 },
             })
-
             if (response.ok) {
-                // Update local state with reordered images
                 setImages(newImages)
-                setValue("images", newImages) // Update form model
+                setValue("images", newImages)
                 updated?.(packageId)
             }
         } catch (error) {
@@ -189,7 +177,6 @@ const EventPackageForm = ({
     }
 
     useEffect(() => {
-        // Fetch all locations
         const loadLocations = async () => {
             try {
                 const locationsData = await fetchLocationsByCompanyId(companyId, setLoading, setError)
@@ -198,29 +185,25 @@ const EventPackageForm = ({
                 console.error("Error fetching locations", error)
             }
         }
-
         loadLocations()
-    }, [])
+    }, [companyId])
 
     useEffect(() => {
         if (watchedModel.images) {
             setImages(watchedModel.images)
         }
-    }, [watchedModel])
+    }, [watchedModel.images])
 
     useEffect(() => {
         setResponseMessage("")
-
         if (!authUser) {
             setError("Keine Berechtigung. Bitte melden Sie sich an.")
             return
         }
-
         if (packageId === null) {
             setError("Ungültige Paket-ID")
             return
         }
-
         const fetchData = async () => {
             try {
                 setLoading(true)
@@ -234,6 +217,9 @@ const EventPackageForm = ({
                     throw new Error(`Failed to fetch event package with id ${packageId}`)
                 }
                 const data = await response.json()
+                if (data.maxQuantity === null) {
+                    data.maxQuantity = 1
+                }
                 reset(data)
             } catch (err) {
                 if (err instanceof Error) {
@@ -245,36 +231,15 @@ const EventPackageForm = ({
                 setLoading(false)
             }
         }
-
         if (packageId > 0) {
             fetchData()
         } else {
             if (locationId && locationId > 0) {
-                // Set locationId in the form
                 setValue("locationId", locationId)
-            } else {
-                //setError('Ungültige Location-ID');
             }
-
             setLoading(false)
         }
-    }, [packageId])
-
-    useEffect(() => {
-        // Clear minPersons, maxPersons, and maxQuantity when packageId changes
-        setValue("minPersons", null)
-        setValue("maxPersons", null)
-        setValue("maxQuantity", null)
-    }, [setValue])
-
-    useEffect(() => {
-        // Clear minPersons, maxPersons, and maxQuantity when packageId changes
-        if (packageId === 0 || packageId === null) {
-            setValue("minPersons", null)
-            setValue("maxPersons", null)
-            setValue("maxQuantity", null)
-        }
-    }, [packageId, setValue])
+    }, [packageId, locationId, authUser, reset, setValue])
 
     useEffect(() => {
         const loadLocationsAndRooms = async () => {
@@ -282,11 +247,13 @@ const EventPackageForm = ({
                 setLoading(true)
                 const locationsData = await fetchLocationsByCompanyId(companyId, setLoading, setError)
                 setLocations(locationsData ?? [])
-
-                // Fetch rooms if locationId is provided
-                if (locationId) {
-                    const roomsData = await fetchRooms(locationId, setLoading, setError)
+                if (watchedModel.locationId) {
+                    const roomsData = await fetchRooms(watchedModel.locationId, setLoading, setError)
                     setRooms(roomsData || [])
+                    if (packageId === 0 && roomsData?.length > 0) {
+                        const allRoomIds = roomsData.map((room: RoomModel) => room.id)
+                        setValue("roomIds", allRoomIds)
+                    }
                 }
             } catch (error) {
                 console.error("Error fetching data", error)
@@ -294,63 +261,34 @@ const EventPackageForm = ({
                 setLoading(false)
             }
         }
-
         loadLocationsAndRooms()
-    }, [companyId, locationId])
-
-    useEffect(() => {
-        const loadRooms = async () => {
-            if (watchedModel.locationId) {
-                try {
-                    setLoading(true);
-                    const roomsData = await fetchRooms(watchedModel.locationId, setLoading, setError);
-                    setRooms(roomsData || []);
-
-                    // Pre-select all rooms for new package (packageId === 0)
-                    if (packageId === 0 && roomsData?.length > 0) {
-                        const allRoomIds = roomsData.map((room: RoomModel) => room.id);
-                        setValue("roomIds", allRoomIds);
-                    }
-                } catch (error) {
-                    console.error("Error fetching rooms", error);
-                } finally {
-                    setLoading(false);
-                }
-            }
-        };
-
-        loadRooms();
-    }, [watchedModel.locationId, packageId, setValue]);
+    }, [companyId, watchedModel.locationId, packageId, setValue])
 
     useEffect(() => {
         imagesChanged?.(images)
-    }, [images])
+    }, [images, imagesChanged])
 
     const onSubmit = async (data: any) => {
-        setIsSubmitting(true);
-        setError(null);
-        setShowSuccess(false);
-        setResponseMessage("");
-
+        setIsSubmitting(true)
+        setError(null)
+        setShowSuccess(false)
+        setResponseMessage("")
         try {
             const isEdit = packageId && packageId > 0
             const url = isEdit ? `${partnerPackagesBaseUrl}/${packageId}` : `${partnerPackagesBaseUrl}`
-
             const method = isEdit ? "PUT" : "POST"
-
-            // Ensure we're sending roomIds instead of rooms
             const submitData = { ...data }
 
             // Remove rooms property if it exists and ensure roomIds is present
             if (submitData.rooms) {
                 delete submitData.rooms
             }
-
-            // Make sure roomIds is an array
             if (!submitData.roomIds) {
                 submitData.roomIds = []
             }
-
+            if (submitData.maxQuantity === null) {
+                submitData.maxQuantity = 1
+            }
             const response = await fetch(url, {
                 method,
                 headers: {
@@ -359,30 +297,26 @@ const EventPackageForm = ({
                 },
                 body: JSON.stringify(submitData),
             })
-
             if (!response.ok) {
                 setError("Fehler beim Speichern des Paketes.")
                 return
             }
-
             if (isEdit) {
-                reset(data)
+                reset({ ...data, maxQuantity: submitData.maxQuantity })
                 setShowSuccess(true)
                 setResponseMessage("Paket gespeichert!")
                 updated?.(packageId)
                 return
             }
-
             const responseData = await response.json()
             const newId = responseData?.model?.id
             if (newId) {
-                reset(data)
+                reset({ ...data, maxQuantity: submitData.maxQuantity })
                 setShowSuccess(true)
                 setResponseMessage("Paket gespeichert!")
                 created?.(newId)
                 return
             }
-
             setShowSuccess(false)
             setError("Fehler beim Speichern des Paketes.")
         } catch (error) {
@@ -456,7 +390,6 @@ const EventPackageForm = ({
                                 />
                             </Grid2>
                         </Grid2>
-
                         <Grid2 size={12} sx={{ mb: 2 }}>
                             <Grid2 size={12} sx={{ mb: 0 }}>
                                 <Box sx={{ display: "flex", alignItems: "center" }}>
@@ -497,19 +430,15 @@ const EventPackageForm = ({
                                                             }
                                                         }
                                                     };
-
                                                     const handlePaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
                                                         const pastedText = e.clipboardData.getData('text');
                                                         const currentValue = field.value || '';
                                                         const currentLineCount = currentValue.split('\n').length;
                                                         const pastedLineCount = pastedText.split('\n').length;
-
                                                         if (currentLineCount + pastedLineCount - 1 > 5) {
                                                             e.preventDefault();
-                                                            // Optionally, you could truncate the pasted text to fit
                                                         }
                                                     };
-
                                                     return (
                                                         <TextField
                                                             {...field}
@@ -605,7 +534,6 @@ const EventPackageForm = ({
 
                         {/* Persons */}
                         <Grid2 container size={{ xs: 12, sm: 10 }} spacing={0} alignItems="top">
-                            {/* Label */}
                             <Grid2 size={{ xs: 12, md: labelWidth }}>
                                 <Typography variant="label">Personenanzahl</Typography>
                             </Grid2>
@@ -664,7 +592,32 @@ const EventPackageForm = ({
                                 />
                             </Grid2>
                         </Grid2>
-
+                        <Grid2 container size={{ xs: 12, sm: 10 }} spacing={0} alignItems="top">
+                            <Grid2 size={{ xs: 12, md: labelWidth }}>
+                                <Typography variant="label">Maximale Menge</Typography>
+                            </Grid2>
+                            <Grid2 size={{ xs: 12, sm: 10, md: 6 }}>
+                                <Controller
+                                    name="maxQuantity"
+                                    control={control}
+                                    render={({ field }) => (
+                                        <TextField
+                                            {...field}
+                                            value={field.value ?? ""}
+                                            onChange={(e) => {
+                                                const value = e.target.value === "" ? null : Number(e.target.value)
+                                                field.onChange(value)
+                                            }}
+                                            variant="outlined"
+                                            placeholder="unbegrenzt"
+                                            type="number"
+                                            error={!!errors.maxQuantity}
+                                            helperText={errors.maxQuantity?.message}
+                                        />
+                                    )}
+                                />
+                            </Grid2>
+                        </Grid2>
                         <Grid2 container alignItems="top" rowSpacing={0} sx={{ width: "100%" }}>
                             <Grid2 size={{ xs: 12, sm: labelWidth }}>
                                 <Typography variant="label">Location</Typography>
@@ -728,14 +681,11 @@ const EventPackageForm = ({
                                                     if (!selected || selected.length === 0) {
                                                         return <em>Alle Räume</em>
                                                     }
-
                                                     const charLimit = isSlimView ? 30 : 50;
-
                                                     const selectedNames = selected
                                                         .map((id) => rooms.find((room) => room.id === id)?.name)
                                                         .filter(Boolean)
                                                         .join(", ");
-
                                                     return (
                                                         <Box
                                                             sx={{
@@ -745,7 +695,7 @@ const EventPackageForm = ({
                                                                 textOverflow: "clip",
                                                                 whiteSpace: "nowrap",
                                                             }}
-                                                            title={selectedNames} // full string on hover
+                                                            title={selectedNames}
                                                         >
                                                             {selectedNames.length > charLimit
                                                                 ? selectedNames.substring(0, charLimit - 3) + "..."
@@ -767,35 +717,6 @@ const EventPackageForm = ({
                                 />
                             </Grid2>
                         </Grid2>
-
-                        {/* Max Quantity */}
-                        <Grid2 container size={{ xs: 12, sm: 10 }} spacing={0} alignItems="top">
-                            <Grid2 size={{ xs: 12, md: labelWidth }}>
-                                <Typography variant="label">Maximale Menge</Typography>
-                            </Grid2>
-                            <Grid2 size={{ xs: 12, sm: 10, md: 6 }}>
-                                <Controller
-                                    name="maxQuantity"
-                                    control={control}
-                                    render={({ field }) => (
-                                        <TextField
-                                            {...field}
-                                            value={field.value ?? ""}
-                                            onChange={(e) => {
-                                                const value = e.target.value === "" ? null : Number(e.target.value)
-                                                field.onChange(value)
-                                            }}
-                                            variant="outlined"
-                                            placeholder="unbegrenzt"
-                                            type="number"
-                                            error={!!errors.maxQuantity}
-                                            helperText={errors.maxQuantity?.message}
-                                        />
-                                    )}
-                                />
-                            </Grid2>
-                        </Grid2>
-
                         <Box
                             gap={2}
                             sx={{
@@ -804,7 +725,6 @@ const EventPackageForm = ({
                                 mt: 2,
                             }}
                         >
-                            {/* Submit */}
                             <SaveButton
                                 title={submitButtonCaption || "Speichern"}
                                 isSubmitting={isSubmitting}
@@ -814,7 +734,6 @@ const EventPackageForm = ({
                                 messagePosition="bottom"
                                 onFadeOut={() => setShowSuccess(false)}
                             />
-
                             {packageId > 0 && (
                                 <DeleteButton
                                     isDisabled={isSubmitting}
@@ -828,8 +747,6 @@ const EventPackageForm = ({
                                 />
                             )}
                         </Box>
-
-                        {/* Messages */}
                         {error && (
                             <Grid2 size={{ xs: controlWidth }}>
                                 <Typography color="error">{error}</Typography>
