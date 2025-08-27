@@ -39,7 +39,7 @@ export const createEmptyEventPackageModel = (
     maxPersons: null,
     images: [],
     eventCategories: [...AvailableEventCategories],
-    maxQuantity: null,
+    maxQuantity: 1,
     roomIds: [],
 });
 
