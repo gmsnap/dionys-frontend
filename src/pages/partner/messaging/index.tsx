@@ -457,10 +457,9 @@ const MessagePage: NextPageWithLayout = () => {
 
   const doFileUpload = async (file: File) => {
 
+      console.log("upload file");
       setIsDisabled(true);
       setUploading(true);
-
-      setSelectedFile((prev) => [...prev, file]);
 
       try {
         // Call API to get presigned URL and upload the file
@@ -483,6 +482,7 @@ const MessagePage: NextPageWithLayout = () => {
         } as AttachmentFileData;
 
         setUploadedFileUrls((prev) => [...prev, fileData]);
+        setSelectedFile((prev) => [...prev, file]);
       } catch (error) {
         console.error("Image upload failed", error);
       } finally {
