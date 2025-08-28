@@ -838,7 +838,7 @@ const calculateSlots = (
                             slotPrice = 0;
                         }
                     } else {
-                        slotPrice = exclusivePrice;
+                        //slotPrice = 0;
                         isMinConsumption = false;
                         isMinSales = true;
                     }
