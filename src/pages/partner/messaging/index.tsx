@@ -457,7 +457,6 @@ const MessagePage: NextPageWithLayout = () => {
 
   const doFileUpload = async (file: File) => {
 
-      console.log("upload file");
       setIsDisabled(true);
       setUploading(true);
 
