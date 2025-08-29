@@ -45,6 +45,10 @@ export interface PricingSlot {
     pricingLabel: string;
     exclusivePricingLabel?: string;
     customName?: string;
+    minPersons: number | null;
+    maxPersons: number | null;
+    prepTime: number | null;
+    followUpTime: number | null;
 };
 
 export interface BookingSeating {
@@ -206,13 +210,16 @@ const calculatePriceByPriceType = (
     startDate: Date,
     endDate: Date,
     persons: number,
+    additionalMinutes: number = 0,
 ) => {
     // Normalize price to number in case API provided a string
     const numericPrice: number = Number(price as unknown as number);
     if (!Number.isFinite(numericPrice)) {
         return 0;
     }
-    const hours = differenceInMinutes(endDate, startDate) / 60;
+    const hours = isNaN(additionalMinutes)
+        ? differenceInMinutes(endDate, startDate) / 60 :
+        (differenceInMinutes(endDate, startDate) + additionalMinutes) / 60;
 
     switch (priceType) {
         case "hour":
@@ -370,12 +377,23 @@ export const completeSlots = (
 export const getApplicableSlots = (
     bookingStart: Date,
     bookingEnd: Date,
+    persons: number | null,
     schedules?: PricingSlot[],
 ): { schedule: PricingSlot, segmentStart: Date, segmentEnd: Date }[] => {
     const applicableSlots: { schedule: PricingSlot, segmentStart: Date, segmentEnd: Date }[] = [];
 
     schedules?.forEach((schedule) => {
         const doLog = false;//schedule.id === 40;
+
+        if (persons != null) {
+            if (schedule.minPersons != null && persons < schedule.minPersons) {
+                return;
+            }
+            if (schedule.maxPersons != null && persons > schedule.maxPersons) {
+                return;
+            }
+        }
+
         const scheduleStartDayOfWeek = schedule.startDayOfWeek == 6 ? 0 : schedule.startDayOfWeek + 1;
         const scheduleEndDayOfWeek = schedule.endDayOfWeek == 6 ? 0 : schedule.endDayOfWeek + 1;
 
@@ -829,7 +847,8 @@ const calculateSlots = (
                 } else if (isExclusiveMinSales) {
                     if (isMinConsumption) {
                         if (exclusivePrice > slotPrice) {
-                            slotPrice = exclusivePrice;
+                            //slotPrice = exclusivePrice;
+                            slotPrice = 0;
                             isMinConsumption = false;
                             isMinSales = true;
                         }
@@ -938,6 +957,8 @@ const calculateSlots = (
         const schedule = slot.schedule;
         const segmentStart = slot.segmentStart;
         const segmentEnd = slot.segmentEnd;
+        const prepTime = schedule.prepTime != null ? Number(schedule.prepTime) : 0;
+        const followUpTime = schedule.followUpTime != null ? Number(schedule.followUpTime) : 0;
 
         const extraPrice = calculatePriceByPriceType(
             schedule.price,
@@ -945,6 +966,7 @@ const calculateSlots = (
             segmentStart,
             segmentEnd,
             props.persons,
+            (prepTime + followUpTime) * 60,
         );
 
         additionalItems.push({
@@ -1063,52 +1085,11 @@ const createDefaultSlot = (
         exclusiveType: "optional",
         exclusivePriceType: null,
         exclusivePrice: null,
+        minPersons: null,
+        maxPersons: null,
+        prepTime: null,
+        followUpTime: null
     };
-};
-
-const calculateDefaultSlot = ({
-    bookingStart,
-    bookingEnd,
-    persons,
-    basePrice,
-    basePriceType,
-    basePriceLabel,
-    excludeRoomPrice,
-    excludeExclusive,
-    seating,
-    seatings,
-    context,
-    short,
-    isSingleOperation,
-}: BookingPriceProps
-) => {
-    // Create and use a default schedule for room base pricing
-    // when no ranges / schedules are found
-    const defaultSchedule: PricingSlot = createDefaultSlot(
-        basePrice,
-        basePriceType,
-        basePriceLabel
-    );
-
-    return calculateSlots(
-        [{
-            schedule: defaultSchedule,
-            segmentStart: bookingStart,
-            segmentEnd: bookingEnd
-        }],
-        {
-            bookingStart,
-            bookingEnd,
-            persons,
-            excludeRoomPrice,
-            excludeExclusive,
-            seating,
-            seatings,
-            context,
-            short,
-            isSingleOperation,
-        }
-    );
 };
 
 export const calculateBookingPrice = ({
@@ -1143,7 +1124,7 @@ export const calculateBookingPrice = ({
     let maxMinConsumption = 0;
     let maxMinSales = 0;
 
-    const slotsFromSchedules = getApplicableSlots(bookingStart, bookingEnd, schedules);
+    const slotsFromSchedules = getApplicableSlots(bookingStart, bookingEnd, persons, schedules);
 
     // Get complete coverage of the booking period
     const completedSlots = completeSlots(
