@@ -18,6 +18,10 @@ export interface RoomPricingModel {
     exclusivePrice: number | null;
     exclusivePricingLabel: string;
     customName?: string;
+    minPersons: number | null;
+    maxPersons: number | null;
+    prepTime: number | null;
+    followUpTime: number | null;
 }
 
 export const createEmptyRoomPricingModel = (roomId: number): RoomPricingModel => ({
@@ -35,6 +39,10 @@ export const createEmptyRoomPricingModel = (roomId: number): RoomPricingModel =>
     exclusivePriceType: "none",
     exclusivePrice: null,
     exclusivePricingLabel: "exact",
+    minPersons: null,
+    maxPersons: null,
+    prepTime: null,
+    followUpTime: null,
 })
 
 export const toPricingSlot = (roomPricing: RoomPricingModel): PricingSlot => {
@@ -51,5 +59,10 @@ export const toPricingSlot = (roomPricing: RoomPricingModel): PricingSlot => {
         exclusiveType: roomPricing.exclusiveType,
         exclusivePriceType: roomPricing.exclusivePriceType,
         exclusivePrice: roomPricing.exclusivePrice,
+        exclusivePricingLabel: roomPricing.exclusivePricingLabel,
+        minPersons: roomPricing.minPersons,
+        maxPersons: roomPricing.maxPersons,
+        prepTime: roomPricing.prepTime,
+        followUpTime: roomPricing.followUpTime
     };
 };

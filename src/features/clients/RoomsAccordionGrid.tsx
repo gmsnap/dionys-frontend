@@ -82,6 +82,7 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
                     const applicableSlots = getApplicableSlots(
                         new Date(eventConfiguration.date),
                         new Date(eventConfiguration.endDate),
+                        eventConfiguration.persons,
                         schedules
                     );
 
@@ -209,6 +210,7 @@ const RoomsAccordionGrid = ({ sx }: VenueSelectorProps) => {
             ? getApplicableSlots(
                 new Date(eventConfiguration.date),
                 new Date(eventConfiguration.endDate),
+                eventConfiguration.persons,
                 pricings
             )
             : [];
