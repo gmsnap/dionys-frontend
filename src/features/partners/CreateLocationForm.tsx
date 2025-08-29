@@ -27,6 +27,7 @@ import { WaitIcon } from '@/components/WaitIcon';
 import EventCategoriesEditor from "./EventCategoriesEditor";
 import { uploadFile } from "@/utils/fileUtil";
 import SaveButton from "@/components/SaveButton";
+import { url } from "inspector";
 
 // Validation schema
 const locationValidationSchema = yup.object().shape({
@@ -102,6 +103,10 @@ const locationValidationSchema = yup.object().shape({
                 return Object.values(value).every(field => field !== null && field !== undefined);
             }
         ),
+    url: yup
+        .string()
+        .url('Please enter a valid URL')
+        .nullable(),
 });
 
 interface LocationFormProps {
@@ -428,6 +433,30 @@ const LocationForm = ({
                                                         variant="outlined"
                                                         error={!!errors.postalCode}
                                                         helperText={errors.postalCode?.message}
+                                                    />
+                                                )}
+                                            />
+                                        </Grid2>
+                                    </Grid2>
+                                </Grid2>
+
+                                {/* Url */}
+                                <Grid2 size={{ xs: 12, sm: gridColumnsLarge }}>
+                                    <Grid2 container alignItems="flex-start">
+                                        <Grid2 size={{ xs: 12, sm: 4 }} >
+                                            <Typography variant="label">Website</Typography>
+                                        </Grid2>
+                                        <Grid2 size={{ xs: 12, sm: 8 }}>
+                                            <Controller
+                                                name="url"
+                                                control={control}
+                                                render={({ field }) => (
+                                                    <TextField
+                                                        {...field}
+                                                        fullWidth
+                                                        variant="outlined"
+                                                        error={!!errors.url}
+                                                        helperText={errors.url?.message}
                                                     />
                                                 )}
                                             />
