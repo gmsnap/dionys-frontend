@@ -20,6 +20,7 @@ export interface LocationModel {
     image: string | File | null;
     price: number | null;
     billingAddressId: number | null;
+    url: string | null;
     eventCategories: EventCategories[];
     rooms: RoomModel[] | null;
     billingAddress: AddressModel | null;
@@ -41,6 +42,7 @@ export const createEmptyLocationModel = (companyId: number): LocationModel => ({
     image: null,
     price: 0,
     billingAddressId: null,
+    url: null,
     eventCategories: [],
     rooms: [],
     billingAddress: null,
